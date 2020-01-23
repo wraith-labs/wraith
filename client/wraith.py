@@ -188,11 +188,9 @@ while True:
         # Continue to the next loop (re-send heartbeat)
         continue
 
-    break # TMP
-
     if len(wraith.command_queue) > 0:
         pass#wraith.runCommands()
         # TODO
     else:
-        # Delay sending requests to prevent DDoSing our own server
+        # Delay sending hearbeats to prevent DDoSing our own server
         time.sleep(3)
