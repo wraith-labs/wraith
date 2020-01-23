@@ -13,6 +13,8 @@ import sys
 import socket
 import time
 import platform
+import shutil
+import getpass
 from uuid import getnode as get_mac
 
 # Get start time of this wraith
@@ -94,6 +96,17 @@ class Wraith(object):
         finally: s.close()
         return IP
 
+    # Get details about the running processes
+    def get_running_processes(self):
+        running_processes = {}
+        undetected_process_count = 0
+        for proc in psutil.process_iter():
+            try:
+                running_processes[proc.name()] = proc.as_dict(attrs=["pid", "create_time"])
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                undetected_process_count += 1
+        return running_processes, undetected_process_count
+
     # Log in with the api
     def login(self):
         # Create the data we need to send
@@ -125,12 +138,12 @@ class Wraith(object):
         data["message_type"] = "heartbeat"
         data["data"] = { # Add some data for the server to record
             "info": {
-                "active_processes": "", # TODO
-                "running_as_user": "",
-                "available_ram": "",
-                "used_ram": "",
-                "available_disk": "",
-                "used_disk": "",
+                "active_processes": [self.get_running_processes()],
+                "running_as_user": getpass.getuser(),
+                "available_ram": psutil.virtual_memory().free,
+                "used_ram": psutil.virtual_memory().used,
+                "available_disk": shutil.disk_usage("/")[2],
+                "used_disk": shutil.disk_usage("/")[1],
                 "local_ip": self.get_ip(),
                 "macaddr": get_mac(),
                 "os_type": platform.platform(),
