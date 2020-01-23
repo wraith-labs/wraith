@@ -43,7 +43,7 @@ if ($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"] &
 
 <!--
 
-Why are you looking here? Don' you have something
+Why are you looking here? Don't you have something
 better to do? Surely you do? Right? Then go do it.
  :]
 
