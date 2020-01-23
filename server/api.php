@@ -247,7 +247,7 @@ if ($response["requester_type"] === "wraith") {
 	if ($req_type === "loginpanel") {
 		// When the panel logs in
 		// Make sure the panel is actually logged in
-		if !($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"] && $_SESSION["PASSWORD"] == $db["password"]) {
+		if (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"] && $_SESSION["PASSWORD"] == $db["password"])) {
 			$response["status"] = "ERROR";
 			$response["message"] = "Not logged in!";
 			respond();
