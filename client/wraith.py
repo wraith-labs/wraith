@@ -132,6 +132,7 @@ class Wraith(object):
                 "available_disk": "",
                 "used_disk": "",
                 "local_ip": self.get_ip(),
+                "macaddr": get_mac_address(ip=self.get_ip()),
                 "os_type": platform.platform(),
                 "os_name": socket.gethostname(),
             },
