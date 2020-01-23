@@ -1,0 +1,18 @@
+All files in this directory ending with .py will be interpreted as
+commands to send to the wraith on login. Each file should contain code which
+is meant to be execued when the file's name is used as a command.
+For example:
+
+========= example.py =========
+print("Example command")
+print("This is a test!")
+=========            =========
+
+wraith << example
+wraith >> Example command\nThis is a test!
+
+Functions or classes should not be defined unless used directly by this
+command and all commands will run in separate processes, which will report
+to the wraith using a socket.
+Each command will have a pre-defined class called `wraith` where it will be
+able to modify the main wraith object.

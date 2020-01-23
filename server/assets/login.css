@@ -1,0 +1,25 @@
+.login {
+  background-color: #222;
+  padding: 20px 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.login h1 {
+  color: #fff;
+  font-size: 30px;
+}
+
+.login input {
+  background:    #1a551a;
+  border-radius: 5px;
+  padding:       5px 15px;
+  color:         #ffffff;
+  display:       inline-block;
+  text-align:    center;
+}
+
+.login input[type="username"], input[type="password"] {
+  display: block;
+  margin: 10px;
+}

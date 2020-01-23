@@ -1,0 +1,12 @@
+html, body {
+  background-color: #333;
+  font-family: "Lato", sans-serif;
+}
+
+.center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+

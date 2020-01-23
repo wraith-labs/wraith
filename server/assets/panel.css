@@ -1,0 +1,47 @@
+.sidenav {
+  height: 100%;
+  width: 160px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+.sidenav h3 {
+  color: #eee;
+  display: inline-block;
+  margin: auto;
+}
+
+.sidenav a {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  border-top: 1px solid grey;
+  border-bottom: 1px solid grey;
+}
+
+.sidenav a:hover {
+  color: #f1f1f1;
+}
+
+.page {
+  margin-left: 160px;
+  font-size: 28px;
+  padding: 0px 10px;
+  display: none;
+}
+
+.page:target {
+  display: block;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
