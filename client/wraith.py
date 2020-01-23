@@ -13,7 +13,7 @@ import sys
 import socket
 import time
 import platform
-from getmac import get_mac_address
+from uuid import getnode as get_mac
 
 # Get start time of this wraith
 start_time = time.time()
@@ -102,12 +102,12 @@ class Wraith(object):
         data["data"] = {
             "osname": socket.gethostname(),
             "ostype": platform.platform(),
-            "macaddr": get_mac_address(ip=self.get_ip()),
+            "macaddr": get_mac(),
         }
         # Send the request
         response = self.api(data)
         # Check the data received back
-        if type(response) == type({}) and response["status"] == "SUCCESS":
+        if isinstance(response, type({})) and response["status"] == "SUCCESS":
             # If the server did not identify itself correctly, fail
             if response["server_id"] != TRUSTED_SERVER: return False
             # Save given ID as wraith ID. We'll identify ourselves with it from now on
@@ -132,7 +132,7 @@ class Wraith(object):
                 "available_disk": "",
                 "used_disk": "",
                 "local_ip": self.get_ip(),
-                "macaddr": get_mac_address(ip=self.get_ip()),
+                "macaddr": get_mac(),
                 "os_type": platform.platform(),
                 "os_name": socket.gethostname(),
             },
