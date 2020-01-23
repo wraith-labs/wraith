@@ -1,6 +1,5 @@
 Client:
  - PyCryptoDome (or equivalent)
  - PsUtil
- - GetMac
 
 Server:
