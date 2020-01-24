@@ -74,13 +74,14 @@ class Wraith(object):
         # If for some reason the request failed, return False
         except: return False
         # Attempt to decrypt the response with the crypt object and key
+        response_is_crypt = True
         try: response = self.crypt.decrypt(response, self.CRYPT_KEY)
         # If this fails, the message must be unencrypted. Ignore the err and try to JSON decode
-        except: pass
+        except: response_is_crypt = False
         try:
             response = json.loads(response)
             # If we are meant to log, log
-            if INTERACTION_LOGGING: print("\n[SERVER]:\n"+json.dumps(response)+"\n")
+            if INTERACTION_LOGGING: print("\n[SERVER]:\n"+json.dumps(response)+"\nISCRYPT: {}\n".format(response_is_crypt))
             # If all worked out well, return the response as a dict. If something failed, return False
             return response
         except: return False
