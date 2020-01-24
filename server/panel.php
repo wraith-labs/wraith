@@ -12,6 +12,8 @@ $db = get_db();
 if (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"] && $_SESSION["PASS"] == $db["PASSWORD"])) {
 	header("Location: login.php");
 	die("Log in first!");
+} else {
+	panel_login();
 }
 
 // Request credentials from the API
@@ -34,7 +36,13 @@ better to do? Surely you do? Right? Then go do it.
 		<link href="assets/all.css" rel="stylesheet" type="text/css">
 		<link href="assets/panel.css" rel="stylesheet" type="text/css">
 		<script type="text/javascript" src="assets/panel.js"></script>
+		<script type="text/javascript" src="assets/api.js"></script>
 		<script type="text/javascript" src="assets/crypto.js"></script>
+		<script type="text/javascript">
+			<?php $db = get_db(); ?>
+			const current_panel_login_token = <?php echo $db["current_panel_login_token"]; ?>;
+			const current_panel_crypt_key = <?php echo $db["current_panel_crypt_key"]; ?>;
+		</script>
 	</head>
 	<body>
 		<div class="sidenav" id="sidenav">
