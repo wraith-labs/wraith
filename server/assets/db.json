@@ -3,6 +3,16 @@
     "password": "passme",
     "server_id": "VWIVWNODCOWQPSPL",
     "active_wraith_clients": {
+        "60851d6a-4492-416a-a3b4-9105f67152bc": {
+            "osname": "osdlt",
+            "ostype": "Linux-4.12.14-lp151.28.36-default-x86_64-with-glibc2.3.4",
+            "macaddr": 80202068543290,
+            "extra_info": [],
+            "command_queue": [],
+            "extip": "176.27.198.0",
+            "logintime": 1579887639,
+            "lastheartbeat": 1579887649
+        }
     },
     "panel_login_history": [],
     "current_panel_login_token": null,

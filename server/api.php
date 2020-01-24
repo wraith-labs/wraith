@@ -36,7 +36,7 @@ function respond($crypt=true) {
 // Get the request body
 $req_body = file_get_contents("php://input");
 
-// Set request body as one of values to return. For debugging only.
+// Set original request body as one of values to return. For debugging only.
 //$response["orig_request_body"] = $req_body;
 
 // Find if the request is valid
