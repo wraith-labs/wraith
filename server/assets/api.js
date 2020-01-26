@@ -1,4 +1,6 @@
 function api(args) {
+	args["panel_token"] = current_panel_login_token;
+
 	const Http = new XMLHttpRequest();
 	const api_url="/api.php";
 	const key = current_panel_crypt_key;

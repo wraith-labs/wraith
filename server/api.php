@@ -1,7 +1,7 @@
 <?php
 // The API page is entirely PHP and returns JSON replies. It is used by both the panel and the
 // wraith clients. At every request, each must identify themselves before they may continue. Wraiths
-// have a predefined access code
+// have an access code defined on login
 
 // Include some required functions
 require_once("assets/functions.php");
@@ -108,24 +108,28 @@ if (!($wraith_decrypted_message === null) && !(get_db()["settings"]["wraith_swit
 	$response["switch_key"] = get_db()["settings"]["wraith_switch_key"];
 }
 
-// From now on, all responses must be encrypted as we know the client
-// is capable of encrypted communication.
-
 // Let's make sure the wraith or panel headers are valid
 if ($response["requester_type"] === "wraith") {
 	// Check existence of all required keys
 	if (!(haskeys($request, ["message_type","data"]))) {
 		$response["status"] = "ERROR";
 		$response["message"] = "Missing required client headers";
-		respond();
+		respond(false);
 	}
 } elseif ($response["requester_type"] === "panel") {
-	if (!(haskeys($request, ["message_type","data"]))) {
+	if (!(haskeys($request, ["message_type","data","panel_token"]))) {
 		$response["status"] = "ERROR";
 		$response["message"] = "Missing required panel headers";
-		respond();
+		respond(false);
+	} elseif ($request["panel_token"] != get_db()["current_panel_login_token"]) {
+		$response["status"] = "ERROR";
+		$response["message"] = "Panel login token is invalid. No API calls can be made using this token";
+		respond(false);
 	}
 }
+
+// From now on, all responses must be encrypted as we know the client
+// is capable of encrypted communication.
 
 // As we know that the request came from a legitimate source, let's
 // include a server ID header to let the requester know that it can

