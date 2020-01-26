@@ -36,12 +36,13 @@ better to do? Surely you do? Right? Then go do it.
 		<link href="assets/all.css" rel="stylesheet" type="text/css">
 		<link href="assets/panel.css" rel="stylesheet" type="text/css">
 		<script type="text/javascript" src="assets/panel.js"></script>
-		<script type="text/javascript" src="assets/api.js"></script>
 		<script type="text/javascript" src="assets/crypto.js"></script>
+		<script type="text/javascript" src="assets/api.js"></script>
 		<script type="text/javascript">
 			<?php $db = get_db(); ?>
-			const current_panel_login_token = <?php echo $db["current_panel_login_token"]; ?>;
-			const current_panel_crypt_key = <?php echo $db["current_panel_crypt_key"]; ?>;
+			const current_panel_login_token = "<?php echo $db['current_panel_login_token']; ?>";
+			const current_panel_crypt_key = "<?php echo $db['current_panel_crypt_key']; ?>";
+			api("hello");
 		</script>
 	</head>
 	<body>

@@ -1,10 +1,12 @@
-function api() {
+function api(args) {
 	const Http = new XMLHttpRequest();
-	const url='/api.php';
-	Http.open("POST", url);
-	Http.send();
+	const api_url='/api.php';
+	const key = current_panel_crypt_key;
+	
+	Http.open("POST", api_url, true);
+	Http.send(aes.encrypt(args, key));
 
 	Http.onreadystatechange = (e) => {
-	  return Http.responseText
+	  alert(Http.responseText);
 	}
 }

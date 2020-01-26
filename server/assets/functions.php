@@ -89,7 +89,7 @@ function gen_uuid() {
 function panel_login() {
 	// Generate creds for the panel
 	$panel_login_token = bin2hex(openssl_random_pseudo_bytes(8));
-	$panel_crypt_key = bin2hex(openssl_random_pseudo_bytes(20));
+	$panel_crypt_key = bin2hex(openssl_random_pseudo_bytes(32));
 	// Write creds to db
 	$current_db = get_db();
 	$current_db["current_panel_login_token"] = $panel_login_token;
