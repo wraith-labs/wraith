@@ -95,8 +95,6 @@ function panel_login() {
 	$current_db["current_panel_login_token"] = $panel_login_token;
 	$current_db["current_panel_crypt_key"] = $panel_crypt_key;
 	write_db($current_db);
-	// Return the new values
-	return array($panel_login_token, $panel_crypt_key);
 }
 
 /**

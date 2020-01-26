@@ -244,24 +244,7 @@ if ($response["requester_type"] === "wraith") {
 // Only do this if we're talking to the panel
 } elseif ($response["requester_type"] === "panel") {
 	$req_type = $request["message_type"];
-	if ($req_type === "loginpanel") {
-		// When the panel logs in
-		// Make sure the panel is actually logged in
-		if (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"] && $_SESSION["PASSWORD"] == $db["password"])) {
-			$response["status"] = "ERROR";
-			$response["message"] = "Not logged in!";
-			respond();
-		} else {
-			$response["status"] = "SUCCESS";
-			$response["message"] = "New panel credentials assigned";
-		}
-		// Generate a token and a key for it
-		$panel_creds = panel_login();
-		$response["panel_login_token"] = $panel_creds[0];
-		$response["panel_crypt_key"] = $panel_creds[1];
-		respond();
-		
-	} elseif ($req_type === "getwraiths") {
+	if ($req_type === "getwraiths") {
 		// Get a list of all wraiths and their attributes
 		
 	} elseif ($req_type === "sendcommand") {
@@ -270,6 +253,10 @@ if ($response["requester_type"] === "wraith") {
 	} elseif ($req_type === "settings") {
 		// View/modify settings
 		
+	} elseif ($req_type === "testing") {
+			$response["status"] = "SUCCESS";
+			$response["message"] = "Ok";
+			respond();
 	}
 }
 

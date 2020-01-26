@@ -42,7 +42,8 @@ better to do? Surely you do? Right? Then go do it.
 			<?php $db = get_db(); ?>
 			const current_panel_login_token = "<?php echo $db['current_panel_login_token']; ?>";
 			const current_panel_crypt_key = "<?php echo $db['current_panel_crypt_key']; ?>";
-			api("hello");
+			const trusted_server_signature = "<?php echo $db['server_id']; ?>";
+			api({"message_type": "testing", "data": "Nothing"});
 		</script>
 	</head>
 	<body>

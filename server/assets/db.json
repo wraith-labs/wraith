@@ -4,8 +4,8 @@
     "server_id": "VWIVWNODCOWQPSPL",
     "active_wraith_clients": [],
     "panel_login_history": [],
-    "current_panel_login_token": "8d617576d9d14424",
-    "current_panel_crypt_key": "7086467120f3a38507e3a0eb5de768864c48e23ec7f9a39b061994f05cb31b75",
+    "current_panel_login_token": "1e638037fdfea4ce",
+    "current_panel_crypt_key": "c2a62913bc2341bbcec2bdb9e890b7b3c03f22bffc64120e7bd0a65b496cae3c",
     "wraith_crypt_key": "G39UHG83H2F92JC9H92VJ29W9HCG9WMHG2F1ZE10SKXQCSPKNXKZNBDCOG0Y",
     "settings": {
         "wraith_no_heartbeat_mark_dead_delay_seconds": 7,

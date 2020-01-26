@@ -22697,7 +22697,7 @@ class AesEncryption {
      * Handles exceptions (prints the error message by default).
      */
     _errorHandler(error) {
-        console.log(error.message);
+        throw error;
     }
 }
 
@@ -22865,6 +22865,7 @@ function hkdfSha256(key, keySize, salt, info) {
     return dkey.slice(0, keySize);
 }
 
+// Define a global AES object for encryption
 window.aes = new AesEncryption();
 
 }).call(this,require("buffer").Buffer)
