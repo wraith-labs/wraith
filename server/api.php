@@ -117,7 +117,7 @@ if ($response["requester_type"] === "wraith") {
 		respond(false);
 	}
 } elseif ($response["requester_type"] === "panel") {
-	if (!(haskeys($request, ["message_type","data","panel_token"]))) {
+	if (!(haskeys($request, ["message_type","panel_token"]))) {
 		$response["status"] = "ERROR";
 		$response["message"] = "Missing required panel headers";
 		respond(false);
@@ -243,12 +243,20 @@ if ($response["requester_type"] === "wraith") {
 	} elseif ($req_type === "datastream") {
 		// If the wraith opens a data stream
 		
+	}  else {
+		$response["status"] = "ERROR";
+		$response["message"] = "A non-existent command was supplied to the API";
+		respond();
 	}
 
 // Only do this if we're talking to the panel
 } elseif ($response["requester_type"] === "panel") {
 	$req_type = $request["message_type"];
-	if ($req_type === "getwraiths") {
+	if ($req_type === "getinfo") {
+		$response["status"] = "SUCCESS";
+		respond();
+
+	} elseif ($req_type === "getwraiths") {
 		// Get a list of all wraiths and their attributes
 		
 	} elseif ($req_type === "sendcommand") {
@@ -257,10 +265,10 @@ if ($response["requester_type"] === "wraith") {
 	} elseif ($req_type === "settings") {
 		// View/modify settings
 		
-	} elseif ($req_type === "testing") {
-			$response["status"] = "SUCCESS";
-			$response["message"] = "Ok";
-			respond();
+	} else {
+		$response["status"] = "ERROR";
+		$response["message"] = "A non-existent command was supplied to the API";
+		respond();
 	}
 }
 

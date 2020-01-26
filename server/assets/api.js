@@ -17,6 +17,11 @@ function api(args) {
 	Http.send(crypt_prefix+aes.encrypt(args_json, key));
 
 	Http.onload = function() {
+		// Make sure the API had no errors (check status code)
+		if (Http.status != 200) {
+			alert("The API returned a non-200 code when called. The exit code was: " + Http.status);
+			return;
+		}
 		// The response could be encrypted but it might not be
 		var response;
 		var response_dict;
@@ -35,9 +40,10 @@ function api(args) {
 	 		// Parse the JSON response
 	 		response_dict = JSON.parse(response);
 	 	}
-	 	// If there was an error, tell the user
-	 	if (response_dict["status"] == "ERROR") {
-	 		alert("Error! The server says: "+response_dict["message"]);
+	 	// If the API returns a message, tell the user
+	 	if ("message" in response_dict) {
+	 		alert("The server says: "+response_dict["message"]);
 	 	}
+	 	return response_dict;
 	}
 }
