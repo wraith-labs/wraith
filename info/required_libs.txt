@@ -3,3 +3,5 @@ Client:
  - PsUtil
 
 Server:
+ - PHP OpenSSL
+ - PHP MbString
