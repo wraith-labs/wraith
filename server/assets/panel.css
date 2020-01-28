@@ -8,6 +8,7 @@
   background-color: #111;
   overflow-x: hidden;
   padding-top: 20px;
+  border-right: 3px solid #444;
 }
 
 .sidenav h3 {
@@ -22,8 +23,7 @@
   font-size: 25px;
   color: #818181;
   display: block;
-  border-top: 1px solid grey;
-  border-bottom: 1px solid grey;
+  border-top: 3px solid #444;
 }
 
 .sidenav a:hover {
@@ -31,14 +31,21 @@
 }
 
 .page {
+  color: #fff;
   margin-left: 160px;
   font-size: 28px;
   padding: 0px 10px;
   display: none;
+  animation: fadeEffect 1s;
 }
 
 .page:target {
   display: block;
+}
+
+@keyframes fadeEffect {
+  from {opacity: 0;}
+  to {opacity: 1;}
 }
 
 @media screen and (max-height: 450px) {

@@ -254,16 +254,20 @@ if ($response["requester_type"] === "wraith") {
 	$req_type = $request["message_type"];
 	if ($req_type === "getinfo") {
 		$response["status"] = "SUCCESS";
+		$response["data"] = json_encode(['test' => 'testing', 'test2' => 'testing', 'test3' => 'testing']);
 		respond();
 
 	} elseif ($req_type === "getwraiths") {
 		// Get a list of all wraiths and their attributes
+		respond();
 		
 	} elseif ($req_type === "sendcommand") {
 		// Send a command to a/multiple wraith/s
+		respond();
 		
 	} elseif ($req_type === "settings") {
 		// View/modify settings
+		respond();
 		
 	} else {
 		$response["status"] = "ERROR";
