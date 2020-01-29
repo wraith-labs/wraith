@@ -67,7 +67,7 @@ better to do? Surely you do? Right? Then go do it.
 		</div>
 		<div name="server_options_page" id="server_options_page" class="page">
 			<h3>Settings</h3>
-			<div id="wraiths_page_table_container"></div>
+			<div id="settings_page_table_container"></div>
 		</div>
 	</body>
 </html>
