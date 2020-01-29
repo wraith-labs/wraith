@@ -253,6 +253,7 @@ if ($response["requester_type"] === "wraith") {
 } elseif ($response["requester_type"] === "panel") {
 	$req_type = $request["message_type"];
 	if ($req_type === "getinfo") {
+		// Get some information about the server and connected wraiths
 		$db = get_db();
 		$response["status"] = "SUCCESS";
 		$response["data"] = json_encode([
@@ -264,6 +265,9 @@ if ($response["requester_type"] === "wraith") {
 
 	} elseif ($req_type === "getwraiths") {
 		// Get a list of all wraiths and their attributes
+		$db = get_db();
+		$response["status"] = "SUCCESS";
+		$response["data"] = json_encode(["test" => "testing"]);
 		respond();
 		
 	} elseif ($req_type === "sendcommand") {

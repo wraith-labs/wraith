@@ -30,11 +30,12 @@ function update_page() {
 		// Only forward the data if it's actually defined
 		if (info_page_data != undefined) {postMessage(["info",info_page_data])};
 		// Get info about wraiths for wraiths page
-		//var wraiths_page_data = api({"message_type": "getwraiths"});
-		//if (wraiths_page_data != undefined) {postMessage(["wraiths",info_page_data]);}
+		var wraiths_page_data = api({"message_type": "getwraiths"});
+		// Only forward the data if it's actually defined
+		if (wraiths_page_data != undefined) {postMessage(["wraiths",wraiths_page_data]);}
 		// Get a list of options for the options page
 		//var settings_page_data = api({"message_type": "settings", "data": "get"});
-		//if (settings_page_data != undefined) {postMessage(["settings",info_page_data]);}
+		//if (settings_page_data != undefined) {postMessage(["settings",settings_page_data]);}
 
 	} catch (err) { console.log("Error in worker while updating page: " + err.message) }
 
