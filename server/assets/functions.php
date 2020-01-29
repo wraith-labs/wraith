@@ -16,6 +16,12 @@ function get_client_ip()
     return $ipaddress;
 }
 
+// Get a list of all the available command scripts and their paths
+function get_cmds() {
+	// TODO
+	return ["cmd" => "print('Just Testing')"];
+}
+
 // Get contents of database
 function get_db() {
 	$db = file_get_contents(dirname(__FILE__)."/db.json");
@@ -83,6 +89,24 @@ function gen_uuid() {
     $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // set bits 6-7 to 10
 
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+// Get the URL of the current page
+function get_current_url($server){
+    //Figure out whether we are using http or https.
+    $http = 'http';
+    //If HTTPS is present in our $_SERVER array, the URL should
+    //start with https:// instead of http://
+    if(isset($server['HTTPS'])){
+        $http = 'https';
+    }
+    //Get the HTTP_HOST.
+    $host = $server['HTTP_HOST'];
+    //Get the REQUEST_URI. i.e. The Uniform Resource Identifier.
+    $requestUri = $server['REQUEST_URI'];
+    //Finally, construct the full URL.
+    //Use the function htmlentities to prevent XSS attacks.
+    return $http . '://' . htmlentities($host) . htmlentities($requestUri);
 }
 
 // Log the panel in

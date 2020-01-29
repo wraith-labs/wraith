@@ -42,9 +42,10 @@ better to do? Surely you do? Right? Then go do it.
 			const trusted_server_signature = "<?php echo $db['server_id']; ?>";
 		</script>
 		<script type="text/javascript" src="assets/crypto.js"></script>
+		<script type="text/javascript" src="assets/api.js"></script>
 		<script type="text/javascript" src="assets/panel.js"></script>
 	</head>
-	<body onload="start_page_update_worker();">
+	<body onload="if (window.location.hash == '') {switch_to_page('info_page');} start_page_update_worker();">
 		<div class="sidenav" id="sidenav">
 			<h3 style="margin-left: 15px; margin-bottom: 8px;">Wraith Panel</h3>
 			<a href="#info_page">Info</a>
@@ -66,6 +67,7 @@ better to do? Surely you do? Right? Then go do it.
 		</div>
 		<div name="server_options_page" id="server_options_page" class="page">
 			<h3>Settings</h3>
+			<div id="wraiths_page_table_container"></div>
 		</div>
 	</body>
 </html>

