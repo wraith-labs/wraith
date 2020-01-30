@@ -112,7 +112,7 @@ function get_current_url($server){
 // Log the panel in
 function panel_login() {
 	// Generate creds for the panel
-	$panel_login_token = bin2hex(openssl_random_pseudo_bytes(8));
+	$panel_login_token = bin2hex(openssl_random_pseudo_bytes(16));
 	$panel_crypt_key = bin2hex(openssl_random_pseudo_bytes(32));
 	// Write creds to db
 	$current_db = get_db();

