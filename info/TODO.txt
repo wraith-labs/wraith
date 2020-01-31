@@ -1,5 +1,0 @@
-TODO:
-1) Complete login
-2) Add all the streaming functonality (special GET header urls to api)
-3) Make wraith pull command code from server
-4) Complete commands

