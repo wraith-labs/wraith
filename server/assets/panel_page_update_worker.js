@@ -28,11 +28,23 @@ function update_page() {
 		// Get info for info page
 		var info_page_data = api({"message_type": "getinfo"});
 		// Only forward the data if it's actually defined
-		if (info_page_data != undefined) {postMessage(["info",info_page_data])};
+		if (info_page_data != undefined) {
+			if (info_page_data["status"] == "SUCCESS") {
+				postMessage(["info",info_page_data]);
+			} else {
+				console.log("Getting info page updates failed. The server did not return a success in the exit code.");
+			}
+		}
 		// Get info about wraiths for wraiths page
 		var wraiths_page_data = api({"message_type": "getwraiths"});
 		// Only forward the data if it's actually defined
-		if (wraiths_page_data != undefined) {postMessage(["wraiths",wraiths_page_data]);}
+		if (wraiths_page_data != undefined) {
+			if (info_page_data["status"] == "SUCCESS") {
+				postMessage(["wraiths",wraiths_page_data]);
+			} else {
+				console.log("Getting info page updates failed. The server did not return a success in the exit code.");
+			}
+		}
 		// Get a list of options for the options page
 		//var settings_page_data = api({"message_type": "settings", "data": "get"});
 		//if (settings_page_data != undefined) {postMessage(["settings",settings_page_data]);}

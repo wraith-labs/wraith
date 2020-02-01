@@ -42,9 +42,9 @@ INTERACTION_LOGGING = True
 
 # Check if any other wraiths are active. If so, die. If not, bind
 # to socket to tell all other wraiths we're active.
-single_instance_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-try: single_instance_socket.bind(("localhost", NON_DUPLICATE_CHECK_PORT))
-except: sys.exit(0)
+#single_instance_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#try: single_instance_socket.bind(("localhost", NON_DUPLICATE_CHECK_PORT))
+#except: sys.exit(0)
 
 # Init crypt
 aes = aes()

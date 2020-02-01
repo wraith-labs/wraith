@@ -3,6 +3,10 @@
 // wraith clients. At every request, each must identify themselves before they may continue. Wraiths
 // have an access code defined on login
 
+// Instantly lock the database file to stop weird errors like the file contents disappearing
+$databsase = fopen(dirname(__FILE__)."/db.json", "r+");
+flock($database, LOCK_SH | LOCK_EX);
+
 // Include some required functions
 require_once("assets/functions.php");
 
@@ -30,6 +34,12 @@ function respond($crypt=true) {
 	} else {
 		$message = json_encode($response);
 	}
+	
+	// Just before we exit, unlock the database
+	fflush($database);
+	flock($database, LOCK_UN);
+	fclose($database);
+	
 	die($message);
 }
 
@@ -117,6 +127,7 @@ if ($response["requester_type"] === "wraith") {
 		respond(false);
 	}
 } elseif ($response["requester_type"] === "panel") {
+	$db = get_db();
 	if (!(haskeys($request, ["message_type","panel_token"]))) {
 		$response["status"] = "ERROR";
 		$response["message"] = "Missing required panel headers";
@@ -124,6 +135,11 @@ if ($response["requester_type"] === "wraith") {
 	} elseif ($request["panel_token"] != get_db()["current_panel_login_token"]) {
 		$response["status"] = "ERROR";
 		$response["message"] = "Panel login token is invalid. No API calls can be made using this token";
+		respond(false);
+	// Extra check to make sure the panel is actually logged in. Shouldn't be too nescessary but better safe than sorry
+	} elseif (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"] && $_SESSION["PASS"] == $db["PASSWORD"])) {
+		$response["status"] = "ERROR";
+		$response["message"] = "The logged in status of the panel could not be verified. Please log in to the panel before making API calls.";
 		respond(false);
 	}
 }

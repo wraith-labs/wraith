@@ -64,6 +64,8 @@ function start_page_update_worker() {
 				table_create("wraiths_page_table_container", wraiths);
 				// Update list of command targets
 				var dropdown = document.getElementById("console_input_target_selector");
+				// Get the currently selected element to avoid removing the selection
+				var selection = dropdown.value
 				// Clear the dropdown to avoid keeping outdated wraiths or constantly re-adding existing ones
 				dropdown.innerHTML = "";
 				var count = 0;
@@ -74,6 +76,8 @@ function start_page_update_worker() {
 					// Append the element to the end of Array list
 					dropdown[dropdown.length] = new Option(key, key);
 				}
+				// Set the selection to the old one
+				dropdown.value = selection;
 			} else if (wdata[0] == "settings") {
 				table_create("settings_page_table_container", JSON.parse(wdata[1]["data"]));
 			}
