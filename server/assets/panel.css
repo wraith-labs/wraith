@@ -36,6 +36,7 @@
   font-size: 28px;
   padding: 0px 10px;
   display: none;
+  position: relative;
   animation: fadeEffect 1s;
 }
 
@@ -51,4 +52,36 @@
 @media screen and (max-height: 450px) {
   .sidenav {padding-top: 15px;}
   .sidenav a {font-size: 18px;}
+}
+
+table, th, td {
+  border: 1px solid #aaaaaa; 
+}
+
+th, td {
+  padding: 2px 20px;
+}
+
+#console {
+  position: absolute;
+  height: 80vh;
+  top: 2px;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  background: #010101;
+  border: 3px solid #11aa11;
+  border-radius: 15px;
+}
+
+#console_output {
+  height: 92%;
+  background: rgba(0,0,0,50);
+  border-radius: 18px 18px 0px 0px;
+}
+
+#console_input {
+  height: 8%;
+  background: rgba(40,40,40,50);
+  border-radius: 0px 0px 18px 18px;
 }

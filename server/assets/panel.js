@@ -14,9 +14,6 @@ function switch_to_page(page) {
 // A function which creates tables based on a dictionary
 // Each key is a heading and each value is the value
 function table_create(parent_div_id, dict) {
-	// Create the style for the table
-	const table_style = "1px solid #aaaaaa";
-
 	// Create each row of the table (each key+value pair)
 	var rows = [];
 	for (var key in dict) {
@@ -27,8 +24,6 @@ function table_create(parent_div_id, dict) {
 
 	// Create and style the table
 	var table = document.createElement("table");
-	table.cellPadding = 10;
-	table.style.border = table_style;
 
 	// Create the cells with the key and value
 	for (var i = 0; i < rows.length; i++) {
@@ -40,9 +35,6 @@ function table_create(parent_div_id, dict) {
 		// Add text to the cells
 		th.innerText = rows[i];
 		td.innerText = dict[rows[i]];
-		// Style the cells
-		th.style.border = table_style;
-		td.style.border = table_style;
 		// Add the cells to the table
 		tr.appendChild(th);
 		tr.appendChild(td);
@@ -68,7 +60,20 @@ function start_page_update_worker() {
 			if (wdata[0] == "info") {
 				table_create("info_page_table_container", JSON.parse(wdata[1]["data"]));
 			} else if (wdata[0] == "wraiths") {
-				table_create("wraiths_page_table_container", JSON.parse(wdata[1]["data"]));
+				var wraiths = JSON.parse(wdata[1]["data"]);
+				table_create("wraiths_page_table_container", wraiths);
+				// Update list of command targets
+				var dropdown = document.getElementById("console_input_target_selector");
+				// Clear the dropdown to avoid keeping outdated wraiths or constantly re-adding existing ones
+				dropdown.innerHTML = "";
+				var count = 0;
+				for (key in wraiths) {
+					count += 1;
+					// Skip the first entry because it's column headers
+					if (count == 1) {continue;}
+					// Append the element to the end of Array list
+					dropdown[dropdown.length] = new Option(key, key);
+				}
 			} else if (wdata[0] == "settings") {
 				table_create("settings_page_table_container", JSON.parse(wdata[1]["data"]));
 			}

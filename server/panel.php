@@ -13,10 +13,9 @@ if (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"]
 	header("Location: login.php");
 	die("Log in first!");
 } else {
+	// Create credentials for the panel
 	panel_login();
 }
-
-// Request credentials from the API
 
 ?>
 
@@ -64,6 +63,15 @@ better to do? Surely you do? Right? Then go do it.
 		</div>
 		<div name="command_center_page" id="command_center_page" class="page">
 			<h3>Command Center</h3>
+			<div style="position: relative;">
+				<div id="console">
+					<div id="console_output">
+					</div>
+					<div id="console_input">
+						<select id="console_input_target_selector"></select>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div name="server_options_page" id="server_options_page" class="page">
 			<h3>Settings</h3>
