@@ -58,9 +58,9 @@ function start_page_update_worker() {
 		page_update_worker.onmessage = function(event) {
 			const wdata = event.data;
 			if (wdata[0] == "info") {
-				table_create("info_page_table_container", JSON.parse(wdata[1]["data"]));
+				table_create("info_page_table_container", JSON.parse(wdata[1]));
 			} else if (wdata[0] == "wraiths") {
-				var wraiths = JSON.parse(wdata[1]["data"]);
+				var wraiths = JSON.parse(wdata[1]);
 				table_create("wraiths_page_table_container", wraiths);
 				// Update list of command targets
 				var dropdown = document.getElementById("console_input_target_selector");
@@ -80,7 +80,7 @@ function start_page_update_worker() {
 				// Set the selection to the old one
 				dropdown.value = selection;
 			} else if (wdata[0] == "settings") {
-				table_create("settings_page_table_container", JSON.parse(wdata[1]["data"]));
+				table_create("settings_page_table_container", JSON.parse(wdata[1]));
 			}
 		}
 	} else {

