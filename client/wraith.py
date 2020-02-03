@@ -6,8 +6,6 @@ import requests
 import threading
 import json
 import random
-import base64
-import hashlib
 import psutil
 import sys
 import socket

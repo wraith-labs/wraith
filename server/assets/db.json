@@ -2,21 +2,10 @@
     "username": "haxx",
     "password": "passme",
     "server_id": "VWIVWNODCOWQPSPL",
-    "current_panel_login_token": "fef9ff14c7ed177ced9a99b1e7005436",
-    "current_panel_crypt_key": "c4e4cb5377d525a76437b8c23c06489216efcb494a9ff304f16c60c7351c5b3c",
+    "current_panel_login_token": "6b3d2534884e5cd4ac238b360e93e655",
+    "current_panel_crypt_key": "531861f40d674f9b4eb82efb3ad651697ff4c9eaa8958faf3268320aa47feabd",
     "wraith_crypt_key": "G39UHG83H2F92JC9H92VJ29W9HCG9WMHG2F1ZE10SKXQCSPKNXKZNBDCOG0Y",
-    "active_wraith_clients": {
-        "2cc55dd7-8035-458c-a373-5074c3e5fe6d": {
-            "osname": "osdlt",
-            "ostype": "Linux-4.12.14-lp151.28.36-default-x86_64-with-glibc2.3.4",
-            "macaddr": 80202068543290,
-            "extra_info": [],
-            "command_queue": [],
-            "extip": "94.8.140.207",
-            "logintime": 1580586874,
-            "lastheartbeat": 1580586956
-        }
-    },
+    "active_wraith_clients": [],
     "command_history": [],
     "settings": {
         "wraith_no_heartbeat_mark_dead_delay_seconds": 6,

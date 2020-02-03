@@ -49,7 +49,7 @@ better to do? Surely you do? Right? Then go do it.
 			<h3 style="margin-left: 15px; margin-bottom: 8px;">Wraith Panel</h3>
 			<a href="#info_page">Info</a>
 			<a href="#wraiths_page">Wraiths</a>
-			<a href="#command_center_page">Command Center</a>
+			<a href="#console_page">Console</a>
 			<a href="#server_options_page">Server Options</a>
 			<a href="login.php?LOGMEOUTPLZ=true">Log Out</a>
 		</div>
@@ -61,14 +61,16 @@ better to do? Surely you do? Right? Then go do it.
 			<h3>Wraiths Management Page</h3>
 			<div id="wraiths_page_table_container"></div>
 		</div>
-		<div name="command_center_page" id="command_center_page" class="page">
-			<h3>Command Center</h3>
+		<div name="console_page" id="console_page" class="page">
+			<h3>Console</h3>
 			<div style="position: relative;">
 				<div id="console">
 					<div id="console_output">
 					</div>
 					<div id="console_input">
 						<select id="console_input_target_selector"></select>
+						<input id="console_input_command_entry"></input>
+						<button id="console_input_send_button"></button>
 					</div>
 				</div>
 			</div>

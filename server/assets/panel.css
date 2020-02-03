@@ -75,13 +75,46 @@ th, td {
 }
 
 #console_output {
-  height: 92%;
-  background: rgba(0,0,0,50);
+  height: 94%;
+  background: #000;
   border-radius: 18px 18px 0px 0px;
 }
 
 #console_input {
-  height: 8%;
-  background: rgba(40,40,40,50);
+  height: 6%;
+  background: #282828;
+  display: flex;
+  flex-flow: row;
   border-radius: 0px 0px 18px 18px;
+}
+
+#console_input_target_selector {
+  position: relative;
+  flex-grow: 15;
+  border: 1px solid #11aa11;
+  border-radius: 0px 0px 0px 10px;
+  background: #222;
+  margin: 0px;
+  padding: 0px;
+}
+
+#console_input_command_entry {
+  position: relative;
+  flex-grow: 80;
+  border: 1px solid #11aa11;
+  border-radius: 0px 0px 0px 0px;
+  background: #222;
+  margin: 0px;
+  color: #eee;
+  padding: 0px;
+}
+
+#console_input_send_button {
+  position: relative;
+  flex-grow: 5;
+  border: 1px solid #11aa11;
+  border-radius: 0px 0px 10px 0px;
+  background: #222;
+  margin: 0px;
+  padding: 20px 0px;
 }

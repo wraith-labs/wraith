@@ -72,7 +72,8 @@ function start_page_update_worker() {
 				for (key in wraiths) {
 					count += 1;
 					// Skip the first entry because it's column headers
-					if (count == 1) {continue;}
+					// Replace it with the "all" selector
+					if (count == 1) {key = "All";}
 					// Append the element to the end of Array list
 					dropdown[dropdown.length] = new Option(key, key);
 				}

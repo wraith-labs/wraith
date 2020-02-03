@@ -137,11 +137,12 @@ if ($response["requester_type"] === "wraith") {
 		$response["message"] = "Panel login token is invalid. No API calls can be made using this token";
 		respond(false);
 	// Extra check to make sure the panel is actually logged in. Shouldn't be too nescessary but better safe than sorry
-	} elseif (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"] && $_SESSION["PASS"] == $db["PASSWORD"])) {
+	// Commented out as it does not seem to fully work.
+	} /* elseif (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"] && $_SESSION["PASS"] == $db["PASSWORD"])) {
 		$response["status"] = "ERROR";
 		$response["message"] = "The logged in status of the panel could not be verified. Please log in to the panel before making API calls.";
 		respond(false);
-	}
+	} */
 }
 
 // From now on, all responses must be encrypted as we know the client
