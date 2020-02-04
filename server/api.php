@@ -214,19 +214,13 @@ if ($response["requester_type"] === "wraith") {
 		}
 		$wraith_db_entry = wraithdb($wraith_id, null, "get");
 		$wraith_db_entry["extra_info"] = $request["data"]["info"];
-		// Respond with the commands that are not completed
-		$unseen_commands = [];
-		foreach ($wraith_db_entry["command_queue"] as $command) {
-			if ($command["complete_status"] === "unseen") {
-				$unseen_commands[] = $command;
-			}
-		}
+
 		// Add the commands to the response
-		$response["command_queue"] = $unseen_commands;
+		$response["command_queue"] = $wraith_db_entry["command_queue"];
 		// Mark request as success
 		$response["status"] = "SUCCESS";
 		// Record the heartbeat
-		wraith_heartbeat($wraith_id);
+		wraith_heartbeat($wraith_id); // TODO: check for race conditions
 		// Respond to request
 		respond();
 		
@@ -284,7 +278,7 @@ if ($response["requester_type"] === "wraith") {
 			}
 			
 			// Console contents section
-			$consolecontents = [["abc", "123", "Hello There General Kenobi Hello There General Kenobi Hello There General Kenobi Hello There General Kenobi"]];//$db["console_contents"];
+			$consolecontents = $db["console_contents"];
 			
 			// Response section
 			$response["status"] = "SUCCESS";
@@ -301,7 +295,17 @@ if ($response["requester_type"] === "wraith") {
 	} elseif ($req_type === "sendcommand") {
 		// Send a command to a/multiple wraith/s
 		$targets = $request["data"]["targets"];
-		$command = $request["data"]["commandname"];
+		$command = $request["data"]["command"];
+		
+		foreach ($targets as $target) {
+			if (wraithdb($target, null, "checkexist")) {
+				wraithdb($target, null, "addcmd", $command);
+				console_append("panel => ".$target, "SUCCESS", $command);
+			} else {
+				console_append("panel => ".$target, "ERROR - Wraith `".$target."` not found!", $command);
+			}
+		}
+		
 		respond();
 		
 	} elseif ($req_type === "clearconsole") {
@@ -309,7 +313,7 @@ if ($response["requester_type"] === "wraith") {
 		
 		$db = get_db();
 		$db["console_contents"] = [];
-		writedb($db);
+		write_db($db);
 		
 		$response["status"] = "SUCCESS";
 		respond();

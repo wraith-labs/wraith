@@ -48,6 +48,32 @@ function table_create(parent_div_id, dict) {
 	divContainer.appendChild(table);
 }
 
+// Function which sends the command in the command input box to the selected wraith(s)
+function sendCommand() {
+	const target = document.getElementById("console_input_target_selector").value;
+	const command = document.getElementById("console_input_command_entry").value;
+	
+	// Check the command and target
+	if (target == "") {
+		alert("Please select a target to send the command to!");
+	} else if (command == "") {
+		alert("Please enter a command to send!");
+	} else {
+		
+		const data = {
+			"targets": [target], // TODO: Allow selecting multiple targets
+			"command": command
+		};
+
+		// Clear the command window to show the command was sent
+		document.getElementById("console_input_command_entry").value = "";
+
+		api({"message_type": "sendcommand", "data": data});
+	
+	}
+
+}
+
 var page_update_worker;
 function start_page_update_worker() {
 	if (typeof(Worker) !== "undefined") {
@@ -90,8 +116,8 @@ function start_page_update_worker() {
 				const data = JSON.parse(wdata[1]);
 				for (i = 0; i < data.length; ++i) {
 					var node = document.createElement("li");
-					// Output formatting ([ wraith_id ] < timestamp > text)
-					node.innerText = "[ "+data[i][0]+" ] "+"< "+data[i][1]+" > "+data[i][2];
+					// Output formatting ([ src/dst ] < timestamp > ( status ) text)
+					node.innerText = "[ "+data[i][0]+" ]  < "+data[i][1]+" >  ( "+data[i][2]+" )   "+data[i][3];
 					// Add line to output box
 					console_out.appendChild(node);
 				}

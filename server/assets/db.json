@@ -2,11 +2,36 @@
     "username": "haxx",
     "password": "passme",
     "server_id": "VWIVWNODCOWQPSPL",
-    "current_panel_login_token": "81dabd82a3bef9701d4cfd1b75a61c94",
-    "current_panel_crypt_key": "352b520cd5bbb6de14c9facc194a3e72dd3bb018cf639a9a2af02c6972c56c98",
+    "current_panel_login_token": "f9f4d2c05650b3b3a40fd19631c10b8c",
+    "current_panel_crypt_key": "6cc809d2f6bd92aa7eac9996b07d5e1f784acfaeed1dd2a30dc00fc0d684d8cb",
     "wraith_crypt_key": "G39UHG83H2F92JC9H92VJ29W9HCG9WMHG2F1ZE10SKXQCSPKNXKZNBDCOG0Y",
     "active_wraith_clients": [],
-    "console_contents": [],
+    "console_contents": [
+        [
+            "API > panel",
+            1580843597,
+            "ERROR - Wraith `` not found",
+            "CMD - testing"
+        ],
+        [
+            "panel => ",
+            1580843774,
+            "ERROR - Wraith `` not found!",
+            "CMD - abc"
+        ],
+        [
+            "panel => All",
+            1580843926,
+            "ERROR - Wraith `All` not found!",
+            "CMD - abc"
+        ],
+        [
+            "panel => All",
+            1580843992,
+            "ERROR - Wraith `All` not found!",
+            "Hello"
+        ]
+    ],
     "settings": {
         "wraith_no_heartbeat_mark_dead_delay_seconds": 6,
         "wraith_switch_key": null

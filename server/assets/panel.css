@@ -78,7 +78,6 @@ th, td {
   height: 95%;
   background: #000;
   border-radius: 18px 18px 0px 0px;
-  display: flex;
 }
 
 #console_output_container {

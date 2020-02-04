@@ -66,13 +66,13 @@ better to do? Surely you do? Right? Then go do it.
 			<div style="position: relative;">
 				<div id="console">
 					<div id="console_output">
-						<ul id="console_output_container"></ul>
+						<code><ul id="console_output_container"></ul></code>
 					</div>
 					<div id="console_input">
 						<select id="console_input_target_selector"></select>
 						<input id="console_input_command_entry"></input>
-						<button id="console_input_send_button">Send</button>
-						<button id="console_input_clear_button" onclick="api({'message_type': 'clearconsole'});">Clear Console</button>
+						<button id="console_input_send_button" onclick="sendCommand();">Send</button>
+						<button id="console_input_clear_button" onclick="api({'message_type': 'clearconsole'}); alert('Console clear request sent!');">Clear Console</button>
 					</div>
 				</div>
 			</div>
