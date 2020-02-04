@@ -75,13 +75,27 @@ th, td {
 }
 
 #console_output {
-  height: 94%;
+  height: 95%;
   background: #000;
   border-radius: 18px 18px 0px 0px;
+  display: flex;
+}
+
+#console_output_container {
+  height: 100%;
+  width: 100%;
+  border-radius: 10px 10px 0px 0px;
+  margin: 0px;
+  padding: 10px;
+  font-size: 15px;
+  color: #191;
+  list-style-type: none;
+  overflow-x: wrap;
+  overflow-y: scroll;
 }
 
 #console_input {
-  height: 6%;
+  height: 5%;
   background: #282828;
   display: flex;
   flex-flow: row;
@@ -89,32 +103,37 @@ th, td {
 }
 
 #console_input_target_selector {
-  position: relative;
-  flex-grow: 15;
+  flex-grow: 10;
   border: 1px solid #11aa11;
   border-radius: 0px 0px 0px 10px;
   background: #222;
-  margin: 0px;
-  padding: 0px;
+  color: #eee;
 }
 
 #console_input_command_entry {
-  position: relative;
   flex-grow: 80;
   border: 1px solid #11aa11;
-  border-radius: 0px 0px 0px 0px;
   background: #222;
-  margin: 0px;
   color: #eee;
-  padding: 0px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 #console_input_send_button {
-  position: relative;
+  flex-grow: 5;
+  border: 1px solid #11aa11;
+  background: #222;
+  color: #eee;
+  line-height: 0;
+  height: 100%;
+}
+
+#console_input_clear_button {
   flex-grow: 5;
   border: 1px solid #11aa11;
   border-radius: 0px 0px 10px 0px;
   background: #222;
-  margin: 0px;
-  padding: 20px 0px;
+  color: #eee;
+  line-height: 0;
+  height: 100%;
 }

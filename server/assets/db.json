@@ -2,11 +2,11 @@
     "username": "haxx",
     "password": "passme",
     "server_id": "VWIVWNODCOWQPSPL",
-    "current_panel_login_token": "065b37dc32a84f7770e7e5e9ab9e54f6",
-    "current_panel_crypt_key": "fc250e7e8ede44778f40622fc280ef2c98f96bdb73357e5e6b8452a42b985866",
+    "current_panel_login_token": "81dabd82a3bef9701d4cfd1b75a61c94",
+    "current_panel_crypt_key": "352b520cd5bbb6de14c9facc194a3e72dd3bb018cf639a9a2af02c6972c56c98",
     "wraith_crypt_key": "G39UHG83H2F92JC9H92VJ29W9HCG9WMHG2F1ZE10SKXQCSPKNXKZNBDCOG0Y",
     "active_wraith_clients": [],
-    "command_history": [],
+    "console_contents": [],
     "settings": {
         "wraith_no_heartbeat_mark_dead_delay_seconds": 6,
         "wraith_switch_key": null

@@ -59,6 +59,7 @@ function start_page_update_worker() {
 			const wdata = event.data;
 			if (wdata[0] == "info") {
 				table_create("info_page_table_container", JSON.parse(wdata[1]));
+
 			} else if (wdata[0] == "wraiths") {
 				var wraiths = JSON.parse(wdata[1]);
 				table_create("wraiths_page_table_container", wraiths);
@@ -79,6 +80,22 @@ function start_page_update_worker() {
 				}
 				// Set the selection to the old one
 				dropdown.value = selection;
+
+			} else if (wdata[0] == "console") {
+				// Get the console output section
+				var console_out = document.getElementById("console_output_container");
+				// Clear the console output section
+				console_out.innerHTML = "";
+				// Populate console output section with contents of array
+				const data = JSON.parse(wdata[1]);
+				for (i = 0; i < data.length; ++i) {
+					var node = document.createElement("li");
+					// Output formatting ([ wraith_id ] < timestamp > text)
+					node.innerText = "[ "+data[i][0]+" ] "+"< "+data[i][1]+" > "+data[i][2];
+					// Add line to output box
+					console_out.appendChild(node);
+				}
+				
 			} else if (wdata[0] == "settings") {
 				table_create("settings_page_table_container", JSON.parse(wdata[1]));
 			}

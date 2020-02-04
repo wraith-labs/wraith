@@ -32,6 +32,7 @@ function update_page() {
 			if (panel_update_info["status"] == "SUCCESS") {
 				postMessage(["info",panel_update_info["serverinfo"]]);
 				postMessage(["wraiths",panel_update_info["wraithinfo"]]);
+				postMessage(["console",panel_update_info["consolecontents"]]);
 			} else {
 				console.log("Getting panel updates failed. The server did not return a success code.");
 			}

@@ -292,10 +292,14 @@ if ($response["requester_type"] === "wraith") {
 				$wraiths_dict[$id] = json_encode($values, JSON_PRETTY_PRINT);
 			}
 			
+			// Console contents section
+			$consolecontents = [["abc", "123", "Hello There General Kenobi Hello There General Kenobi Hello There General Kenobi Hello There General Kenobi"]];//$db["console_contents"];
+			
 			// Response section
 			$response["status"] = "SUCCESS";
 			$response["serverinfo"] = json_encode($serverinfo);
 			$response["wraithinfo"] = json_encode($wraiths_dict);
+			$response["consolecontents"] = json_encode($consolecontents);
 			respond();
 		} catch (Exception $e) {
 			$response["status"] = "ERROR";
@@ -308,6 +312,11 @@ if ($response["requester_type"] === "wraith") {
 		$targets = $request["data"]["targets"];
 		$command = $request["data"]["commandname"];
 		respond();
+		
+	} elseif ($req_type === "clearconsole") {
+		// Clear the stored command list in database
+		
+		
 		
 	} elseif ($req_type === "settings") {
 		// View/modify settings
