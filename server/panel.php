@@ -72,7 +72,7 @@ better to do? Surely you do? Right? Then go do it.
 						<select id="console_input_target_selector"></select>
 						<input id="console_input_command_entry"></input>
 						<button id="console_input_send_button">Send</button>
-						<button id="console_input_clear_button">Clear Console</button>
+						<button id="console_input_clear_button" onclick="api({'message_type': 'clearconsole'});">Clear Console</button>
 					</div>
 				</div>
 			</div>

