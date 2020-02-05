@@ -18,6 +18,12 @@
             1580942437,
             "SUCCESS",
             "# This is a ping command which just tests the wraith's ability to run commands\n\n# Check if the wraith object is defined. If not, we are not running in the wraith\nif not \"wraith\" in globals():\n    print(\"This is a Wraith module and cannot run independently!\")\n    exit()\n\n# Define a variable for the return value\nreturn_val = None\n\ntry:\n    return_val = \"Ping command worked! :)\"\nexcept Exception as e:\n    # In case of error, set return value to an error message\n    return_val = \"Error while running command {}. Err: {}\".format(cmd, e)\n\n# End by sending the wraith the return value\nwraith.returncmd(return_val)\n\n"
+        ],
+        [
+            "panel => 48e324fe-b40a-40e5-9697-75f45fa3a3fe",
+            1580944530,
+            "SUCCESS",
+            "ping"
         ]
     ],
     "settings": {

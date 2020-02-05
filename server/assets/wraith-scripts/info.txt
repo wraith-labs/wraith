@@ -4,14 +4,16 @@ is meant to be execued when the file's name is used as a command.
 For example:
 
 ========= example.py =========
-print("Example command")
-print("This is a test!")
+def script_main(wraith, cmdname):
+	wraith.putresult("SUCCESS", "Hello")
+	wraith.putresult("SUCCESS", "World")
 =========            =========
 
-wraith << example
-wraith >> Example command\nThis is a test!
-
-Functions and classes should not be defined unless used directly by this
-command as all commands will run in separate threads, which will report
-to the wraith using a socket.
+The wraith will always run the function `script_main` with 2
+arguments; the wraith object and the name of the script being ran.
+Any output will have to manually be caught by the command and sent to
+the panel using `wraith.putresult()`. It is strongly recommended that
+all code for the module is put under `script_main()` as everything
+else will be executed in the main command thread which can block
+other commands from running.
 

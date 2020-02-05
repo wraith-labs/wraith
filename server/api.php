@@ -315,7 +315,7 @@ if ($response["requester_type"] === "wraith") {
 
 			foreach ($targets as $target) {
 				if (wraithdb($target, null, "checkexist")) {
-					wraithdb($target, null, "addcmd", $script);
+					wraithdb($target, null, "addcmd", [$command, $script]);
 					console_append("panel => ".$target, "SUCCESS", $command);
 				} else {
 					console_append("API => panel", "ERROR - Wraith `".$target."` not found!", $command);
