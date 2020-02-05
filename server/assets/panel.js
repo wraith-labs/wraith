@@ -114,13 +114,17 @@ function start_page_update_worker() {
 				console_out.innerHTML = "";
 				// Populate console output section with contents of array
 				const data = JSON.parse(wdata[1]);
+				// Define node as a variable here so it can be later accessed outside of the loop for scrolling purposes
+				var node
 				for (i = 0; i < data.length; ++i) {
-					var node = document.createElement("li");
+					node = document.createElement("li");
 					// Output formatting ([ src/dst ] < timestamp > ( status ) text)
-					node.innerText = "[ "+data[i][0]+" ]  < "+data[i][1]+" >  ( "+data[i][2]+" )   "+data[i][3];
+					node.innerText = "[ "+data[i][0]+" ]  < "+new Date(data[i][1] * 1000).toISOString().slice(0, 19).replace('T', ' ')+" >  ( "+data[i][2]+" ) | "+data[i][3];
 					// Add line to output box
 					console_out.appendChild(node);
 				}
+				// Scroll to the newest line (comment out to stop this behaviour)
+				console_out.scrollTop = node.offsetTop
 				
 			} else if (wdata[0] == "settings") {
 				table_create("settings_page_table_container", JSON.parse(wdata[1]));

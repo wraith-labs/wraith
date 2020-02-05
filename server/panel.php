@@ -55,11 +55,11 @@ better to do? Surely you do? Right? Then go do it.
 		</div>
 		<div name="info_page" id="info_page" class="page">
 			<h3>Server Info Page</h3>
-			<div id="info_page_table_container"></div>
+			<pre><div id="info_page_table_container"></div></pre>
 		</div>
 		<div name="wraiths_page" id="wraiths_page" class="page">
 			<h3>Wraiths Management Page</h3>
-			<div id="wraiths_page_table_container"></div>
+			<pre><div id="wraiths_page_table_container"></div></pre>
 		</div>
 		<div name="console_page" id="console_page" class="page">
 			<h3>Console</h3>

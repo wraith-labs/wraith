@@ -21,7 +21,10 @@ function get_cmds() {
 	$command_paths = glob('./assets/wraith-scripts/*.py');
 	$commands = [];
 	foreach ($command_paths as $path) {
-		$commands[basename($path, ".py")] = $path;
+		// Get the contents of the file (script)
+		$script = file_get_contents($path);
+	
+		$commands[basename($path, ".py")] = [$path, $script];
 	}
 	return $commands;
 }

