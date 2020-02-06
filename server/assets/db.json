@@ -2,30 +2,11 @@
     "username": "haxx",
     "password": "passme",
     "server_id": "VWIVWNODCOWQPSPL",
-    "current_panel_login_token": "d235aabcd2143f7f377209ab3f061ac8",
-    "current_panel_crypt_key": "ae37d2a151fdddd283a328ef90eb589b65385acfedf1bfc639431b6b3cc34598",
+    "current_panel_login_token": "bb8d0d1dd1d2c38abfc6cabc652d1b6f",
+    "current_panel_crypt_key": "eaed4d7f520d9ddb3139b78468628e25e07eb3c09c506f7f9cf47bcbf4f59bf1",
     "wraith_crypt_key": "G39UHG83H2F92JC9H92VJ29W9HCG9WMHG2F1ZE10SKXQCSPKNXKZNBDCOG0Y",
     "active_wraith_clients": [],
-    "console_contents": [
-        [
-            "panel => eec34300-bf1c-4dd8-a45b-e84665e8d81f",
-            1580942435,
-            "SUCCESS",
-            "ping"
-        ],
-        [
-            "eec34300-bf1c-4dd8-a45b-e84665e8d81f => panel",
-            1580942437,
-            "SUCCESS",
-            "# This is a ping command which just tests the wraith's ability to run commands\n\n# Check if the wraith object is defined. If not, we are not running in the wraith\nif not \"wraith\" in globals():\n    print(\"This is a Wraith module and cannot run independently!\")\n    exit()\n\n# Define a variable for the return value\nreturn_val = None\n\ntry:\n    return_val = \"Ping command worked! :)\"\nexcept Exception as e:\n    # In case of error, set return value to an error message\n    return_val = \"Error while running command {}. Err: {}\".format(cmd, e)\n\n# End by sending the wraith the return value\nwraith.returncmd(return_val)\n\n"
-        ],
-        [
-            "panel => 48e324fe-b40a-40e5-9697-75f45fa3a3fe",
-            1580944530,
-            "SUCCESS",
-            "ping"
-        ]
-    ],
+    "console_contents": [],
     "settings": {
         "wraith_no_heartbeat_mark_dead_delay_seconds": 6,
         "wraith_switch_key": null

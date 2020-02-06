@@ -308,10 +308,11 @@ if ($response["requester_type"] === "wraith") {
 		// Send a command to a/multiple wraith/s
 		$targets = $request["data"]["targets"];
 		$command = $request["data"]["command"];
+		$command_name = explode(" ", $command)[0];
 		$commands = get_cmds();
 		
-		if (array_key_exists($command, $commands)) {
-			$script = $commands[$command][1];
+		if (array_key_exists($command_name, $commands)) {
+			$script = $commands[$command_name][1];
 
 			foreach ($targets as $target) {
 				if (wraithdb($target, null, "checkexist")) {
@@ -322,7 +323,7 @@ if ($response["requester_type"] === "wraith") {
 				}
 			}
 		} else {
-			console_append("API => panel", "ERROR - Command `".$command."` not found!", $command);
+			console_append("API => panel", "ERROR - Command `".$command_name."` not found!", $command);
 		}
 		
 		respond();
