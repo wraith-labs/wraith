@@ -4,6 +4,7 @@ A Remote Administration Tool (RAT) written in Python with
 PHP/HTML/JS/CSS Command and Control (C&amp;C) API and panel.
 
 WARNING: This project is unfinished!
+WARNING: The info section is a bit outdated. Some of the information may not apply.
 
 **Good news!** Wraith is now somewhat functional. It's very slow, not
 very robust, and has no install scripts, but it's a start. Sending
