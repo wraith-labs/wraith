@@ -5,7 +5,7 @@ PHP/HTML/JS/CSS Command and Control (C&amp;C) API and panel.
 
 WARNING: This project is unfinished!
 
-Good news! Wraith is now somewhat functional. It's very slow, not
+**Good news!** Wraith is now somewhat functional. It's very slow, not
 very robust, and has no install scripts, but it's a start. Sending
 commands and receiving results is now fully supported though so
 the wraith can do its job :)
