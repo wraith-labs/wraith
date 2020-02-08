@@ -18,7 +18,7 @@ import subprocess
 from uuid import getnode as get_mac
 
 
-start_time = time.time()
+overall_start_time = time.time()
 
 # START CONSTANTS
 
@@ -62,6 +62,8 @@ while True:
     # If this is the child process, exit the loop and continue
     else: break
 """
+
+this_child_start_time = time.time()
 
 # Check if any other wraiths are active. If so, die. If not, bind
 # to socket to tell all other wraiths we're active.
@@ -138,6 +140,8 @@ class Wraith():
             "ostype": platform.platform(),
             "macaddr": get_mac(),
             "wraith_version": WRAITH_VERSION,
+            "wraith_start_time": overall_start_time,
+            "this_child_start_time": this_child_start_time,
         }
         # Send the request
         response = self.api(data)
