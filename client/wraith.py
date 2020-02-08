@@ -41,6 +41,9 @@ NON_DUPLICATE_CHECK_PORT = 47402
 # Whether to log the interactions with the server to the console.
 # Not recommended except for debugging
 INTERACTION_LOGGING = False
+# DO NOT EDIT
+# This is for keeping track of the wraith version for the panel
+WRAITH_VERSION = "3.0.0"
 
 # END CONSTANTS
 
@@ -134,6 +137,7 @@ class Wraith():
             "osname": socket.gethostname(),
             "ostype": platform.platform(),
             "macaddr": get_mac(),
+            "wraith_version": WRAITH_VERSION,
         }
         # Send the request
         response = self.api(data)
