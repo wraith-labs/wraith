@@ -5,18 +5,31 @@ session_start();
 // Include the functions required
 include_once("assets/functions.php");
 
+// Instantly lock the database file to stop weird errors like the file contents disappearing
+$database = fopen(dirname(__FILE__)."/db.json", "r+");
+$flock_block = 1;
+flock($database, LOCK_EX, $flock_block);
+
 // Get saved database
 $db = get_db();
 
 // If the user is not logged in, redirect them and die without sending any HTML
 if (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $db["username"] && $_SESSION["PASS"] == $db["PASSWORD"])) {
 	header("Location: login.php");
+	// Just before we exit, unlock the database
+	fflush($database);
+	flock($database, LOCK_UN);
+	fclose($database);
+	
 	die("Log in first!");
 } else {
+	// Just before we exit, unlock the database
+	fflush($database);
+	flock($database, LOCK_UN);
+	fclose($database);
 	// Create credentials for the panel
 	panel_login();
 }
-
 ?>
 
 <!--
@@ -50,7 +63,6 @@ better to do? Surely you do? Right? Then go do it.
 			<a href="#info_page">Info</a>
 			<a href="#wraiths_page">Wraiths</a>
 			<a href="#console_page">Console</a>
-			<a href="#server_options_page">Server Options</a>
 			<a href="login.php?LOGMEOUTPLZ=true">Log Out</a>
 		</div>
 		<div name="info_page" id="info_page" class="page">
@@ -76,10 +88,6 @@ better to do? Surely you do? Right? Then go do it.
 					</div>
 				</div>
 			</div>
-		</div>
-		<div name="server_options_page" id="server_options_page" class="page">
-			<h3>Settings</h3>
-			<div id="settings_page_table_container"></div>
 		</div>
 	</body>
 </html>

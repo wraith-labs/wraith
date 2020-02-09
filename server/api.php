@@ -5,7 +5,8 @@
 
 // Instantly lock the database file to stop weird errors like the file contents disappearing
 $database = fopen(dirname(__FILE__)."/db.json", "r+");
-flock($database, LOCK_SH | LOCK_EX);
+$flock_block = 1;
+flock($database, LOCK_EX, $flock_block);
 
 // Include some required functions
 require_once("assets/functions.php");
@@ -136,12 +137,6 @@ if ($response["requester_type"] === "wraith") {
 		$response["status"] = "ERROR";
 		$response["message"] = "Panel login token is invalid. No API calls can be made using this token";
 		respond(false);
-	// Extra check to make sure the panel is actually logged in. Shouldn't be too nescessary but better safe than sorry
-	/* Commented out because it doesn't work
-	} elseif (!($_SESSION["LOGGED_IN"] == true && $_SESSION["USERNAME"] == $database["username"] && $_SESSION["PASS"] == $database["PASSWORD"])) {
-		$response["status"] = "ERROR";
-		$response["message"] = "The logged in status of the panel could not be verified. Please log in to the panel before making API calls.";
-		respond(false); */
 	}
 }
 
@@ -335,12 +330,6 @@ if ($response["requester_type"] === "wraith") {
 		$db["console_contents"] = [];
 		write_db($db);
 		
-		$response["status"] = "SUCCESS";
-		respond();
-		
-	} elseif ($req_type === "settings") {
-		// View/modify settings
-		// TODO
 		$response["status"] = "SUCCESS";
 		respond();
 		
