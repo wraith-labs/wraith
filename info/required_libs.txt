@@ -1,7 +1,10 @@
 Client:
  - PyCryptoDome (or equivalent)
  - PsUtil
+ - PyTTSx3
+ - Pillow
+ - PyAutoGUI
 
 Server:
- - PHP OpenSSL
- - PHP MbString
+ - PHP7 OpenSSL
+ - PHP7 MbString

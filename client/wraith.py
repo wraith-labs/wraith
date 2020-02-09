@@ -20,6 +20,9 @@ from uuid import getnode as get_mac
 # provides compatibility with pyinstaller and the like.
 import os
 import subprocess
+import webbrowser
+import pyttsx3
+import pyautogui
 
 overall_start_time = time.time()
 
