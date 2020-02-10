@@ -74,6 +74,7 @@ function sendCommand() {
 
 }
 
+// Function to start and set up a worker which updates the panel in the background
 var page_update_worker;
 function start_page_update_worker() {
 	if (typeof(Worker) !== "undefined") {

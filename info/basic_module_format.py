@@ -2,35 +2,30 @@
 
 # SOME INFO
 
-# Pre-defined variables which can be used:
-#	args is a list - predefined by wraith - arguments passed to the command
-#	cmd is a string - predefined by wraith - the name of the command
-#	wraith is an object - predefined by wraith - the wraith object. Be careful!
+# All code should be put in the `script_main` function which is executed by the wraith
+# in a separate thread. Any code outside of this function will be executed in the command
+# executor thread which can delay or block other commands to be ran by the same thread.
+
+# The `script_main` function will have 2 arguments passed to it; the wraith object and
+# the full command line respectively. It is up to the module to process this command line
+# such as by splitting it into separate arguments. The first word of the command line will
+# always be the command itself. For example, "echo hello there" will be the command line
+# of a command called "echo" with the arguments "hello there".
 
 # These modules run in threads started by the wraith and by default, have access to every
-# library used by the wraith. Additional libraries can be imported but this is not recommended
-# as the commands will then be unable to run if the wraith is frozen (PyInstaller, etc.)
+# library used by the wraith. Additional libraries can be imported here but this is not
+# recommended as the commands will then be unable to run if the wraith is frozen (PyInstaller, etc.)
 
-# Warning: Comments are not stripped by the panel (TODO) so the less comments the better as
+# Warning: Comments are not stripped by the panel so the less comments the better as
 # less data needs to be sent.
 
 # END OF INFO
 
-# Check if the wraith object is defined. If not, we are not running in the wraith
-if not "wraith" in globals():
-    print("This is a Wraith module and cannot run independently!")
-    exit()
+# The following is an example of the `sh` command:
 
-# Define a variable for the return value
-return_val = None
-
-try:
-    # MODULE CODE HERE
-    pass
-except Exception as e:
-    # In case of error, set return value to an error message
-    return_val = "Error while running command {}. Err: {}".format(cmd, e)
-
-# End by sending the wraith the return value
-wraith.returncmd(return_val)
-
+def script_main(wraith, cmdname):
+	try:
+		sh_to_run = " ".join(cmdname.split(" ")[1:])
+		wraith.putresult("SUCCESS", subprocess.run(sh_to_run, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, timeout=5, shell=True).stdout.decode('utf-8'))
+	except Exception as e:
+		wraith.putresult("ERROR - {}".format(e), "Error while executing `{}`".format(cmdname)) 

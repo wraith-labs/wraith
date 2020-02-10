@@ -107,6 +107,7 @@ th, td {
   border-radius: 0px 0px 0px 10px;
   background: #222;
   color: #eee;
+  height: 100%;
 }
 
 #console_input_command_entry {
@@ -116,6 +117,7 @@ th, td {
   color: #eee;
   padding-left: 10px;
   padding-right: 10px;
+  height: 100%;
 }
 
 #console_input_send_button {
