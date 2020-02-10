@@ -49,7 +49,7 @@ NON_DUPLICATE_CHECK_PORT = 47402
 # Not recommended except for debugging
 INTERACTION_LOGGING = False
 # Whether to act as a watchdog and spawn children as the wraiths
-START_AS_WATCHDOG = True
+START_AS_WATCHDOG = False
 # DO NOT EDIT
 # This is for keeping track of the wraith version for the panel
 WRAITH_VERSION = "3.0.0"
