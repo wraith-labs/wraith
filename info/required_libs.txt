@@ -1,4 +1,5 @@
 Client:
+ - Requests
  - PyCryptoDome (or equivalent)
  - PsUtil
  - PyTTSx3
