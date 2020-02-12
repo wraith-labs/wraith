@@ -29,6 +29,8 @@ PHP/HTML/JS/CSS Command and Control (C&amp;C) API and panel.
 14) Log into the server to verify that commands are working. Try `ping` as the command to test if everything works.
 15) Run the wraith without debug mode and enjoy. You can also freeze it with `PyInstaller` or others but `PyInstaller` only officially supported.
 
+NOTE: These installations only come with 2 basic payloads. For more pre-made payloads please see https://github.com/TR-SLimey/wraith-RAT-payloads
+
 ## Releases:
 **v3.0.0:**
 - First public release of wraith
