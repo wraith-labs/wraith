@@ -186,6 +186,8 @@ if ($response["requester_type"] === "wraith") {
 		$newwraith["lastheartbeat"] = time();
 		// Write database entry
 		wraithdb($login_wraith_uuid, $newwraith);
+		// Log the wraith's login to the console
+		console_append("API => panel", "INFO", "Wraith ".$login_wraith_uuid." logged in from ".$newwraith["extip"]."/".$newwraith["osname"].".");
 		// Notify wraith of successful connection
 		$response["status"] = "SUCCESS";
 		$response["message"] = "Successfully logged in";
