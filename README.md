@@ -15,7 +15,7 @@ PHP/HTML/JS/CSS Command and Control (C&amp;C) API and panel.
 3) Make sure that the required PHP extensions are installed (can be found in `info/required_libs.txt`).
 4) If not using Apache2, make sure that the `server/assets/db.json`, `server/assets/wraith-scripts` files and directories are protected from public access (**IMPORTANT**). If using Apache2, this is already done using the `.htaccess` files.
 5) If using Apache2, make sure `.htaccess` override is enabled in your Apache config.
-6) Log into the panel by accessing the URL of your site (you should be automatically redirected to the login page). This is very important as it resets the encryption keys so that no one can access the API without logging in.
+6) Log into the panel by accessing the URL of your site (you should be automatically redirected to the login page). This is very important as it resets the encryption keys so that no one can access the API without logging in. The credentials can be found in the `server/assets/db.json` file.
 7) Change the panel login credentials in the `server/assets/db.json` file along with the wraith encryption key and the server fingerprint (any random strings, around 10-30 chars). Again, **VERY IMPORTANT**.
 
 **CLIENT**
