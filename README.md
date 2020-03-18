@@ -21,10 +21,10 @@ PHP/HTML/JS/CSS Command and Control (C&amp;C) API and panel.
 **CLIENT**
 
 8) Make sure you are using `Python3.5` or above and have the libraries from `info/required_libs.txt` installed.
-9) Go to a text hosting website such as `Pastebin` (from now on, intructions will refer to Pastebin) and make an account. You'll need it in order to later edit the file in case the address of your server changes.
+9) Go to a text hosting website such as `pastebin.com` (from now on, intructions will refer to Pastebin) and make an account. You'll need it in order to later edit the file in case the address of your server changes.
 10) Set the paste to never expire and set it's privacy to unlisted (optional but highly recommended)
 11) Paste in the full address of your control server's API as the content; for example, `http://example.com/api.php`.
-12) Edit the `client/wraith.py` file and change the contants to reflect your previously chosen settings. Should be self explanatory. (Warning: make sure the `FETCH_SERVER_LOCATION_URL` is a raw text URL; in other words, it has `/raw/` following `pastebin.com`)
+12) Edit the `client/wraith.py` file and change the constants at the top of the file to reflect your previously chosen settings. Should be self explanatory. (Warning: make sure the `FETCH_SERVER_LOCATION_URL` is a raw text URL; in other words, it has `/raw/` following `pastebin.com`)
 13) Run the wraith in debug mode (defined by a constant in the file) first to verify that everything went well and the wraith is connecting to the server properly.
 14) Log into the server to verify that commands are working. Try `ping` as the command to test if everything works.
 15) Run the wraith without debug mode and enjoy. You can also freeze it with `PyInstaller` or others but only `PyInstaller` is officially supported.
