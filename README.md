@@ -20,6 +20,9 @@ Previously, the Wraith project was intending to switch to C++ rather than Golang
 
 To see the progress on the Wraith v4 release, please check the [indev](https://github.com/TR-SLimey/wraith-RAT/tree/indev) branch, though any code there is untested and not recommended for use.
 
+## Disclaimer
+We, the project author and its contributors, do not accept any responsibility for any damage caused using this software. By using Wraith, you accept full responsibility for your actions and acknowledge that this software was created for educational purposes only, and meant for use exclusively on systems owned by the user, or those which the user has explicit permission to access for use with this software.
+
 ## Info
 
 A Remote Administration Tool (RAT) written in Python with 
