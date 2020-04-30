@@ -1,22 +1,24 @@
 # wraith-RAT
 
 ## WARNING
-The wraith client is in the process of being completely re-written (again, I know) for version 4.0.0. This update will only slightly change the protocol but will mostly focus on shifting from `Python3` to `Golang` for the client, and will include an almost complete re-write of the control panel UI to make it much cleaner and more useable. Some "behind the scenes" changes on the panel side will also be made but nothing major. A shift from a .JSON database file to a SQLite database is also planned on the server for better stability and maintainability. Here is a full overview of the planned changes:
+The wraith client is in the process of being completely re-written (again, I know) for version 4.0.0. This update will slightly change the protocol but will mostly focus on shifting from `Python3` to `Golang` for the client, and will include an almost complete re-write of the control panel UI to make it much cleaner and more useable. Some "behind the scenes" changes on the panel side will also be made. A shift from a .JSON database file to a SQLite database is also planned on the server for better stability and maintainability. Here is a full overview of the planned changes:
 
  - Complete repository re-structure
  - Complete re-write of the panel UI to make it much cleaner and more useable
- - Some protocol changes to make wraith communication more secure and robust
- - Complete re-write of the wraith using Golang instead of Python3 mainly for its speed and more low-level access
- - Completely re-designed modular payload delivery system to better work with Golang
- - Some panel "behind the scenes" changes such as a move to a more robust SQLite database
- - Settings to be introduced into the panel rather than manually editing a file
- - More secure panel login system
+ - Some protocol changes to make Wraith communication more secure and robust
+ - Complete re-write of the Wraith using Golang instead of Python3 mainly for speed, more low-level access, smaller filesize and compilation (as opposed to packaging with PyInstaller)
+ - Re-designed modular payload delivery system to better work with Golang
+ - Some panel "behind the scenes" changes such as moving to a more robust SQLite database
+ - Settings to be moved into the panel over manually editing a file
+ - More secure panel login system and ability to host the API and panel separately
  
-The update does not yet have a planned release date. It will be released when all the abovementioned features are complete to a good standard and Wraith is relatively bug-free.
+The update does not yet have a planned release date. It will be released when all the abovementioned features are complete to a good standard and Wraith is suitably bug-free.
 
-The update will also not be backwards-compatible with earlied versions due to the language transition and protocol changes but panel releases following this update are planned to be mostly backwards-compatible.
+The update will also not be backwards-compatible with earlier Wraith or Panel versions due to the language transition and protocol changes but panel releases following this update are planned to be mostly backwards-compatible.
 
 Previously, the Wraith project was intending to switch to C++ rather than Golang. However, Golang, while [slightly slower](https://benchmarksgame-team.pages.debian.net/benchmarksgame/fastest/go-gpp.html) than C++ (still faster than Python), is much more portable and easier for me to maintain.
+
+To see the progress on the Wraith v4 release, please check the [indev](https://github.com/TR-SLimey/wraith-RAT/tree/indev) branch, though any code there is untested and not recommended for use.
 
 ## Info
 
