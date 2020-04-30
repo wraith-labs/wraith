@@ -18,17 +18,14 @@ require("helpers/misc.php");    // Miscellaneous
 // Import protocol handlers
 foreach (glob("helpers/protocols/proto_v_*.php") as $proto_handler) { include($proto_handler); }
 
-
 // To keep all stats up to-date, and avoid performing actions on disconnected
 // Wraiths, expire any that have not had a heartbeat in a while first.
-//expire_wraiths();
+db_expire_wraiths();
 
 // Define a function to respond to the client
 function respond($response) {
-    // Set the content type header to application/octet-stream so proxies
-    // know not to try interpreting it. This helps avoid errors and makes
-    // our messages less likely to be logged
-    //header("Content-Type: application/octet-stream");
+
+    header("Content-Type: text/plain");
     // If a global $crypt object is defined as well as
     // a global $crypt_key, automatically encrypt the response
     // and add the prefix
@@ -47,6 +44,18 @@ function respond($response) {
     // Finally, send the response and exit
 	die($message);
 }
+
+// Check if the requesting IP is blacklisted. If so, reject the request
+// instantly
+$requester_IP = get_client_ip();
+$IP_blacklist = json_decode($SETTINGS["RequestIPBlacklist"]);
+if (in_array($requester_IP, $IP_blacklist)) {
+    $response = [];
+	$response["status"] = "ERROR";
+	$response["message"] = "you have been blocked from accessing this resource";
+	respond($response);
+}
+
 
 // Get the request body
 $req_body = file_get_contents("php://input");
@@ -213,6 +222,7 @@ $keep_variables = [
     "db",
     "data",
     "requester",
+    "requester_IP",
     "protocol_version",
     "crypt",
     "crypt_key",
