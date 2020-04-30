@@ -1,4 +1,0 @@
-The files within this folder are old and prototype versions of the wraith
-found in backup files. They are not supported, maintained or recommended
-for use. They are here only to show how the wraith project progressed and
-as a way to keep the (pre-github) history of the project safe.

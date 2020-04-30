@@ -1,4 +1,0 @@
-Options -Indexes
-<Files "db.json">
-	Require all denied
-</Files>

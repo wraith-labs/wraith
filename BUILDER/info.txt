@@ -1,0 +1,17 @@
+Wraith is designed to be easy to deploy and use. For this reason
+there are plans to include a builder which will build the executable
+without the need for a Golang compiler.
+
+The builder will build versions of Wraith for a number of platforms
+like Windows, Linux and MacOS based on settings specfied by the user.
+
+The current plan for implementing the builder involves hard-coding the
+Wraith executable code within it and simply replacing certain data
+with user-specified values.
+
+Alternatively, a web-based builder is also being considered which runs
+on a server with a Golang compiler. The builder could then build Wraith
+from source (only takes a few seconds on modern hardware) and send it
+to the user as a download. This builder could also be added to the
+panel though this would make the panel almost unusable on shared hosting.
+
