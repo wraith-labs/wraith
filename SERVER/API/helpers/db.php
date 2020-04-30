@@ -43,7 +43,7 @@ try {
         );",
         // Connected Wraiths table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Wraiths` (
-            `AssignedID` TEXT,
+            `AssignedID` TEXT NOT NULL UNIQUE,
             `Fingerprint` TEXT,
             `ReportedIP` TEXT,
             `ConnectingIP` TEXT,
@@ -52,20 +52,33 @@ try {
             `HostUserName` TEXT,
             `WraithVersion` TEXT,
             `HeartbeatsReceived` INTEGER,
-            `LastHeartbeatTime` INTEGER
+            `LastHeartbeatTime` INTEGER NOT NULL
         );",
         // Command queue table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Commands` (
-            `CommandID` TEXT,
+            `CommandID` TEXT NOT NULL UNIQUE,
             `CommandName` TEXT,
             `CommandParams` TEXT,
             `CommandTargets` TEXT,
             `CommandResponses` TEXT,
             `TimeIssued` INTEGER
         );",
+        // Users table
+        "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
+            `UserID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            `UserName` TEXT NOT NULL UNIQUE,
+            `UserPassword` TEXT,
+            `UserPrivileges` INTEGER
+        );",
         // Initialisation marker
         "CREATE TABLE IF NOT EXISTS `DB_INIT_INDICATOR` (
             `DB_INIT_INDICATOR` INTEGER
+        );",
+        // Create a stats table entry
+        "INSERT INTO `WraithAPI_Stats` (
+            `DatabaseSetupTime`
+        ) VALUES (
+            '" . time() . "'
         );"
     ];
 
@@ -121,18 +134,19 @@ try {
 
 } catch (Exception $e) {
 
-    // Create default settings entry if not
+    // Create default super admin user
 
-    $users_entry_creation_command = "INSERT INTO `WraithAPI_Users` VALUES (
-        '20',
-        'QWERTYUIOPASDFGHJKLZXCVBNM',
-        'QWERTYUIOPASDFGHJKLZXCVBNM_switch',
-        'ABCDEFGHIJKLMNOP',
-        '',
-        'W_'
+    $user_entry_creation_command = "INSERT INTO `WraithAPI_Users` (
+        `UserName`,
+        `UserPassword`,
+        `UserPrivileges`
+    ) VALUES (
+        'SuperAdmin',
+        '" . password_hash("SuperAdminPassword", PASSWORD_BCRYPT) . "',
+        '2'
     );";
 
-    $db->exec($settings_entry_creation_command);
+    $db->exec($user_entry_creation_command);
 
     // Fetch the settings again
     $SETTINGS = $db->query("SELECT * FROM WraithAPI_Settings LIMIT 1")->fetchAll()[0];
@@ -142,38 +156,3 @@ try {
 
 // Check which Wraiths have not sent a heartbeat in the mark dead time and remove
 // them from the database
-
-/*
-try {
-  //open the database
-  $db = new PDO(`sqlite:dogsDb_PDO.sqlite`);
-
-  //create the database
-  $db->exec("CREATE TABLE Dogs (Id INTEGER PRIMARY KEY, Breed TEXT, Name TEXT, Age INTEGER)");
-
-  //insert some data...
-  $db->exec("INSERT INTO Dogs (Breed, Name, Age) VALUES (`Labrador`, `Tank`, 2);".
-             "INSERT INTO Dogs (Breed, Name, Age) VALUES (`Husky`, `Glacier`, 7); " .
-             "INSERT INTO Dogs (Breed, Name, Age) VALUES (`Golden-Doodle`, `Ellie`, 4);");
-
-  //now output the data to a simple html table...
-  print "<table border=1>";
-  print "<tr><td>Id</td><td>Breed</td><td>Name</td><td>Age</td></tr>";
-  $result = $db->query(`SELECT * FROM Dogs`);
-  foreach($result as $row)
-  {
-    print "<tr><td>".$row[`Id`]."</td>";
-    print "<td>".$row[`Breed`]."</td>";
-    print "<td>".$row[`Name`]."</td>";
-    print "<td>".$row[`Age`]."</td></tr>";
-  }
-  print "</table>";
-
-  // close the database connection
-  $db = NULL;
-}
-catch(PDOException $e)
-{
-  print `Exception : `.$e->getMessage();
-}
-*/
