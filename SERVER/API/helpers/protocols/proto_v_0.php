@@ -12,7 +12,6 @@ class Handler_proto_v_0 {
     private $SETTINGS; // A copy of the API settings
     private $response = []; // The response dict sent when responding
 
-
     function __construct($db, $client_type, $client_address, $client_data, $SETTINGS) {
 
         // Copy args to private properties
@@ -33,12 +32,56 @@ class Handler_proto_v_0 {
 
     }
 
-
     function handle_request() {
 
-        // If the handler was created, the client has passed any safety checks
+        // If the handler was created, the client has passed all checks
         // so it is safe to add the API fingerprint to the response
         $this->response["api_fingerprint"] = $this->SETTINGS["APIFingerprint"];
+
+        // Determine if the client is a panel or Wraith
+        if ($this->c_type === "wraith") {
+
+            // Wraith
+
+            // Wraith is logging in
+            if ($this->c_data["req_type"] === "handshake") {
+
+                // TODO
+
+            // Wraith is sending heartbeat
+            } else if ($this->c_data["req_type"] === "heartbeat") {
+
+                // TODO
+
+            // Wraith is uploading a file
+            } else if ($this->c_data["req_type"] === "upload") {
+
+                // TODO
+
+            // Unrecognised request type
+            } else {
+
+                $this->response["status"] = "ERROR";
+                $this->response["message"] = "request type not implemented in protocol";
+                return;
+
+            }
+
+        } else if ($this->c_type === "panel") {
+
+            // Panel
+
+            // TODO
+
+        } else {
+
+            // This will never happen if the code is unmodified. However, to gracefully
+            // handle mistakes in modification, this should stay here
+            $this->response["status"] = "ERROR";
+            $this->response["message"] = "the request was identified but methods for handling it were not implemented in this protocol version";
+            return;
+
+        }
 
     }
 
