@@ -25,24 +25,31 @@ db_expire_wraiths();
 // Define a function to respond to the client
 function respond($response) {
 
+    global $db, $crypt, $crypt_key, $SETTINGS;
+
+    // Set the text/plain content type header so proxies and browsers
+    // don't try interpreting responses
     header("Content-Type: text/plain");
     // If a global $crypt object is defined as well as
-    // a global $crypt_key, automatically encrypt the response
-    // and add the prefix
-    if (isset($GLOBALS["crypt"]) && isset($GLOBALS["crypt_key"]) && false) {
+    // a global $crypt_key, and encryption is not disabled,
+    // automatically encrypt the response and add the prefix
+    if (isset($crypt) && isset($crypt_key) && $SETTINGS["NoEncrypt"] === "0") {
+
         global $crypt;
         global $crypt_key;
         $message = $SETTINGS["APIPrefix"] . $crypt->encrypt(json_encode($response), $crypt_key);
+
     } else {
+
         $message = json_encode($response);
+
     }
 
     // Close the database connection when exiting
-    global $db;
     $db = NULL;
 
     // Finally, send the response and exit
-	die($message);
+    die($message);
 }
 
 // Check if the requesting IP is blacklisted. If so, reject the request
@@ -50,12 +57,13 @@ function respond($response) {
 $requester_IP = get_client_ip();
 $IP_blacklist = json_decode($SETTINGS["RequestIPBlacklist"]);
 if (in_array($requester_IP, $IP_blacklist)) {
-    $response = [];
-	$response["status"] = "ERROR";
-	$response["message"] = "you have been blocked from accessing this resource";
-	respond($response);
-}
 
+    $response = [];
+    $response["status"] = "ERROR";
+    $response["message"] = "you have been blocked from accessing this resource";
+    respond($response);
+
+}
 
 // Get the request body
 $req_body = file_get_contents("php://input");
@@ -69,10 +77,12 @@ REQUEST VALIDATION AND PREPARATION
 // Find if the request starts with the pre-defined prefix. If not,
 // it is invalid.
 if (strpos($req_body, $SETTINGS["APIPrefix"] !== 0)) {
+
     $response = [];
-	$response["status"] = "ERROR";
-	$response["message"] = "incorrectly formatted request";
-	respond($response);
+    $response["status"] = "ERROR";
+    $response["message"] = "incorrectly formatted request";
+    respond($response);
+
 }
 
 // The character following this should be a non-zero, integer.
@@ -82,25 +92,33 @@ if (strpos($req_body, $SETTINGS["APIPrefix"] !== 0)) {
 // First, check if the character after the prefix is a non-zero integer
 $req_identification_char = $req_body[strlen($SETTINGS["APIPrefix"])];
 if ($req_identification_char % 10 === 0) {
+
     // 0 is only returned by non-integer characters or 0 itself
     // both of which aren't valid (or multiples of 10
     // but we're only getting a single digit/char)
     $response = [];
-	$response["status"] = "ERROR";
-	$response["message"] = "incorrectly formatted request";
-	respond($response);
+    $response["status"] = "ERROR";
+    $response["message"] = "incorrectly formatted request";
+    respond($response);
+
 } elseif ($req_identification_char % 2 === 1) {
+
     // Odd - the request is coming from a Wraith
     $requester = "wraith";
+
 } elseif ($req_identification_char % 2 === 0) {
+
     // Even - the request is coming from a panel
     $requester = "panel";
+
 } else {
+
     // This should never happen but better safe than sorry
     $response = [];
-	$response["status"] = "ERROR";
-	$response["message"] = "incorrectly formatted request";
-	respond($response);
+    $response["status"] = "ERROR";
+    $response["message"] = "incorrectly formatted request";
+    respond($response);
+
 }
 
 // The next char indicates the protocol version that the requester is using.
@@ -108,12 +126,16 @@ if ($req_identification_char % 10 === 0) {
 // request should be rejected if the protocol is unsupported.
 $req_protocolv_char = $req_body[strlen($SETTINGS["APIPrefix"])+1];
 if (!(in_array($req_protocolv_char, $SUPPORTED_PROTOCOL_VERSIONS))) {
+
     $response = [];
-	$response["status"] = "ERROR";
-	$response["message"] = "unsupported protocol";
-	respond($response);
+    $response["status"] = "ERROR";
+    $response["message"] = "unsupported protocol";
+    respond($response);
+
 } else {
+
     $protocol_version = $req_protocolv_char;
+
 }
 
 // Now that we know that the request is valid and whether it comes from a
@@ -141,28 +163,36 @@ if ($requester === "wraith") {
 
     // Try JSON decoding the decrypted data
     $data = json_decode($data, true);
-	// If this failed, either the data was not JSON, was encrypted with
+    // If this failed, either the data was not JSON, was encrypted with
     // a different key, or is invalid
-	if ($data === null) {
-		// In case we have used the wrong key, try the default key instead
+    if ($data === null) {
+
+        // In case we have used the wrong key, try the default key instead
         $data = $crypt->decrypt($req_body, $SETTINGS["WraithInitialCryptKey"]);
 
         // Try JSON decoding the decrypted data
         $data = json_decode($data, true);
         // If this failed, either the data must be invalid JSON or invalid altogether
         if ($data === null) {
+
             // In both cases, we return an error message
             $response = [];
-        	$response["status"] = "ERROR";
-        	$response["message"] = "incorrectly formatted request";
-        	respond($response);
+            $response["status"] = "ERROR";
+            $response["message"] = "incorrectly formatted request";
+            respond($response);
+
         } else {
+
             // If this worked, use the default key for the response from now on
             $crypt_key = $SETTINGS["WraithInitialCryptKey"];
+
         }
-	} else {
+
+    } else {
+
         // If this worked, use the switch key for the response from now on
         $crypt_key = $SETTINGS["WraithSwitchCryptKey"];
+
     }
 
     // At this point, we should have a variable named $data holding
@@ -173,20 +203,24 @@ if ($requester === "wraith") {
 
     // Check if the data is an array
     if (!(is_array($data))) {
+
         $response = [];
         $response["status"] = "ERROR";
         $response["message"] = "incorrectly formatted request";
         respond($response);
+
     }
 
     // Make sure the array has the required keys
     if (!(has_keys($data, [
         "req_type", // So we know what to do with the request
     ]))) {
+
         $response = [];
         $response["status"] = "ERROR";
         $response["message"] = "incorrectly formatted request";
         respond($response);
+
     }
 
     // The Wraith's request has now been fully validated and prepared and can
@@ -198,12 +232,14 @@ if ($requester === "wraith") {
 
 
 } else {
+
     // This will never happen if the code is unmodified. However, to gracefully
     // handle mistakes in modification, this should stay here
     $response = [];
-	$response["status"] = "ERROR";
-	$response["message"] = "the request was identified but methods for handling it were not implemented";
-	respond($response);
+    $response["status"] = "ERROR";
+    $response["message"] = "the request was identified but methods for handling it were not implemented";
+    respond($response);
+
 }
 
 // Unset everything other than the required variables to save resources and namespace
@@ -217,7 +253,7 @@ $keep_variables = [
     "_FILES",
     "_SESSION",
     // Other needed variables
-    "SUPPORTED_PROTOCOL_VERSIONS",
+    "GLOBALS",
     "SETTINGS",
     "db",
     "data",
@@ -231,9 +267,13 @@ $keep_variables = [
 ];
 
 foreach (get_defined_vars() as $name => $value) {
+
     if (!(in_array($name, $keep_variables))) {
+
         unset($$name);
+
     }
+
 }
 unset($keep_variables, $name, $value);
 
@@ -245,7 +285,7 @@ REQUEST PROCESSING
 
 // Create an instance of the handler class for the specified protocol
 $handler_class_name = "Handler_proto_v_".$protocol_version;
-$handler = new $handler_class_name($requester, $data);
+$handler = new $handler_class_name($db, $requester, $requester_IP, $data, $SETTINGS);
 
 // Handle the request using the created handler
 $handler->handle_request();

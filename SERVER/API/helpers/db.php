@@ -10,7 +10,6 @@ $DATABASE_LOCATION = "./storage/wraithdb";
 $db = new PDO("sqlite:" . $DATABASE_LOCATION);
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-
 // Check whether the database is initialised
 try {
 
@@ -20,17 +19,18 @@ try {
 
     // If not, prepare the database
 
-    // Commands to be executed to initialise the database
+    // SQL Commands to be executed to initialise the database
     $db_init_commands = [
         // Settings table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
             `WraithMarkOfflineDelaySeconds` INTEGER,
             `WraithInitialCryptKey` TEXT,
             `WraithSwitchCryptKey` TEXT,
-            `ServerFingerprint` TEXT,
+            `APIFingerprint` TEXT,
             `DefaultCommand` TEXT,
             `APIPrefix` TEXT,
-            `RequestIPBlacklist` TEXT
+            `RequestIPBlacklist` TEXT,
+            `NoEncrypt` INTEGER
         );",
         // Statistics table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Stats` (
@@ -55,7 +55,6 @@ try {
             `HeartbeatsReceived` INTEGER,
             `LastHeartbeatTime` INTEGER NOT NULL,
             `IssuedCommands` TEXT
-
         );",
         // Command queue table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_CommandsIssued` (
@@ -87,7 +86,9 @@ try {
 
     // Execute the SQL queries to initialise the database
     foreach ($db_init_commands as $command) {
+
         $db->exec($command);
+
     }
 
 }
@@ -102,9 +103,6 @@ try {
     // that array is 0, there are no rows so raise an exception to create one
     if (sizeof($SETTINGS) == 0) { throw new Exception(""); }
 
-    // If an exception was not raised, there is a settings entry, so use it
-    $SETTINGS = $SETTINGS[0];
-
 } catch (Exception $e) {
 
     // Create default settings entry if not
@@ -115,14 +113,17 @@ try {
         'QWERTYUIOPASDFGHJKLZXCVBNM_switch',
         'ABCDEFGHIJKLMNOP',
         '',
-        'W_'
-    );";
+        'W_',
+        '[]',
+        '1'
+    );"; // TODO: Change NoEncrypt default to 0 for release
 
     $db->exec($settings_entry_creation_command);
 
-    // Fetch the settings again
-    $SETTINGS = $db->query("SELECT * FROM WraithAPI_Settings LIMIT 1")->fetchAll()[0];
 }
+
+// Set the global SETTINGS variable
+$SETTINGS = $db->query("SELECT * FROM WraithAPI_Settings LIMIT 1")->fetchAll()[0];
 
 // Check whether a user account exists
 // There has to be a way to manage the API so if there are no users,
@@ -151,34 +152,109 @@ try {
 
     $db->exec($user_entry_creation_command);
 
-    // Fetch the settings again
-    $SETTINGS = $db->query("SELECT * FROM WraithAPI_Settings LIMIT 1")->fetchAll()[0];
 }
+
+// Set the global API_USERS variable
+$API_USERS = $db->query("SELECT * FROM WraithAPI_Users LIMIT 1")->fetchAll();
 
 // Functions for database management
 
+// WRAITH
+
 // Add a Wraith to the database
-function db_add_wraith() {
+function db_add_wraiths($data) {
+
     // TODO
+
+}
+
+// Remove a Wraith
+function db_remove_wraiths($filters) {
+
+    // TODO
+
 }
 
 // Check which Wraiths have not sent a heartbeat in the mark dead time and remove
 // them from the database
 function db_expire_wraiths() {
+
     // TODO
+
 }
 
 // Get a list of Wraiths and their properties
-function db_get_wraiths() {
+function db_get_wraiths($filters) {
+
     // TODO
+
 }
+
+// COMMAND
 
 // Issue a command to Wraith(s)
-function db_issue_command() {
+function db_issue_commands($data) {
+
     // TODO
+
 }
 
-// Edit an API setting
-function db_edit_setting() {
+// Delete a command from the command table
+function db_cancel_commands($filters) {
+
     // TODO
+
+}
+
+// Get commands (all or filtered)
+function db_get_commands($filters) {
+
+    // TODO
+
+}
+
+// USERS & SETTINGS
+
+// Edit an API setting
+function db_edit_settings($data) {
+
+    // TODO
+
+}
+
+// Create a new user
+function db_add_users($data) {
+
+    // TODO
+
+}
+
+// Change username
+function db_change_user_name($data) {
+
+    // TODO
+
+}
+
+// Change user password
+function db_change_user_pass($data) {
+
+    // TODO
+
+}
+
+// Change user privilege level (0=User, 1=Admin, 2=SuperAdmin)
+function db_change_user_privilege($data) {
+
+    // TODO
+
+}
+
+// STATS
+
+// Update a statistic
+function db_update_stats($data) {
+
+    // TODO
+
 }

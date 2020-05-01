@@ -5,30 +5,41 @@
 class Handler_proto_v_0 {
 
     // Handler properties
-    private $type; // Who the request is from
-    private $data; // The data to be processed
+    private $db; // Copy of the database connection
+    private $c_type; // Who the request is from
+    private $c_address; // The IP address of the client
+    private $c_data; // The data to be processed
+    private $SETTINGS; // A copy of the API settings
     private $response = []; // The response dict sent when responding
 
 
-    function __construct($client_type, $client_data) {
+    function __construct($db, $client_type, $client_address, $client_data, $SETTINGS) {
 
-        // Set private properties to passed properties
-        $this->type = $client_type;
-        $this->data = $client_data;
+        // Copy args to private properties
+        $this->db = $db;
+        $this->c_type = $client_type;
+        $this->c_address = $client_address;
+        $this->c_data = $client_data;
+        $this->SETTINGS = $SETTINGS;
 
     }
 
     function __destruct() {
 
-        // When the handler is destroyed, respond
+        // When the handler is destroyed (API script is about to end)
+
+        // Respond
         respond($this->response);
 
     }
 
 
     function handle_request() {
-        $this->response["status"] = "SUCCESS";
-        $this->response["text"] = "it works!!";
+
+        // If the handler was created, the client has passed any safety checks
+        // so it is safe to add the API fingerprint to the response
+        $this->response["api_fingerprint"] = $this->SETTINGS["APIFingerprint"];
+
     }
 
 }
@@ -37,16 +48,12 @@ class Handler_proto_v_0 {
 array_push($SUPPORTED_PROTOCOL_VERSIONS, "0");
 
 /*
-// From now on, all responses must be encrypted as we know the client
-// is capable of encrypted communication.
 
-// Create an encryption instance to communicate with the client
-$crypt = new aes();
-
-// As we know that the request came from a legitimate source, let's
-// include a server ID header to let the requester know that it can
-// communicate with and trust us;
-$response["server_id"] = get_db()["server_id"];
+The below are remains of the Wraith 3.0.0 API. They will be re-written to
+work with the new structure. They will only be here temporarily and are the
+last parts of any Wraith 3.0.0 code which get comitted to the repo. They
+are also the last part of the code to use tabs instead of spaces. Nothing
+against tabs. I quite like them in fact. But my IDE uses spaces :P
 
 // Only do this if we're talking to a wraith
 if ($response["requester_type"] === "wraith") {
