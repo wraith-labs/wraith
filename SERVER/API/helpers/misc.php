@@ -26,3 +26,12 @@ function get_client_ip() {
 	}
 	return $ipaddress;
 }
+
+// Check if an array has all of the keys
+function has_keys($array, $keys) {
+	if (!(count(array_diff($keys, array_keys($array))) === 0)) {
+		return false;
+	} else {
+		return true;
+	}
+}
