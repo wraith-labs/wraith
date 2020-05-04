@@ -1,0 +1,3 @@
+[submodule "CLIENT/include/src/github.com/containous/yaegi"]
+	path = CLIENT/include/src/github.com/containous/yaegi
+	url = https://github.com/containous/yaegi
