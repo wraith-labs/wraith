@@ -1,4 +1,4 @@
-# wraith-RAT
+# wraith
 
 ## WARNING
 The wraith client is in the process of being completely re-written (again, I know) for version 4.0.0. This update will slightly change the protocol but will mostly focus on shifting from `Python3` to `Golang` for the client, and will include an almost complete re-write of the control panel UI to make it much cleaner and more useable. Some "behind the scenes" changes on the panel side will also be made. A shift from a .JSON database file to a SQLite database is also planned on the server for better stability and maintainability. Here is a full overview of the planned changes:
@@ -19,6 +19,8 @@ The update will also not be backwards-compatible with earlier Wraith or Panel ve
 Previously, the Wraith project was intending to switch to C++ rather than Golang. However, Golang, while [slightly slower](https://benchmarksgame-team.pages.debian.net/benchmarksgame/fastest/go-gpp.html) than C++ (still faster than Python), is much more portable and easier for me to maintain.
 
 To see the progress on the Wraith v4 release, please check the [indev](https://github.com/TR-SLimey/wraith-RAT/tree/indev) branch, though any code there is untested and not recommended for use.
+
+Contributions to the Wraith project are very welcome. If you have a contribution you would like to make, feel free to open a pull request.
 
 ## Disclaimer
 We, the project author and its contributors, do not accept any responsibility for any damage caused using this software. By using Wraith, you accept full responsibility for your actions and acknowledge that this software was created for educational purposes only, and meant for use exclusively on systems owned by the user, or those which the user has explicit permission to access for use with this software.
