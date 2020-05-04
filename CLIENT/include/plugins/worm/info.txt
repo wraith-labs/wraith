@@ -1,0 +1,3 @@
+This plugin will make Wraith spread to as many binaries as it has access
+to allowing spread to other computers through USB file transfer and making
+Wraith more difficult to completely remove.

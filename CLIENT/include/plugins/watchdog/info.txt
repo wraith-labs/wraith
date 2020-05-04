@@ -1,0 +1,2 @@
+This plugin adds a watchdog to Wraith which will re-start it in case it
+exits or is killed.

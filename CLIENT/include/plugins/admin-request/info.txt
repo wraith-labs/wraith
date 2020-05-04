@@ -1,0 +1,3 @@
+This plugin will simply make Wraith request administrator privileges when
+it starts. This allows more control over systems if you have the ability
+to confirm the elevation.

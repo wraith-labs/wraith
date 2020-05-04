@@ -1,0 +1,2 @@
+This plugin is responsible for hiding the Wraith from malware scanners
+and system administrators using a variety of methods.
