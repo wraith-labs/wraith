@@ -4,8 +4,9 @@ existed.
 
 - Authors of: Golang, PHP, JavaScript (and its many framewors in use by
 the panel), HTML, CSS
-- mervick (https://github.com/mervick/aes-everywhere/)
-- tasos-py (https://github.com/tasos-py/AES-Encryption-Classes/)
 - Colorlib (https://colorlib.com - panel template)
+- mervick (https://github.com/mervick/aes-everywhere/ - AES encryption for Wraith communication)
+- tasos-py (https://github.com/tasos-py/AES-Encryption-Classes/ - AES encryption for earlier Wraith versions)
+- mitchellh (https://github.com/mitchellh/go-ps - Wraith's process utilities)
 
 Also, thanks to me :]
