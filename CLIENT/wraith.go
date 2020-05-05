@@ -151,6 +151,7 @@ func (wraith *wraithStruct) RefreshAPIURL() error {
 }
 
 func (wraith *wraithStruct) Encrypt(plaintext string) (string, error) {
+	// Adapted from https://github.com/mervick/aes-everywhere/
 
 	// Helper functions
 	DeriveKeyAndIv := func(passphrase string, salt string) (string, string) {
@@ -202,6 +203,7 @@ func (wraith *wraithStruct) Encrypt(plaintext string) (string, error) {
 }
 
 func (wraith *wraithStruct) Decrypt(ciphertext string) (string, error) {
+	// Adapted from https://github.com/mervick/aes-everywhere/
 
 	// Helper functions
 	DeriveKeyAndIv := func(passphrase string, salt string) (string, string) {
