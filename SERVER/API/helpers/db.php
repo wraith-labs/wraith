@@ -52,6 +52,7 @@ try {
             `SystemName` TEXT,
             `HostUserName` TEXT,
             `WraithVersion` TEXT,
+            `WraithStartTime` TEXT,
             `ActivePlugins` TEXT,
             `ConnectionTime` TEXT,
             `LastHeartbeatTime` TEXT,
@@ -176,6 +177,7 @@ function db_add_wraiths($data) {
         `SystemName`,
         `HostUserName`,
         `WraithVersion`,
+        `WraithStartTime`,
         `ActivePlugins`,
         `ConnectionTime`,
         `LastHeartbeatTime`,
@@ -189,6 +191,7 @@ function db_add_wraiths($data) {
         :SystemName,
         :HostUserName,
         :WraithVersion,
+        :WraithStartTime,
         :ActivePlugins,
         :ConnectionTime,
         :LastHeartbeatTime,
@@ -205,6 +208,7 @@ function db_add_wraiths($data) {
         $statement->bindParam(":SystemName", $wraith["SystemName"]);
         $statement->bindParam(":HostUserName", $wraith["HostUserName"]);
         $statement->bindParam(":WraithVersion", $wraith["WraithVersion"]);
+        $statement->bindParam(":WraithStartTime", $wraith["WraithStartTime"]);
         $statement->bindParam(":ActivePlugins", $wraith["ActivePlugins"]);
         $statement->bindParam(":ConnectionTime", $wraith["ConnectionTime"]);
         $statement->bindParam(":LastHeartbeatTime", $wraith["LastHeartbeatTime"]);
