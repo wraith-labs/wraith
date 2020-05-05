@@ -55,7 +55,8 @@ const setDEFAULTHANDSHAKEREATTEMPTDELAY uint64 = 20
 and resetting the connection after the Default Handshake Reattempt Delay. This
 is how many handshake fails Wraith will accept so in reality Wraith will send
 that +1 handshakes before failing. Handshakes which have not exceeded this
-number will be re-attempted after a Heartbeat Delay. */
+number will be re-attempted after a Heartbeat Delay. It's best to set this
+number to around [Wraith mark dead delay on API] / [Heartbeat Delay Base] */
 const setFAILEDHEARTBEATTOLERANCE uint64 = 2
 
 /* Whether to write information to the console. It is highly recommended to
