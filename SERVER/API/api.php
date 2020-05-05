@@ -12,7 +12,7 @@ will automatically encrypt its replies.
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
     header("Content-Type: text/plain");
-    die($_SERVER["HTTP_REFERER"]);
+    die($_SERVER["REQUEST_SCHEME"] . "://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]);
 
 } else if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
@@ -64,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     }
 
     // Check if the requesting IP is blacklisted. If so, reject the request
-    // instantly
     $requester_IP = get_client_ip();
     $IP_blacklist = json_decode($SETTINGS["RequestIPBlacklist"]);
     if (in_array($requester_IP, $IP_blacklist)) {
