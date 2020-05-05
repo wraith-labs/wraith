@@ -59,6 +59,7 @@ class Handler_proto_v_0 {
                     "SystemName" => "",
                     "HostUserName" => "",
                     "WraithVersion" => "",
+                    "WraithStartTime" => "",
                     "ActivePlugins" => "",
                     "ConnectionTime" => time(),
                     "LastHeartbeatTime" => time(),
