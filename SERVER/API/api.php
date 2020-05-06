@@ -9,7 +9,7 @@ will automatically encrypt its replies.
 // a hard-coded API URL (this assumption does not disclose any sensitive
 // information as it just returns the URL of the API which of course whoever is
 // connecting already has) and discard any other methods.
-if ($_SERVER['REQUEST_METHOD'] == "GET") {
+if ($_SERVER['REQUEST_METHOD'] === "GET") {
 
     // Function to return the full URL of the current document
     function get_document_url() {
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     header("Content-Type: text/plain");
     die(get_document_url());
 
-} else if ($_SERVER['REQUEST_METHOD'] == "POST") {
+} else if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
     // Define the API version
     define("API_VERSION", "4.0.0");
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         // If a global $crypt object is defined as well as
         // a global $crypt_key, and encryption is not disabled,
         // automatically encrypt the response and add the prefix
-        if (isset($crypt) && isset($crypt_key) && $SETTINGS["NoEncrypt"] === "0") {
+        if (isset($crypt) && isset($crypt_key)) {
 
             global $crypt;
             global $crypt_key;
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
     // Find if the request starts with the pre-defined prefix. If not,
     // it is invalid.
-    if (strpos($req_body, $SETTINGS["APIPrefix"] !== 0)) {
+    if (strpos($req_body, $SETTINGS["APIPrefix"] !== "0")) {
 
         $response = [];
         $response["status"] = "ERROR";
