@@ -153,7 +153,7 @@ $API_USERS = $db->query("SELECT * FROM WraithAPI_Users LIMIT 1")->fetchAll();
 // WRAITH
 
 // Add a Wraith to the database
-function db_add_wraiths($data) {
+function db_add_wraith($wraith) {
 
     global $db;
 
@@ -171,28 +171,24 @@ function db_add_wraiths($data) {
         :IssuedCommands
     )");
 
-    foreach ($data as $wraith) {
+    // Bind the parameters in the query with variables
+    $statement->bindParam(":AssignedID", $wraith["AssignedID"]);
+    $statement->bindParam(":HostProperties", $wraith["HostProperties"]);
+    $statement->bindParam(":WraithProperties", $wraith["WraithProperties"]);
+    $statement->bindParam(":LastHeartbeatTime", $wraith["LastHeartbeatTime"]);
+    $statement->bindParam(":IssuedCommands", $wraith["IssuedCommands"]);
 
-        // Bind the parameters in the query with variables
-        $statement->bindParam(":AssignedID", $wraith["AssignedID"]);
-        $statement->bindParam(":HostProperties", $wraith["HostProperties"]);
-        $statement->bindParam(":WraithProperties", $wraith["WraithProperties"]);
-        $statement->bindParam(":LastHeartbeatTime", $wraith["LastHeartbeatTime"]);
-        $statement->bindParam(":IssuedCommands", $wraith["IssuedCommands"]);
-
-        // Execute the statement to add a Wraith
-        $statement->execute();
-
-    }
+    // Execute the statement to add a Wraith
+    $statement->execute();
 
 }
 
-// Remove a Wraith
-function db_remove_wraiths($filters) {
+// Remove Wraith(s)
+function db_remove_wraiths($ids) {
 
     global $db;
 
-    // TODO
+    $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE AssignedID == ")
 
 }
 
@@ -206,14 +202,16 @@ function db_expire_wraiths() {
     // the $SETTINGS["MarkOfflineDelay"]
     $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths`
         WHERE `LastHeartbeatTime` < :earliest_valid_heartbeat");
+    // Get the unix timestamp for $SETTINGS["MarkOfflineDelay"] seconds ago
     $earliest_valid_heartbeat = time()-$SETTINGS["MarkOfflineDelay"];
     $statement->bindParam(":earliest_valid_heartbeat", $earliest_valid_heartbeat);
+    // Execute
     $statement->execute();
 
 }
 
 // Get a list of Wraiths and their properties
-function db_get_wraiths($filters) {
+function db_get_wraiths() {
 
     global $db;
 
@@ -224,7 +222,7 @@ function db_get_wraiths($filters) {
 // COMMAND
 
 // Issue a command to Wraith(s)
-function db_issue_commands($data) {
+function db_issue_commands($command) {
 
     global $db;
 
@@ -232,8 +230,8 @@ function db_issue_commands($data) {
 
 }
 
-// Delete a command from the command table
-function db_cancel_commands($filters) {
+// Delete command(s) from the command table
+function db_cancel_commands($ids) {
 
     global $db;
 
@@ -241,8 +239,8 @@ function db_cancel_commands($filters) {
 
 }
 
-// Get commands (all or filtered)
-function db_get_commands($filters) {
+// Get command(s)
+function db_get_commands($ids) {
 
     global $db;
 
@@ -253,7 +251,7 @@ function db_get_commands($filters) {
 // USERS & SETTINGS
 
 // Edit an API setting
-function db_edit_settings($data) {
+function db_edit_settings($id, $value) {
 
     global $db;
 
@@ -262,7 +260,7 @@ function db_edit_settings($data) {
 }
 
 // Create a new user
-function db_add_users($data) {
+function db_add_users($userdata) {
 
     global $db;
 
@@ -271,7 +269,7 @@ function db_add_users($data) {
 }
 
 // Change username
-function db_change_user_name($data) {
+function db_change_user_name($user_id, $new_username) {
 
     global $db;
 
@@ -280,7 +278,7 @@ function db_change_user_name($data) {
 }
 
 // Change user password
-function db_change_user_pass($data) {
+function db_change_user_pass($user_id, $new_password) {
 
     global $db;
 
@@ -289,7 +287,7 @@ function db_change_user_pass($data) {
 }
 
 // Change user privilege level (0=User, 1=Admin, 2=SuperAdmin)
-function db_change_user_privilege($data) {
+function db_change_user_privilege($user_id, $new_privilege_level) {
 
     global $db;
 
@@ -300,7 +298,16 @@ function db_change_user_privilege($data) {
 // STATS
 
 // Update a statistic
-function db_update_stats($data) {
+function db_get_stats($stat_id) {
+
+    global $db;
+
+    // TODO
+
+}
+
+// Update a statistic
+function db_update_stats($stat_id, $new_value) {
 
     global $db;
 

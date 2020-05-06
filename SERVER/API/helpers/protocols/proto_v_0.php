@@ -83,13 +83,13 @@ class Handler_proto_v_0 {
                 $this->c_data["host_info"]["fingerprint"] = "";
 
                 // Create a database entry for the Wraith
-                db_add_wraiths([[
+                db_add_wraiths([
                     "AssignedID" => uniqid(),
                     "HostProperties" => json_encode($this->c_data["host_info"]),
                     "WraithProperties" => json_encode($this->c_data["wraith_info"]),
                     "LastHeartbeatTime" => time(),
                     "IssuedCommands" => json_encode([]),
-                ]]);
+                ]);
 
                 // Return a successful status and message
                 $this->response["status"] = "SUCCESS";
