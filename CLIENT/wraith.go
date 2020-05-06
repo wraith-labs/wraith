@@ -256,31 +256,40 @@ func (wraith *wraithStruct) Decrypt(ciphertext string) (string, error) {
 	return string(PKCS7Trimming(dst)), nil
 }
 
-func (wraith *wraithStruct) API(RequestData interface{}) (APIResponse map[string]string, APIErr error) {
+func (wraith *wraithStruct) API(requestData interface{}) (APIResponse map[string]interface{}, APIErr error) {
 
 	// Log the API request
-	dlog(0, "request to API with contents `"+fmt.Sprint(RequestData)+"`")
+	dlog(0, "request to API with contents `"+fmt.Sprint(requestData)+"`")
 
 	// As JSON decode can cause a panic (if the read data does not match the
 	// data type map[string]string but is valid JSON) and en/decrypt probably
 	// can too, defer a function to handle the panic
-	defer func() { //catch or finally
-		if panic := recover(); panic != nil { //catch
+	defer func() {
+		// Catch any panics
+		if panic := recover(); panic != nil {
 			APIResponse = nil
 			APIErr = errors.New("api function panicked with error `" + fmt.Sprint(panic) + "`")
 		}
+
+		errorToLog := "none"
+		if APIErr != nil {
+			errorToLog = APIErr.Error()
+		}
+
+		// Log the response from the API
+		dlog(0, "response from API with contents `"+fmt.Sprint(APIResponse)+"` (error `"+errorToLog+"`)")
 	}()
 
 	// Create the prefix
-	RequestPrefix := wraith.APIRequestPrefix
+	requestPrefix := wraith.APIRequestPrefix
 	// The char after the prefix indicates whether the request is from
 	// a Wraith or panel. A non-zero odd number indicates a Wraith while
 	// a non-zero even number indicates a panel.
-	RequestIDCharOptions := []string{"1", "3", "5", "7", "9"}
-	RequestPrefix += RequestIDCharOptions[mrand.Intn(len(RequestIDCharOptions))]
+	requestIDCharOptions := []string{"1", "3", "5", "7", "9"}
+	requestPrefix += requestIDCharOptions[mrand.Intn(len(requestIDCharOptions))]
 
 	// Convert the message to JSON (results in a bytearray)
-	RequestDataEncoded, errEncode := json.Marshal(RequestData)
+	requestDataEncoded, errEncode := json.Marshal(requestData)
 
 	// Check for errors and return them if any
 	if errEncode != nil {
@@ -288,7 +297,7 @@ func (wraith *wraithStruct) API(RequestData interface{}) (APIResponse map[string
 	}
 
 	// Encrypt the JSON data
-	RequestDataEncrypted, errCrypt := wraith.Encrypt(string(RequestDataEncoded))
+	requestDataEncrypted, errCrypt := wraith.Encrypt(string(requestDataEncoded))
 
 	// Check for errors and return if any
 	if errCrypt != nil {
@@ -296,10 +305,10 @@ func (wraith *wraithStruct) API(RequestData interface{}) (APIResponse map[string
 	}
 
 	// Add the prefix and protocol version to the base64-encoded, encrypted data
-	RequestDataFinal := RequestPrefix + protocolVersion + RequestDataEncrypted
+	requestDataFinal := requestPrefix + protocolVersion + requestDataEncrypted
 
 	// Send the final data to the API
-	response, errReq := req("POST", wraith.ControlAPIURL, true, "application/octet-stream", RequestDataFinal)
+	response, errReq := req("POST", wraith.ControlAPIURL, true, "application/octet-stream", requestDataFinal)
 
 	// Check for request errors and return if any
 	if errReq != nil {
@@ -311,14 +320,14 @@ func (wraith *wraithStruct) API(RequestData interface{}) (APIResponse map[string
 		return nil, errors.New("not valid API response - no prefix")
 	}
 
-	// Remove the prefix from the response (the API does not send an ID char)
+	// Remove the prefix from the response (the API does not send an ID char so no need to remove that)
 	response = strings.TrimPrefix(response, setAPIREQPREFIX)
 
 	// Try decrypting the API response. If this fails, assume the response is plaintext
 	responseDecrypted, errDcrypt := wraith.Decrypt(response)
 
 	// Define variable to hold the processed response
-	var finalResponse map[string]string
+	var finalResponse map[string]interface{}
 	// Check for decryption failure
 	switch errDcrypt {
 	case nil:
@@ -329,6 +338,7 @@ func (wraith *wraithStruct) API(RequestData interface{}) (APIResponse map[string
 		if errDecode != nil {
 			goto noDecryptDecode
 		}
+		break
 	noDecryptDecode:
 		fallthrough
 	default:
@@ -339,8 +349,6 @@ func (wraith *wraithStruct) API(RequestData interface{}) (APIResponse map[string
 			return nil, errors.New("not valid API response - incorrectly encrypted/encoded")
 		}
 	}
-
-	dlog(0, "response from API with contents `"+fmt.Sprint(finalResponse)+"`")
 
 	// Verify that the API fingerprint is present and trusted
 	if APIFingerprint, ok := finalResponse["api_fingerprint"]; ok {
@@ -353,7 +361,7 @@ func (wraith *wraithStruct) API(RequestData interface{}) (APIResponse map[string
 
 	// If an API response contains the `switch_key`, set the encryption key to it
 	if switchKey, ok := finalResponse["switch_key"]; ok {
-		wraith.CryptKey = switchKey
+		wraith.CryptKey = fmt.Sprint(switchKey)
 	}
 
 	// Finally, check if the API replied with a success code or if it reports an error
@@ -371,7 +379,7 @@ func (wraith *wraithStruct) API(RequestData interface{}) (APIResponse map[string
 			// Check if the server has provided an error message
 			if errMsg, ok := finalResponse["message"]; ok {
 				// If it has, include it in the error
-				return finalResponse, errors.New("api returned an error code with message `" + errMsg + "`")
+				return finalResponse, errors.New("api returned an error code with message `" + fmt.Sprint(errMsg) + "`")
 			}
 			// If it has not, return a less informative error message
 			return finalResponse, errors.New("api returned an error code without any message")
