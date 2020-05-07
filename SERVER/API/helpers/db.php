@@ -57,8 +57,8 @@ try {
         );",
         // Users table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
-            `SessionToken` TEXT,
             `UserID` INTEGER,
+            `SessionToken` TEXT,
             `LastSessionHeartbeat` TEXT
         );",
         // Create default settings entries
@@ -76,15 +76,15 @@ try {
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'PanelSessionExpiryDelay',
-            '10'
+            '12'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'APIFingerprint',
             'ABCDEFGHIJKLMNOP'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'DefaultCommand',
-            ''
+            'WraithDefaultCommands',
+            '" . json_encode([]) . "'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'APIPrefix',
