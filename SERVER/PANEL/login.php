@@ -9,7 +9,7 @@
     <meta name="author" content="TR_SLimey">
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.ico">
 
     <!-- Title Page-->
     <title>Login</title>
@@ -45,7 +45,7 @@
                     <div class="login-content">
                         <div class="login-logo">
                             <a href="#">
-                                <img src="images/icon/logo.png" alt="CoolAdmin">
+                                <img src="images/logo.png" alt="CoolAdmin">
                             </a>
                         </div>
                         <div class="login-form">

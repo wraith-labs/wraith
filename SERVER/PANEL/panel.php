@@ -1,7 +1,7 @@
 <?php
 
 // Load the settings
-require_once("./helpers/settings.php");
+require_once("./php_helpers/settings.php");
 
 ?>
 
@@ -16,7 +16,7 @@ require_once("./helpers/settings.php");
     <meta name="author" content="TR_SLimey">
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.ico">
 
     <!-- Title Page-->
     <title>Wraith Panel</title>
@@ -51,7 +51,7 @@ require_once("./helpers/settings.php");
         <aside class="menu-sidebar">
             <div class="logo">
                 <a href="#">
-                    <img src="images/icon/logo.png" alt="Wraith Logo" />
+                    <img src="images/logo.png" alt="Wraith Logo" />
                 </a>
             </div>
             <div class="menu-sidebar2__content js-scrollbar1">
@@ -88,7 +88,7 @@ require_once("./helpers/settings.php");
                         <div class="header-wrap2">
                             <div class="logo d-block d-lg-none">
                                 <a href="#">
-                                    <img src="images/icon/logo.png" alt="Wraith Logo" />
+                                    <img src="images/logo.png" alt="Wraith Logo" />
                                 </a>
                             </div>
                             <div class="header-button2">
@@ -121,7 +121,7 @@ require_once("./helpers/settings.php");
             <aside class="menu-sidebar2 js-right-sidebar d-block d-lg-none">
                 <div class="logo">
                     <a href="#">
-                        <img src="images/icon/logo.png" alt="Wraith Logo" />
+                        <img src="images/logo.png" alt="Wraith Logo" />
                     </a>
                 </div>
                 <div class="menu-sidebar2__content js-scrollbar2">
