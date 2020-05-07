@@ -12,7 +12,7 @@
     <link rel="shortcut icon" href="favicon.ico">
 
     <!-- Title Page-->
-    <title>Login</title>
+    <title>Wraith Login</title>
 
     <!-- Fontfaces CSS-->
     <link href="css/font-face.css" rel="stylesheet" media="all">
@@ -50,6 +50,14 @@
                         </div>
                         <div class="login-form">
                             <form action="panel.php?page=info" method="post">
+                                <div class="form-group">
+                                    <label>API Location</label>
+                                    <input class="au-input au-input--full" type="text" name="api_url" placeholder="/API/api.php" value="/API/api.php">
+                                </div>
+                                <div class="form-group">
+                                    <label>API Auth Code</label>
+                                    <input class="au-input au-input--full" type="text" name="api_auth" placeholder="API Auth Code">
+                                </div>
                                 <div class="form-group">
                                     <label>Username</label>
                                     <input class="au-input au-input--full" type="username" name="email" placeholder="Username">
