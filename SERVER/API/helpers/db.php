@@ -324,7 +324,7 @@ function db_change_user_privilege($user_id, $new_privilege_level) {
 // Create a session for a user
 function db_create_session($user_id) {
 
-    global $db
+    global $db;
 
     // TODO
 
@@ -333,7 +333,7 @@ function db_create_session($user_id) {
 // Delete a session
 function db_destroy_session($user_id) {
 
-    global $db
+    global $db;
 
     // TODO
 
@@ -342,7 +342,7 @@ function db_destroy_session($user_id) {
 // Delete sessions which have not had a heartbeat recently
 function db_expire_sessions() {
 
-    global $db
+    global $db;
 
     // TODO
 
