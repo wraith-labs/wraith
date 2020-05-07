@@ -82,6 +82,14 @@ try {
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'RequestIPBlacklist',
+            '" . json_encode([]) . "'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'ManagementAuthCode',
+            ''
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'ManagementIPWhitelist',
             '[]'
         );",
         // Create a stats table entry
@@ -188,7 +196,13 @@ function db_remove_wraiths($ids) {
 
     global $db;
 
-    $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE AssignedID == ")
+    $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE AssignedID == :IDToDelete");
+
+    // Remove each ID
+    foreach ($ids as $id) {
+        $statement->bindParam(":IDToDelete", $id);
+        $statement->execute();
+    }
 
 }
 
