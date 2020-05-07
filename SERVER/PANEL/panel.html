@@ -53,10 +53,32 @@
         }
     </script>
 
+    <!-- Data refreshing (heartbeats) -->
+    <script type="text/javascript">
+        // Define a dict to hold all the data we receive from the API
+        var data = {};
+        // Define a function to regularly update the data (every 5 seconds)
+        function updateDataInBackground() {
+            setInterval(function(){
+                var req = new XMLHttpRequest();
+                req.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        data = this.responseText;
+                        console.log(data);
+                    }
+                };
+                // TODO: Get URL from login form
+                req.open("POST", "/API/api.php", true);
+                req.send();
+            }, 5000);
+        }
+    </script>
+
     <!-- On page load -->
     <script type="text/javascript">
         window.onload = function() {
             switchPage("info");
+            updateDataInBackground();
         }
     </script>
 
@@ -1224,12 +1246,12 @@
 
     </div>
 
-    <!-- Jquery JS-->
+    <!-- Jquery JS -->
     <script src="vendor/jquery-3.2.1.min.js"></script>
-    <!-- Bootstrap JS-->
+    <!-- Bootstrap JS -->
     <script src="vendor/bootstrap-4.1/popper.min.js"></script>
     <script src="vendor/bootstrap-4.1/bootstrap.min.js"></script>
-    <!-- Vendor JS       -->
+    <!-- Vendor JS -->
     <script src="vendor/slick/slick.min.js">
     </script>
     <script src="vendor/wow/wow.min.js"></script>
@@ -1249,8 +1271,12 @@
     <script src="vendor/vector-map/jquery.vmap.sampledata.js"></script>
     <script src="vendor/vector-map/jquery.vmap.world.js"></script>
 
-    <!-- Main Styling JS-->
+    <!-- Main Styling JS -->
     <script src="js/style.js"></script>
+
+    <!-- Panel Functionality -->
+    <script src="js/crypt.js"></script>
+    <script src="js/panel-api.js"></script>
 
 </body>
 
