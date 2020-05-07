@@ -38,9 +38,26 @@
 
     <!-- TODO Detect if browser has JS enabled and warn otherwise -->
 
-    <!-- Page management and refreshing -->
-    <script>
+    <!-- Page switcher -->
+    <script type="text/javascript">
+        function switchPage(pageName) {
+            const pages = document.getElementsByName("page");
+            for (var i = 0; i < pages.length; i++) {
+                page = pages[i];
+                if (page.id == "page-" + pageName) {
+                    page.style.display = "block";
+                } else {
+                    page.style.display = "none";
+                }
+            }
+        }
+    </script>
 
+    <!-- On page load -->
+    <script type="text/javascript">
+        window.onload = function() {
+            switchPage("info");
+        }
     </script>
 
 </head>
@@ -48,7 +65,7 @@
 <body id="document-body">
     <div class="page-wrapper">
         <!-- MENU SIDEBAR-->
-        <aside class="menu-sidebar">
+        <aside class="menu-sidebar d-none d-lg-block">
             <div class="logo">
                 <a href="#">
                     <img src="images/logo.png" alt="Wraith Logo" />
@@ -62,15 +79,15 @@
                 <nav class="navbar-sidebar2">
                     <ul class="list-unstyled navbar__list">
                         <li>
-                            <a href="?page=info">
+                            <a href="#" onclick="switchPage('info');">
                                 <i class="fas fa-chart-bar"></i>Info &amp Stats</a>
                         </li>
                         <li>
-                            <a href="?page=manager">
+                            <a href="#" onclick="switchPage('manager');">
                                 <i class="fas fa-desktop"></i>Wraith Manager</a>
                         </li>
                         <li>
-                            <a href="?page=settings">
+                            <a href="#" onclick="switchPage('settings');">
                                 <i class="fas fa-cog"></i>Settings</a>
                         </li>
                     </ul>
@@ -114,15 +131,15 @@
                     <nav class="navbar-sidebar2">
                         <ul class="list-unstyled navbar__list">
                             <li>
-                                <a href=" ">
+                                <a href="#" onclick="switchPage('info');">
                                     <i class="fas fa-chart-bar"></i>Info &amp Stats</a>
                             </li>
                             <li>
-                                <a href=" ">
+                                <a href="#" onclick="switchPage('manager');">
                                     <i class="fas fa-desktop"></i>Wraith Manager</a>
                             </li>
                             <li>
-                                <a href=" ">
+                                <a href="#" onclick="switchPage('settings');">
                                     <i class="fas fa-cog"></i>Settings</a>
                             </li>
                         </ul>
@@ -131,7 +148,7 @@
             </aside>
             <!-- END HEADER DESKTOP-->
 
-            <div id="page-info" class="animsition">
+            <div id="page-info" name="page" class="animsition">
                 <!-- BREADCRUMB-->
                 <section class="au-breadcrumb m-t-75">
                     <div class="section__content section__content--p30">
@@ -484,10 +501,12 @@
                 </section>
             </div>
 
-            <div id="page-manager" class="animsition">
+            <div id="page-manager" name="page" class="animsition">
+                test
             </div>
 
-            <div id="page-settings" class="animsition">
+            <div id="page-settings" name="page" class="animsition">
+                test2
             </div>
 
             <!-- Footer -->
