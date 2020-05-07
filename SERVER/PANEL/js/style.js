@@ -1,6 +1,5 @@
 
 (function ($) {
-  // USE STRICT
   "use strict";
 
   try {
@@ -84,7 +83,6 @@
 
 
 (function ($) {
-    // USE STRICT
     "use strict";
     $(".animsition").animsition({
       inClass: 'fade-in',
@@ -107,11 +105,10 @@
         window.location.href = url;
       }
     });
-  
-  
+
+
   })(jQuery);
 (function ($) {
-  // USE STRICT
   "use strict";
 
   // Map
@@ -139,7 +136,6 @@
 
 })(jQuery);
 (function ($) {
-  // Use Strict
   "use strict";
   try {
     var progressbarSimple = $('.js-progressbar-simple');
@@ -169,14 +165,13 @@
   }
 })(jQuery);
 (function ($) {
-  // USE STRICT
   "use strict";
 
   // Scroll Bar
   try {
     var jscr1 = $('.js-scrollbar1');
     if(jscr1[0]) {
-      const ps1 = new PerfectScrollbar('.js-scrollbar1');      
+      const ps1 = new PerfectScrollbar('.js-scrollbar1');
     }
 
     var jscr2 = $('.js-scrollbar2');
@@ -191,7 +186,6 @@
 
 })(jQuery);
 (function ($) {
-  // USE STRICT
   "use strict";
 
   // Select 2
@@ -211,10 +205,9 @@
 
 })(jQuery);
 (function ($) {
-  // USE STRICT
   "use strict";
 
-  // Dropdown 
+  // Dropdown
   try {
     var menu = $('.js-item-menu');
     var sub_menu_is_showed = -1;
@@ -222,7 +215,7 @@
     for (var i = 0; i < menu.length; i++) {
       $(menu[i]).on('click', function (e) {
         e.preventDefault();
-        $('.js-right-sidebar').removeClass("show-sidebar");        
+        $('.js-right-sidebar').removeClass("show-sidebar");
         if (jQuery.inArray(this, menu) == sub_menu_is_showed) {
           $(this).toggleClass('show-dropdown');
           sub_menu_is_showed = -1;
@@ -273,7 +266,7 @@
       right_sidebar.removeClass("show-sidebar");
 
     });
- 
+
 
   // Sublist Sidebar
   try {
@@ -310,7 +303,6 @@
   }
 })(jQuery);
 (function ($) {
-  // USE STRICT
   "use strict";
 
   // Load more
@@ -337,11 +329,10 @@
 
 })(jQuery);
 (function ($) {
-  // USE STRICT
   "use strict";
 
   try {
-    
+
     $('[data-toggle="tooltip"]').tooltip();
 
   } catch (error) {
@@ -359,7 +350,7 @@
         $(this).parent().parent().parent().toggleClass('show-chat-box');
       });
     });
-    
+
 
   } catch (error) {
     console.log(error);
