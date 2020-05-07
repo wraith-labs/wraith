@@ -2,7 +2,7 @@
 
 <?php
 
-$redirect_location = "PANEL/login.php";
+$redirect_location = "PANEL/login.html";
 
 // Redirect with a header
 header("Location: " . $redirect_location);
