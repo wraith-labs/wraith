@@ -49,6 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     // Wraiths, expire any that have not had a heartbeat in a while first.
     db_expire_wraiths();
 
+    // Expire any panel sessions which have not had a heartbeat recently for
+    // security and to prevent sessions from sticking around because a user
+    // forgot to log out.
+    db_expire_sessions();
+
     // Define a function to respond to the client
     function respond($response) {
 

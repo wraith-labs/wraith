@@ -55,9 +55,15 @@ try {
             `UserPassword` TEXT,
             `UserPrivileges` TEXT
         );",
+        // Users table
+        "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
+            `SessionToken` TEXT,
+            `UserID` INTEGER,
+            `LastSessionHeartbeat` TEXT
+        );",
         // Create default settings entries
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'MarkOfflineDelay',
+            'WraithMarkOfflineDelay',
             '16'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
@@ -67,6 +73,10 @@ try {
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'WraithSwitchCryptKey',
             'QWERTYUIOPASDFGHJKLZXCVBNM'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'PanelSessionExpiryDelay',
+            '10'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'APIFingerprint',
@@ -217,7 +227,7 @@ function db_expire_wraiths() {
     $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths`
         WHERE `LastHeartbeatTime` < :earliest_valid_heartbeat");
     // Get the unix timestamp for $SETTINGS["MarkOfflineDelay"] seconds ago
-    $earliest_valid_heartbeat = time()-$SETTINGS["MarkOfflineDelay"];
+    $earliest_valid_heartbeat = time()-$SETTINGS["WraithMarkOfflineDelay"];
     $statement->bindParam(":earliest_valid_heartbeat", $earliest_valid_heartbeat);
     // Execute
     $statement->execute();
@@ -304,6 +314,35 @@ function db_change_user_pass($user_id, $new_password) {
 function db_change_user_privilege($user_id, $new_privilege_level) {
 
     global $db;
+
+    // TODO
+
+}
+
+// SESSIONS
+
+// Create a session for a user
+function db_create_session($user_id) {
+
+    global $db
+
+    // TODO
+
+}
+
+// Delete a session
+function db_destroy_session($user_id) {
+
+    global $db
+
+    // TODO
+
+}
+
+// Delete sessions which have not had a heartbeat recently
+function db_expire_sessions() {
+
+    global $db
 
     // TODO
 
