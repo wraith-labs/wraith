@@ -1,10 +1,3 @@
-<?php
-
-// Load the settings
-require_once("./php_helpers/settings.php");
-
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -148,27 +141,9 @@ require_once("./php_helpers/settings.php");
                 </div>
             </aside>
             <!-- END HEADER DESKTOP-->
-            <?php
 
-            // Get the page to display
-            $page = "";
-            if (isset($_GET["page"])) {
-                // Set the page to what's in the GET header
-                $page = $_GET["page"];
-            } else {
-                // Default page
-                $page = "info";
-            }
+            <!-- TODO -->
 
-            // Display the page or 404 if not found
-            // Page routes are defined in settings.php
-            if (isset($PAGE_ROUTES[$page])) {
-                require($PAGE_ROUTES[$page]);
-            } else {
-                require($PAGE_ROUTES["e404"]);
-            }
-
-            ?>
             <!-- Footer -->
             <section>
                 <div class="container-fluid">
