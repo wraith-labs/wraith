@@ -37,68 +37,81 @@
 
 </head>
 
-<body class="animsition">
-    <div class="page-wrapper">
-        <div class="page-content--bge5">
-            <div class="container">
-                <div class="login-wrap">
-                    <div class="login-content">
-                        <div class="login-logo">
-                            <a href="#">
-                                <img src="images/logo.png" alt="Wraith Logo">
-                            </a>
-                        </div>
-                        <div class="login-form">
-                            <form action="panel.html" method="post">
-                                <div class="form-group">
-                                    <label>API Location</label>
-                                    <input class="au-input au-input--full" type="text" name="api_url" placeholder="/API/api.php" value="/API/api.php">
-                                </div>
-                                <div class="form-group">
-                                    <label>API Auth Code</label>
-                                    <input class="au-input au-input--full" type="text" name="api_auth" placeholder="API Auth Code">
-                                </div>
-                                <div class="form-group">
-                                    <label>Username</label>
-                                    <input class="au-input au-input--full" type="username" name="email" placeholder="Username">
-                                </div>
-                                <div class="form-group">
-                                    <label>Password</label>
-                                    <input class="au-input au-input--full" type="password" name="password" placeholder="Password">
-                                </div>
-                                <button class="au-btn au-btn--block au-btn--green m-b-20" type="submit">sign in</button>
-                            </form>
+<body id="main-body" onload="document.getElementById('js-content').style.display = 'block'; document.getElementById('non-js-content').style.display = 'none'">
+    <!-- Display only if JavaScript is disabled -->
+    <div id="non-js-content" style="display: block; width: 100%; height: 100vh;">
+        <div class="alert alert-danger" role="alert" style="margin: 10px;">
+            <h4 class="alert-heading">JavaScript is required to use this page!</h4>
+            <hr/>
+            <p class="mb-0">Unfortunately, this page cannot work without JavaScript enabled, and it seems to currently be disabled. Please enable JavaScript and refresh
+                this page to access the Wraith Panel.</p>
+        </div>
+    </div>
+    <!-- Display only if JavaScript is enabled -->
+    <div id="js-content" style="display: none;" class="animsition">
+        <div class="page-wrapper">
+            <div class="page-content--bge5">
+                <div class="container">
+                    <div class="login-wrap">
+                        <div class="login-content">
+                            <div class="login-logo">
+                                <a href="#">
+                                    <img src="images/logo.png" alt="Wraith Logo">
+                                </a>
+                            </div>
+                            <div class="login-form">
+                                <form action="panel.html" method="post">
+                                    <div class="form-group">
+                                        <label>API Location</label>
+                                        <input class="au-input au-input--full" type="text" name="api_url" placeholder="/API/api.php" value="/API/api.php">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>API Auth Code</label>
+                                        <input class="au-input au-input--full" type="text" name="api_auth" placeholder="API Auth Code">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Username</label>
+                                        <input class="au-input au-input--full" type="username" name="email" placeholder="Username">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Password</label>
+                                        <input class="au-input au-input--full" type="password" name="password" placeholder="Password">
+                                    </div>
+                                    <button class="au-btn au-btn--block au-btn--green m-b-20" type="submit">sign in</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
 
+        <!-- Jquery JS-->
+        <script src="vendor/jquery-3.2.1.min.js"></script>
+        <!-- Bootstrap JS-->
+        <script src="vendor/bootstrap-4.1/popper.min.js"></script>
+        <script src="vendor/bootstrap-4.1/bootstrap.min.js"></script>
+        <!-- Vendor JS       -->
+        <script src="vendor/slick/slick.min.js">
+        </script>
+        <script src="vendor/wow/wow.min.js"></script>
+        <script src="vendor/animsition/animsition.min.js"></script>
+        <script src="vendor/bootstrap-progressbar/bootstrap-progressbar.min.js">
+        </script>
+        <script src="vendor/counter-up/jquery.waypoints.min.js"></script>
+        <script src="vendor/counter-up/jquery.counterup.min.js">
+        </script>
+        <script src="vendor/circle-progress/circle-progress.min.js"></script>
+        <script src="vendor/perfect-scrollbar/perfect-scrollbar.js"></script>
+        <script src="vendor/chartjs/Chart.bundle.min.js"></script>
+        <script src="vendor/select2/select2.min.js">
+        </script>
+
+        <!-- Main JS-->
+        <script src="js/style.js"></script>
+
     </div>
-
-    <!-- Jquery JS-->
-    <script src="vendor/jquery-3.2.1.min.js"></script>
-    <!-- Bootstrap JS-->
-    <script src="vendor/bootstrap-4.1/popper.min.js"></script>
-    <script src="vendor/bootstrap-4.1/bootstrap.min.js"></script>
-    <!-- Vendor JS       -->
-    <script src="vendor/slick/slick.min.js">
-    </script>
-    <script src="vendor/wow/wow.min.js"></script>
-    <script src="vendor/animsition/animsition.min.js"></script>
-    <script src="vendor/bootstrap-progressbar/bootstrap-progressbar.min.js">
-    </script>
-    <script src="vendor/counter-up/jquery.waypoints.min.js"></script>
-    <script src="vendor/counter-up/jquery.counterup.min.js">
-    </script>
-    <script src="vendor/circle-progress/circle-progress.min.js"></script>
-    <script src="vendor/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="vendor/chartjs/Chart.bundle.min.js"></script>
-    <script src="vendor/select2/select2.min.js">
-    </script>
-
-    <!-- Main JS-->
-    <script src="js/style.js"></script>
 
 </body>
 
