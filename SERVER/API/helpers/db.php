@@ -75,10 +75,6 @@ try {
             'QWERTYUIOPASDFGHJKLZXCVBNM'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'PanelSessionExpiryDelay',
-            '12'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
             'APIFingerprint',
             'ABCDEFGHIJKLMNOP'
         );",
@@ -93,6 +89,10 @@ try {
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'RequestIPBlacklist',
             '" . json_encode([]) . "'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'ManagementSessionExpiryDelay',
+            '12'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'ManagementAuthCode',
@@ -326,7 +326,23 @@ function db_create_session($user_id) {
 
     global $db;
 
-    // TODO
+    $statement = $db->prepare("INSERT INTO `WraithAPI_Sessions` (
+        `UserID`,
+        `SessionToken`,
+        `LastSessionHeartbeat`
+    ) VALUES (
+        :UserID,
+        :SessionToken,
+        :LastSessionHeartbeat
+    )");
+
+    // Bind the parameters in the query with variables
+    $statement->bindParam(":UserID", $user_id);
+    $statement->bindParam(":SessionToken", bin2hex(random_bytes(25)));
+    $statement->bindParam(":LastSessionHeartbeat", time());
+
+    // Execute the statement to add a Wraith
+    $statement->execute();
 
 }
 
@@ -335,7 +351,15 @@ function db_destroy_session($user_id) {
 
     global $db;
 
-    // TODO
+    // Remove all sessions where the last heartbeat time is older than
+    // the $SETTINGS["ManagementSessionExpiryDelay"]
+    $statement = $db->prepare("DELETE FROM `WraithAPI_Sessions`
+        WHERE `LastSessionHeartbeat` < :earliest_valid_heartbeat");
+    // Get the unix timestamp for $SETTINGS["ManagementSessionExpiryDelay"] seconds ago
+    $earliest_valid_heartbeat = time()-$SETTINGS["ManagementSessionExpiryDelay"];
+    $statement->bindParam(":earliest_valid_heartbeat", $earliest_valid_heartbeat);
+    // Execute
+    $statement->execute();
 
 }
 
