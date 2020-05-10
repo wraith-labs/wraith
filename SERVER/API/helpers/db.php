@@ -322,24 +322,32 @@ function db_change_user_privilege($user_id, $new_privilege_level) {
 // SESSIONS
 
 // Create a session for a user
-function db_create_session($user_id) {
+function db_create_session($userID) {
 
     global $db;
 
     $statement = $db->prepare("INSERT INTO `WraithAPI_Sessions` (
         `UserID`,
+        `SessionID`,
         `SessionToken`,
         `LastSessionHeartbeat`
     ) VALUES (
         :UserID,
+        :SessionID,
         :SessionToken,
         :LastSessionHeartbeat
     )");
 
+    // Create session variables
+    $sessionID = uniqid();
+    $sessionToken = bin2hex(random_bytes(25));
+    $lastSessionHeartbeat = time();
+
     // Bind the parameters in the query with variables
-    $statement->bindParam(":UserID", $user_id);
-    $statement->bindParam(":SessionToken", bin2hex(random_bytes(25)));
-    $statement->bindParam(":LastSessionHeartbeat", time());
+    $statement->bindParam(":UserID", $userID);
+    $statement->bindParam(":SessionID", $sessionID);
+    $statement->bindParam(":SessionToken", $sessionToken);
+    $statement->bindParam(":LastSessionHeartbeat", $lastSessionHeartbeat);
 
     // Execute the statement to add a Wraith
     $statement->execute();
@@ -347,7 +355,21 @@ function db_create_session($user_id) {
 }
 
 // Delete a session
-function db_destroy_session($user_id) {
+function db_destroy_session($sessionID) {
+
+    global $db;
+
+    // Remove the session with the specified ID
+    $statement = $db->prepare("DELETE FROM `WraithAPI_Sessions`
+        WHERE `SessionID` = :sessionID");
+    $statement->bindParam(":sessionID", $sessionID);
+    // Execute
+    $statement->execute();
+
+}
+
+// Delete sessions which have not had a heartbeat recently
+function db_expire_sessions() {
 
     global $db;
 
@@ -360,15 +382,6 @@ function db_destroy_session($user_id) {
     $statement->bindParam(":earliest_valid_heartbeat", $earliest_valid_heartbeat);
     // Execute
     $statement->execute();
-
-}
-
-// Delete sessions which have not had a heartbeat recently
-function db_expire_sessions() {
-
-    global $db;
-
-    // TODO
 
 }
 
