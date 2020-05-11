@@ -83,6 +83,11 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Between 1 and 2 seconds
     usleep(rand(1000000, 2000000));
 
+    // Import the required helper scripts
+    require_once("helpers/db.php");      // Database access and management
+    require_once("helpers/crypto.php");  // Encryption and decryption
+    require_once("helpers/misc.php");    // Miscellaneous
+
     // Get the request body to verify the credentials
     $reqBody = file_get_contents("php://input");
 
@@ -97,6 +102,11 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         respond($response);
     }
 
+    // Split the request into the username and password
+    $credentials = explode("|", $reqBody, 2);
+
+    // Check the
+
 // POST requests are used for actual interaction with the API using the Wraith
 // protocol. All non-compliant requests result in errors.
 } else if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -108,9 +118,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $SUPPORTED_PROTOCOL_VERSIONS = [];
 
     // Import some helper scripts
-    require("helpers/db.php");      // Database access and management
-    require("helpers/crypto.php");  // Encryption and decryption
-    require("helpers/misc.php");    // Miscellaneous
+    require_once("helpers/db.php");      // Database access and management
+    require_once("helpers/crypto.php");  // Encryption and decryption
+    require_once("helpers/misc.php");    // Miscellaneous
     // Import protocol handlers
     foreach (glob("helpers/protocols/proto_v_*.php") as $protoHandler) { include($protoHandler); }
 
