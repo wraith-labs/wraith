@@ -77,14 +77,19 @@
     <!-- On page load -->
     <script type="text/javascript">
         window.onload = function() {
+            // Hide no-js-content and show the normal panel
+            document.getElementById('js-content').style.display = 'block';
+            document.getElementById('non-js-content').style.display = 'none';
+            // Switch the page to "info"
             switchPage("info");
+            // Start the page update loop
             updateDataInBackground();
         }
     </script>
 
 </head>
 
-<body id="main-body" onload="document.getElementById('js-content').style.display = 'block'; document.getElementById('non-js-content').style.display = 'none'">
+<body id="main-body">
     <!-- Display only if JavaScript is disabled -->
     <div id="non-js-content" style="display: block; width: 100%; height: 100vh;">
         <div class="alert alert-danger" role="alert" style="margin: 10px;">
