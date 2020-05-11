@@ -50,12 +50,13 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // "random" time delay to mitigate brute-force attacks and
     // make it difficult to guess whether authentication was
     // successful based on the time taken for the response to
-    // arrive.
-    // Between 0.25 and 0.75 of a second
-    usleep(rand(250000, 750000));
+    // arrive. Brute-force attacks can still be fairly effective
+    // if the attacker makes concurrent requests however.
+    // Between 1 and 2 seconds
+    usleep(rand(1000000, 2000000));
 
     // Get the request body to verify the credentials
-    
+
 
 // POST requests are used for actual interaction with the API using the Wraith
 // protocol. All non-compliant requests result in errors.
