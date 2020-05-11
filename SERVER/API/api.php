@@ -5,11 +5,12 @@ the client is capable of encrypted communication using the Wraith/HTTP protocol 
 will automatically encrypt its replies.
 */
 
-// The API only uses POST requests so assume GET requests are from Wraiths with
-// a hard-coded API URL (this assumption does not disclose any sensitive
-// information as it just returns the URL of the API which of course whoever is
-// connecting already has) and discard any other methods.
-if ($_SERVER['REQUEST_METHOD'] === "GET") {
+// The API only uses GET, POST and PUT requests. Other request methods can be
+// discarded and return an error message.
+
+// GET requests always return the current URL. This is to allow hard-coding the
+// API URL in the Wraith.
+if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     // Function to return the full URL of the current document
     function getDocumentURL() {
@@ -30,7 +31,35 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
     header("Content-Type: text/plain");
     die(getDocumentURL());
 
-} else if ($_SERVER['REQUEST_METHOD'] === "POST") {
+// PUT requests are used by API managers (such as the panel) for automatic
+// configuration. They must contain valid manager account authentication
+// with every request. When a request is received, a session is created
+// for the user account and the manager should use POST from then on.
+} else if ($_SERVER["REQUEST_METHOD"] == "PUT") {
+
+    // Manager autoconf requests do not follow the usual protocol
+    // as the manager does not know the proper prefix or encryption
+    // key to use. These requests should be processed differently
+    // from normal POST requests.
+
+    // The request body must contain a user's encrypted username
+    // and password as the content. The password is encrypted
+    // with the password + username as the key.
+
+    // As autoconf is equivalent to authentication, start with a
+    // "random" time delay to mitigate brute-force attacks and
+    // make it difficult to guess whether authentication was
+    // successful based on the time taken for the response to
+    // arrive.
+    // Between 0.25 and 0.75 of a second
+    usleep(rand(250000, 750000));
+
+    // Get the request body to verify the credentials
+    
+
+// POST requests are used for actual interaction with the API using the Wraith
+// protocol. All non-compliant requests result in errors.
+} else if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Define the API version
     define("API_VERSION", "4.0.0");
@@ -96,28 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
 
     // Get the request body
     $reqBody = file_get_contents("php://input");
-
-    /*
-
-    SPECIAL CASES
-
-    */
-
-    // Manager autoconf requests do not follow the usual protocol
-    // as the manager does not know the proper prefix or encryption
-    // key to use. These requests should be processed slightly
-    // differently.
-
-    // First, check if the request is an autoconf request.
-    // These contain a HTTP X-Autoconf header and the
-    // API user's encrypted username and password as the
-    // content. The password is encrypted with the password
-    // and username as the key.
-
-    if (isset($_SERVER['HTTP_X_AUTOCONF'])) {
-
-        // The request is most likely an autoconf request from the manager
-    }
 
     /*
 
