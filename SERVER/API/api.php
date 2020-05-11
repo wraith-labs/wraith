@@ -99,6 +99,28 @@ if ($_SERVER['REQUEST_METHOD'] === "GET") {
 
     /*
 
+    SPECIAL CASES
+
+    */
+
+    // Manager autoconf requests do not follow the usual protocol
+    // as the manager does not know the proper prefix or encryption
+    // key to use. These requests should be processed slightly
+    // differently.
+
+    // First, check if the request is an autoconf request.
+    // These contain a HTTP X-Autoconf header and the
+    // API user's encrypted username and password as the
+    // content. The password is encrypted with the password
+    // and username as the key.
+
+    if (isset($_SERVER['HTTP_X_AUTOCONF'])) {
+
+        // The request is most likely an autoconf request from the manager
+    }
+
+    /*
+
     REQUEST VALIDATION AND PREPARATION
 
     */
