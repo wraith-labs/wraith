@@ -46,6 +46,34 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // and password as the content. The password is encrypted
     // with the password + username as the key.
 
+    // Define a function to respond to the client
+    function respond($response) {
+
+        global $db, $crypt, $cryptKey;
+
+        // Set the text/plain content type header so proxies and browsers
+        // don't try interpreting responses
+        header("Content-Type: text/plain");
+        // If a global $crypt object is defined as well as
+        // a global $cryptKey, automatically encrypt the
+        // response
+        if (isset($crypt) && isset($cryptKey)) {
+
+            $message = $crypt->encrypt(json_encode($response), $cryptKey);
+
+        } else {
+
+            $message = json_encode($response);
+
+        }
+
+        // Close the database connection when exiting
+        $db = NULL;
+
+        // Finally, send the response and exit
+        die($message);
+    }
+
     // As autoconf is equivalent to authentication, start with a
     // "random" time delay to mitigate brute-force attacks and
     // make it difficult to guess whether authentication was
@@ -56,7 +84,18 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     usleep(rand(1000000, 2000000));
 
     // Get the request body to verify the credentials
+    $reqBody = file_get_contents("php://input");
 
+    // The request body should have 1 instance of the `|` sign
+    // separating the username and password
+    if (substr_count($reqBody, "|") !== 1) {
+
+        $response = [
+            "status" => "ERROR",
+            "message" => "incorrectly formatted request",
+        ];
+        respond($response);
+    }
 
 // POST requests are used for actual interaction with the API using the Wraith
 // protocol. All non-compliant requests result in errors.
@@ -93,8 +132,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // don't try interpreting responses
         header("Content-Type: text/plain");
         // If a global $crypt object is defined as well as
-        // a global $cryptKey, and encryption is not disabled,
-        // automatically encrypt the response and add the prefix
+        // a global $cryptKey, automatically encrypt the
+        // response and add the prefix
         if (isset($crypt) && isset($cryptKey)) {
 
             $message = $SETTINGS["APIPrefix"] . $crypt->encrypt(json_encode($response), $cryptKey);
@@ -117,9 +156,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $IPBlacklist = json_decode($SETTINGS["requestIPBlacklist"]);
     if (in_array($requesterIP, $IPBlacklist)) {
 
-        $response = [];
-        $response["status"] = "ERROR";
-        $response["message"] = "you have been blocked from accessing this resource";
+        $response = [
+            "status" => "ERROR",
+            "message" => "you have been blocked from accessing this resource",
+        ];
         respond($response);
 
     }
@@ -137,9 +177,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // it is invalid.
     if (strpos($reqBody, $SETTINGS["APIPrefix"]) !== 0) {
 
-        $response = [];
-        $response["status"] = "ERROR";
-        $response["message"] = "incorrectly formatted request";
+        $response = [
+            "status" => "ERROR",
+            "message" => "incorrectly formatted request",
+        ];
         respond($response);
 
     }
@@ -155,9 +196,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // 0 is only returned by non-integer characters or 0 itself
         // both of which aren't valid (or multiples of 10
         // but we're only getting a single digit/char)
-        $response = [];
-        $response["status"] = "ERROR";
-        $response["message"] = "incorrectly formatted request";
+        $response = [
+            "status" => "ERROR",
+            "message" => "incorrectly formatted request",
+        ];
         respond($response);
 
     } elseif ($reqIdentificationChar % 2 === 1) {
@@ -173,9 +215,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     } else {
 
         // This should never happen but better safe than sorry
-        $response = [];
-        $response["status"] = "ERROR";
-        $response["message"] = "incorrectly formatted request";
+        $response = [
+            "status" => "ERROR",
+            "message" => "incorrectly formatted request",
+        ];
         respond($response);
 
     }
@@ -186,9 +229,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $reqProtocolvChar = $reqBody[strlen($SETTINGS["APIPrefix"])+1];
     if (!(in_array($reqProtocolvChar, $SUPPORTED_PROTOCOL_VERSIONS))) {
 
-        $response = [];
-        $response["status"] = "ERROR";
-        $response["message"] = "unsupported protocol";
+        $response = [
+            "status" => "ERROR",
+            "message" => "unsupported protocol",
+        ];
         respond($response);
 
     } else {
@@ -235,9 +279,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             if ($data === null) {
 
                 // In both cases, we return an error message
-                $response = [];
-                $response["status"] = "ERROR";
-                $response["message"] = "incorrectly formatted request";
+                $response = [
+                    "status" => "ERROR",
+                    "message" => "incorrectly formatted request",
+                ];
                 respond($response);
 
             } else {
@@ -263,9 +308,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // Check if the data is an array
         if (!(is_array($data))) {
 
-            $response = [];
-            $response["status"] = "ERROR";
-            $response["message"] = "incorrectly formatted request";
+            $response = [
+                "status" => "ERROR",
+                "message" => "incorrectly formatted request",
+            ];
             respond($response);
 
         }
@@ -275,9 +321,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             "reqType", // So we know what to do with the request
         ]))) {
 
-            $response = [];
-            $response["status"] = "ERROR";
-            $response["message"] = "incorrectly formatted request";
+            $response = [
+                "status" => "ERROR",
+                "message" => "incorrectly formatted request",
+            ];
             respond($response);
 
         }
@@ -293,9 +340,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         // This will never happen if the code is unmodified. However, to gracefully
         // handle mistakes in modification, this should stay here
-        $response = [];
-        $response["status"] = "ERROR";
-        $response["message"] = "the request was identified but methods for handling it were not implemented";
+        $response = [
+            "status" => "ERROR",
+            "message" => "the request was identified but methods for handling it were not implemented",
+        ];
         respond($response);
 
     }
@@ -354,9 +402,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     // If nothing was sent until now, assume that there was some
     // kind of error, most likely due to a faulty protocol handler
-    $response = [];
-    $response["status"] = "ERROR";
-    $response["message"] = "no response generated";
+    $response = [
+        "status" => "ERROR",
+        "message" => "no response generated",
+    ];
     respond($response);
 
 } else {
