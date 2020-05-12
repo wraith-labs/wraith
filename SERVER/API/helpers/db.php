@@ -50,8 +50,7 @@ try {
         );",
         // Users table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
-            `userID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-            `userName` TEXT,
+            `userName` TEXT NOT NULL UNIQUE,
             `userPassword` TEXT,
             `userPrivileges` TEXT
         );",
@@ -293,7 +292,7 @@ function dbAddUsers($user) {
 }
 
 // Change username
-function dbChangeUserName($userID, $newUsername) {
+function dbChangeUserName($currentUsername, $newUsername) {
 
     global $SETTINGS, $db;
 
@@ -302,7 +301,7 @@ function dbChangeUserName($userID, $newUsername) {
 }
 
 // Change user password
-function dbChangeUserPass($userID, $newPassword) {
+function dbChangeUserPass($username, $newPassword) {
 
     global $SETTINGS, $db;
 
@@ -311,7 +310,7 @@ function dbChangeUserPass($userID, $newPassword) {
 }
 
 // Change user privilege level (0=User, 1=Admin, 2=SuperAdmin)
-function dbChangeUserPrivilege($userID, $newPrivilegeLevel) {
+function dbChangeUserPrivilege($username, $newPrivilegeLevel) {
 
     global $SETTINGS, $db;
 
@@ -322,7 +321,7 @@ function dbChangeUserPrivilege($userID, $newPrivilegeLevel) {
 // SESSIONS
 
 // Create a session for a user
-function dbCreateSession($userID) {
+function dbCreateSession($username) {
 
     global $SETTINGS, $db;
 

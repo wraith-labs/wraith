@@ -1,3 +1,5 @@
+<!-- TODO: figure out how to solve cross-origin request errors: Access-Control-Allow-Origin -->
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -71,12 +73,29 @@
 
             }
 
-            // Encrypt the password
-            password = aes.encrypt(password, password + username);
+            // Obfuscate the password
+            // Note: This is by no means secure as the password can easily be
+            // decrypted since the key is the username which is sent alongside
+            // the "encrypted" password. This is only done to make the password
+            // less obvious to anyone quickly glancing at the network traffic.
+            // HTTPS should ALWAYS be used to encrypt all Wraith communication!
+            passwordCrypt = aes.encrypt(password, username + "wraithCredentials");
             // Create the auth string
-            const authString = username + "|" + password;
+            const authString = username + "|" + passwordCrypt;
             // Send the auth string to the API
-            console.log(authString);
+            const request = new XMLHttpRequest();
+            request.onreadystatechange = function() {
+
+                // If the response was received successfully
+                if (this.readyState == 4 && this.status == 200) {
+
+                    console.log(this.responseText);
+
+                }
+
+            }
+            request.open("PUT", APILocation, true);
+            request.send(authString);
 
         }
     </script>

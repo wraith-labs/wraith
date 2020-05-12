@@ -33,8 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
 // PUT requests are used by API managers (such as the panel) for automatic
 // configuration. They must contain valid manager account authentication
-// with every request. When a request is received, a session is created
-// for the user account and the manager should use POST from then on.
+// with every request. When a valid request is received, a session is
+// created for the user account and the manager should use POST from then on.
 } else if ($_SERVER["REQUEST_METHOD"] == "PUT") {
 
     // Manager autoconf requests do not follow the usual protocol
@@ -42,9 +42,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // key to use. These requests should be processed differently
     // from normal POST requests.
 
-    // The request body must contain a user's encrypted username
-    // and password as the content. The password is encrypted
-    // with the password + username as the key.
+    // The request body must contain a user's username and password.
+    // The password will be obfuscated by encrypting it using the standard
+    // method and using the username + "wraithCredentials" as the key.
+    // THIS IS NOT SECURE! USE SSL (HTTPS) TOO!
 
     // Define a function to respond to the client
     function respond($response) {
@@ -102,10 +103,31 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         respond($response);
     }
 
+    // Create a crypt object to de-obfuscate the password (and later encrypt
+    // the response - no responses are encrypted until $cryptKey is defined).
+    $crypt = new aes();
+
     // Split the request into the username and password
     $credentials = explode("|", $reqBody, 2);
+    // Unobfuscate the password
+    $credentials[1] = $crypt->decrypt($credentials[1], $credentials[0] . "wraithCredentials");
 
-    // Check the
+    // Check whether the username is indeed a valid user account
+    foreach ($API_USERS as $id => $user) {
+
+        if ($credentials[0] === $user["userName"]) {
+
+            //
+
+        }
+
+    }
+    $r = [
+        "orig" => $reqBody,
+        "creds" => json_encode($credentials),
+        "" => "",
+    ];
+    respond($r);
 
 // POST requests are used for actual interaction with the API using the Wraith
 // protocol. All non-compliant requests result in errors.
