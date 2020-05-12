@@ -5,6 +5,11 @@ the client is capable of encrypted communication using the Wraith/HTTP protocol 
 will automatically encrypt its replies.
 */
 
+// Add the nescessary headers to support cross-origin requests as
+// API managers can be hosted anywhere.
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, PUT, POST");
+
 // The API only uses GET, POST and PUT requests. Other request methods can be
 // discarded and return an error message.
 
@@ -450,6 +455,14 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         "message" => "no response generated",
     ];
     respond($response);
+
+// OPTIONS requests are sent by browsers to check if they should allow
+// cross-origin requests. As the API manager can be under any URL, all
+// origins should be accepted. This however is done at the top of the
+// script anyway so nothing needs to be done here.
+} else if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+
+    die();
 
 } else {
 
