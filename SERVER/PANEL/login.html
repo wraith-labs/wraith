@@ -38,14 +38,46 @@
     <!-- Authentication manager -->
     <script>
         function authenticate() {
+
             // Get the credentials
             var username = document.getElementById("username").value;
             var password = document.getElementById("password").value;
+            var APILocation = "/API/api.php";
+            // Separate the username and API URL from the username box
+            var usernameAtCount = (username.match(/@/g) || []).length;
+
+            if (usernameAtCount > 1) {
+
+                // If there are more than 1 @ signs in the username box
+                // (usernames cannot contain special characters - the @
+                // sign represents the API URL start)
+                alert("The username box can only contain one `@` sign!");
+                return;
+
+            } else if (usernameAtCount == 1) {
+
+                // If an API URL was provided, change from the default
+                var parsedUsername = username.split("@");
+                username = parsedUsername[0];
+                APILocation = parsedUsername[1];
+
+            }
+
+            if (!(username.match(/^[a-z0-9]+$/i))) {
+
+                // Check that the username is valid (non-blank, alphanumeric)
+                alert("Please enter a valid username (non-blank, alphanumeric)");
+                return;
+
+            }
+
             // Encrypt the password
             password = aes.encrypt(password, password + username);
             // Create the auth string
             const authString = username + "|" + password;
+            // Send the auth string to the API
             console.log(authString);
+
         }
     </script>
 
