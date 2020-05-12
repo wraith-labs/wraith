@@ -52,7 +52,9 @@ try {
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
             `userName` TEXT NOT NULL UNIQUE,
             `userPassword` TEXT,
-            `userPrivileges` TEXT
+            `userPrivileges` TEXT,
+            `userFailedLogins` INTEGER,
+            `userFailedLoginsTimeoutStart` TEXT
         );",
         // Users table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
@@ -94,12 +96,16 @@ try {
             '12'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
-            'managementAuthCode',
-            ''
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
             'managementIPWhitelist',
             '[]'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'managementBruteForceMaxAttempts',
+            '3'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'managementBruteForceTimeoutSeconds',
+            '300'
         );",
         // Create a stats table entry
         "INSERT INTO `WraithAPI_Stats` VALUES (
