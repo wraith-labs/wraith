@@ -37,9 +37,11 @@
 
     <!-- On page load -->
     <script>
-        // Hide no-js-content and show the normal login page
-        document.getElementById('js-content').style.display = 'block';
-        document.getElementById('non-js-content').style.display = 'none';
+        window.onload = function() {
+            // Hide no-js-content and show the normal login page
+            document.getElementById('js-content').style.display = 'block';
+            document.getElementById('non-js-content').style.display = 'none';
+        }
     </script>
 
 </head>
