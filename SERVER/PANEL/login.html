@@ -35,6 +35,20 @@
     <!-- Main CSS-->
     <link href="css/theme.css" rel="stylesheet" media="all">
 
+    <!-- Authentication manager -->
+    <script>
+        function authenticate() {
+            // Get the credentials
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+            // Encrypt the password
+            password = aes.encrypt(password, password + username);
+            // Create the auth string
+            const authString = username + "|" + password;
+            console.log(authString);
+        }
+    </script>
+
     <!-- On page load -->
     <script>
         window.onload = function() {
@@ -69,17 +83,15 @@
                                 </a>
                             </div>
                             <div class="login-form">
-                                <form action="panel.html" method="post">
-                                    <div class="form-group">
-                                        <label>Username</label>
-                                        <input class="au-input au-input--full" type="username" name="email" placeholder="Username">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Password</label>
-                                        <input class="au-input au-input--full" type="password" name="password" placeholder="Password">
-                                    </div>
-                                    <button class="au-btn au-btn--block au-btn--green m-b-20" type="submit">sign in</button>
-                                </form>
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <input class="au-input au-input--full" type="username" id="username" placeholder="Username">
+                                </div>
+                                <div class="form-group">
+                                    <label>Password</label>
+                                    <input class="au-input au-input--full" type="password" id="password" placeholder="Password">
+                                </div>
+                                <button class="au-btn au-btn--block au-btn--green m-b-20" type="submit" id="auth-button" onclick="authenticate();">sign in</button>
                             </div>
                         </div>
                     </div>
@@ -111,6 +123,9 @@
 
         <!-- Main JS-->
         <script src="js/style.js"></script>
+
+        <!-- Login Functionality -->
+        <script src="js/crypt.js"></script>
 
     </div>
 
