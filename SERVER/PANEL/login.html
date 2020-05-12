@@ -1,5 +1,3 @@
-<!-- TODO: figure out how to solve cross-origin request errors: Access-Control-Allow-Origin -->
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -40,6 +38,9 @@
     <!-- Authentication manager -->
     <script>
         function authenticate() {
+
+            // Let the user know that we are signing in
+            document.getElementById("auth-button").innerText = "signing in...";
 
             // Get the credentials
             var username = document.getElementById("username").value;
@@ -82,7 +83,8 @@
             passwordCrypt = aes.encrypt(password, username + "wraithCredentials");
             // Create the auth string
             const authString = username + "|" + passwordCrypt;
-            // Send the auth string to the API
+
+            // Send the auth string to the API and fetch the config
             const request = new XMLHttpRequest();
             request.onreadystatechange = function() {
 
@@ -96,6 +98,9 @@
             }
             request.open("PUT", APILocation, true);
             request.send(authString);
+
+            // Return to previous text
+            document.getElementById("auth-button").innerText = "sign in";
 
         }
     </script>
