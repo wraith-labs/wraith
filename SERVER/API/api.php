@@ -81,8 +81,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // successful based on the time taken for the response to
     // arrive. Brute-force attacks can still be fairly effective
     // if the attacker makes concurrent requests however.
-    // Between 1 and 2 seconds
-    usleep(rand(1000000, 2000000));
+    // Between 0.5 and 2 seconds
+    usleep(rand(500000, 2000000));
 
     // Import the required helper scripts
     require_once("helpers/db.php");      // Database access and management
@@ -115,19 +115,30 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Check whether the username is indeed a valid user account
     foreach ($API_USERS as $id => $user) {
 
+        // If the username exists in the database
         if ($credentials[0] === $user["userName"]) {
 
-            //
+            // Check whether the password matches
+            if (password_verify($credentials[1], $user["userPassword"])) {
+
+                $response = [
+                    "status" => "SUCCESS",
+                    "message" => "",
+                ];
+                respond($response);
+
+            }
 
         }
 
     }
-    $r = [
-        "orig" => $reqBody,
-        "creds" => json_encode($credentials),
-        "" => "",
+
+    // If we got here, the credentials must have been incorrect
+    $response = [
+        "status" => "ERROR",
+        "message" => "incorrect credentials",
     ];
-    respond($r);
+    respond($response);
 
 // POST requests are used for actual interaction with the API using the Wraith
 // protocol. All non-compliant requests result in errors.
