@@ -58,7 +58,8 @@ try {
         );",
         // Users table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
-            `userID` INTEGER,
+            `sessionID` TEXT,
+            `username` TEXT,
             `sessionToken` TEXT,
             `lastSessionHeartbeat` TEXT
         );",
