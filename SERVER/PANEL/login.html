@@ -91,16 +91,51 @@
                 // If the response was received successfully
                 if (this.readyState == 4 && this.status == 200) {
 
-                    // Parse the response
-                    const response_dict = JSON.parse(this.responseText);
+                    // Create a variable to hold the processed response
+                    var response = "";
 
-                    // Catch any reported errors and display them
-                    if (response_dict["status"] != "SUCCESS") {
+                    // First, try decrypting the response
+                    try {
 
-                        alert("Login Error\n\n" + response_dict["message"] + "\n\n");
-                        return;
+                        var decryptedResponse = aes.decrypt(this.responseText, password);
+                        var parsedResponse = JSON.parse(decryptedResponse);
+                        response = parsedResponse;
+
+                    } catch (err) {
+
+                        // If this failed, the response is probably not
+                        // encrypted so try JSON parsing it
+                        try {
+
+                            var parsedResponse = JSON.parse(this.responseText);
+                            response = parsedResponse;
+
+                        } catch (err) {
+
+                            // If this failed again, the response was most likely
+                            // not a valid API response at all
+                            alert("The response from the API was incorrectly formatted or encrypted! Could not log in.");
+                            return;
+
+                        }
 
                     }
+
+                    if (response["status"] != "SUCCESS") {
+
+                        // Catch any reported errors and display them
+                        alert("Login Error\n\n" + response["message"] + "\n\n");
+                        return;
+
+                    } else if ("message" in response) {
+
+                        // If the response has a message to be displayed, display it
+                        alert(response["message"]);
+
+                    }
+
+                    // Process the API response (config)
+                    console.log(response);
 
                 } else if (this.readyState == 4 && this.status != 200) {
 
