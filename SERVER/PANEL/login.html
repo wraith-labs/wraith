@@ -132,7 +132,39 @@
                     }
 
                     // Process the API response (config)
-                    console.log(response);
+
+                    // Ensure that the required keys are present
+                    if (!("config" in response)) {
+
+                        alert("The response from the API did not have the required data. Are we connecting to an API unsupported by this panel version?\n\nMissing data: config\n\n");
+                        return;
+
+                    }
+
+                    const requiredConfigKeys = [
+
+                        "sessionID",
+                        "sessionToken",
+                        "username",
+                        "updateInterval",
+                        "firstLayerEncryptionKey",
+                        "APIVersion",
+
+                    ];
+
+                    for (index = 0, len = requiredConfigKeys.length; index < len; ++index) {
+
+                        if (!(requiredConfigKeys[index] in response["config"])) {
+
+                            alert("The response from the API did not have the required data. Are we connecting to an API unsupported by this panel version?\n\nMissing data: " + requiredConfigKeys[index] + "\n\n");
+                            return;
+
+                        }
+
+                    }
+
+                    // Save the data to session storage and load the panel
+                    //sessionStorage.setItem("", "")
 
                 } else if (this.readyState == 4 && this.status != 200) {
 
