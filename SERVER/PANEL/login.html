@@ -91,7 +91,16 @@
                 // If the response was received successfully
                 if (this.readyState == 4 && this.status == 200) {
 
-                    console.log(this.responseText);
+                    // Parse the response
+                    const response_dict = JSON.parse(this.responseText);
+
+                    // Catch any reported errors and display them
+                    if (response_dict["status"] != "SUCCESS") {
+
+                        alert("Login Error\n\n" + response_dict["message"] + "\n\n");
+                        return;
+
+                    }
 
                 } else if (this.readyState == 4 && this.status != 200) {
 
