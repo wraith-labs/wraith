@@ -39,9 +39,6 @@
     <script>
         function authenticate() {
 
-            // Let the user know that we are signing in
-            document.getElementById("auth-button").innerText = "signing in...";
-
             // Get the credentials
             var username = document.getElementById("username").value;
             var password = document.getElementById("password").value;
@@ -103,7 +100,7 @@
 
                     } catch (err) {
 
-                        // If this failed, the response is probably not
+                        // If that failed, the response is probably not
                         // encrypted so try JSON parsing it
                         try {
 
@@ -112,7 +109,7 @@
 
                         } catch (err) {
 
-                            // If this failed again, the response was most likely
+                            // If that failed again, the response was most likely
                             // not a valid API response at all
                             alert("The response from the API was incorrectly formatted or encrypted! Could not log in.");
                             return;
@@ -143,12 +140,13 @@
 
                 }
 
-                // Return to previous text
-                document.getElementById("auth-button").innerText = "sign in";
-
             }
-            request.open("PUT", APILocation, true);
+            request.open("PUT", APILocation, false);
+            // Let the user know that we are signing in
+            document.getElementById("auth-button").innerText = "signing in...";
             request.send(authString);
+            // Return to previous text
+            document.getElementById("auth-button").innerText = "sign in";
 
         }
     </script>
