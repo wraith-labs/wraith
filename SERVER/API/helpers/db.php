@@ -23,17 +23,17 @@ try {
     $dbInitCommands = [
         // Settings table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
-            `key` TEXT,
+            `key` TEXT UNIQUE,
             `value` TEXT
         );",
         // Statistics table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Stats` (
-            `key` TEXT,
+            `key` TEXT UNIQUE,
             `value` TEXT
         );",
         // Connected Wraiths table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
-            `assignedID` TEXT,
+            `assignedID` TEXT UNIQUE,
             `hostProperties` TEXT,
             `wraithProperties` TEXT,
             `lastHeartbeatTime` TEXT,
@@ -41,7 +41,7 @@ try {
         );",
         // Command queue table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_CommandsIssued` (
-            `commandID` TEXT,
+            `commandID` TEXT UNIQUE,
             `commandName` TEXT,
             `commandParams` TEXT,
             `commandTargets` TEXT,
@@ -58,7 +58,7 @@ try {
         );",
         // Users table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
-            `sessionID` TEXT,
+            `sessionID` TEXT UNIQUE,
             `username` TEXT,
             `sessionToken` TEXT,
             `lastSessionHeartbeat` TEXT
@@ -95,6 +95,10 @@ try {
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'managementSessionExpiryDelay',
             '12'
+        );",
+        "INSERT INTO `WraithAPI_Settings` VALUES (
+            'managementFirstLayerEncryptionKey',
+            '" . bin2hex(random_bytes(25)) . "'
         );",
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'managementIPWhitelist',
@@ -333,13 +337,13 @@ function dbCreateSession($username) {
     global $SETTINGS, $db;
 
     $statement = $db->prepare("INSERT INTO `WraithAPI_Sessions` (
-        `userID`,
         `sessionID`,
+        `username`,
         `sessionToken`,
         `lastSessionHeartbeat`
     ) VALUES (
-        :userID,
         :sessionID,
+        :username,
         :sessionToken,
         :lastSessionHeartbeat
     )");
@@ -350,13 +354,44 @@ function dbCreateSession($username) {
     $lastSessionHeartbeat = time();
 
     // Bind the parameters in the query with variables
-    $statement->bindParam(":userID", $userID);
+    $statement->bindParam(":username", $username);
     $statement->bindParam(":sessionID", $sessionID);
     $statement->bindParam(":sessionToken", $sessionToken);
     $statement->bindParam(":lastSessionHeartbeat", $lastSessionHeartbeat);
 
     // Execute the statement to add a Wraith
     $statement->execute();
+
+    // Return the ID of the created session
+    return $sessionID;
+
+}
+
+// Get a list of all sessions
+function dbGetSessions() {
+
+    global $SETTINGS, $db;
+
+    // Get a list of sessions from the database
+    $sessions_db = $db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
+
+    // Create an array to store a processed list of sessions
+    $sessions = [];
+
+    foreach ($sessions as $session) {
+
+        // Move the session ID to a separate variable
+        $sessionID = $session["sessionID"];
+        unset($session["sessionID"]);
+
+        // Set the (sessionID-less) session array as an element of the $sessions
+        // array
+        $sessions[$sessionID] = $session;
+
+    }
+
+    // Return the processed sessions array
+    return $sessions;
 
 }
 
