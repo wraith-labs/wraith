@@ -5,6 +5,9 @@ the client is capable of encrypted communication using the Wraith/HTTP protocol 
 will automatically encrypt its replies.
 */
 
+// Define the API version
+define("API_VERSION", "4.0.0");
+
 // Add the nescessary headers to support cross-origin requests as
 // API managers can be hosted anywhere.
 header("Access-Control-Allow-Origin: *");
@@ -156,6 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                         "username" => $thisSession["username"],
                         "updateInterval" => $SETTINGS["managementSessionExpiryDelay"] / 2,
                         "firstLayerEncryptionKey" => $SETTINGS["managementFirstLayerEncryptionKey"],
+                        "APIVersion" => API_VERSION,
                     ],
                 ];
                 // ...and send it
@@ -178,8 +182,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 // protocol. All non-compliant requests result in errors.
 } else if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    // Define the API version
-    define("API_VERSION", "4.0.0");
     // Define an array of supported protocol versions. This will be updated
     // by each included protocol file.
     $SUPPORTED_PROTOCOL_VERSIONS = [];
