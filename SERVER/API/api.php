@@ -143,6 +143,11 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 $allSessions = dbGetSessions();
                 $thisSession = $allSessions[$sessionID];
 
+                // Encrypt the response with the password of the user. This
+                // is again not too secure but we're mainly relying on SSL
+                $cryptKey = $credentials[1];
+
+                // Generate a response to be sent
                 $response = [
                     "status" => "SUCCESS",
                     "config" => [
@@ -153,6 +158,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                         "firstLayerEncryptionKey" => $SETTINGS["managementFirstLayerEncryptionKey"],
                     ],
                 ];
+                // ...and send it
                 respond($response);
 
             }
