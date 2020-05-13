@@ -93,7 +93,17 @@
 
                     console.log(this.responseText);
 
+                } else if (this.readyState == 4 && this.status != 200) {
+
+                    alert("The authentication request returned a non-200 status code!\n\nERR: " + this.status + "\n\n");
+
                 }
+
+            }
+            request.onerror = function(err) {
+
+                // If there was any kind of error when sending the request
+                alert("The authentication request could not be made! Please check whether the API URL is correct.\n\nERR: " + err.target.status + "\n\n");
 
             }
             request.open("PUT", APILocation, true);
@@ -155,7 +165,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
         <!-- Jquery JS-->
