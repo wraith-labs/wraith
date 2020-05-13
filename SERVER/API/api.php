@@ -94,6 +94,15 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     require_once("helpers/crypto.php");  // Encryption and decryption
     require_once("helpers/misc.php");    // Miscellaneous
 
+    // To keep all stats up to-date, and avoid performing actions on disconnected
+    // Wraiths, expire any that have not had a heartbeat in a while first.
+    dbExpireWraiths();
+
+    // Expire any panel sessions which have not had a heartbeat recently for
+    // security and to prevent sessions from sticking around because a user
+    // forgot to log out.
+    dbExpireSessions();
+
     // Get the request body to verify the credentials
     $reqBody = file_get_contents("php://input");
 
@@ -126,9 +135,19 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             // Check whether the password matches
             if (password_verify($credentials[1], $user["userPassword"])) {
 
+                // If the username exists and matches the password,
+                // create a session for the user
+                $sessionID = dbCreateSession($user["userName"]);
+
+                // Get the information of the session
+                $session = dbGetSessions()[$sessionID];
+
                 $response = [
                     "status" => "SUCCESS",
-                    "message" => "",
+                    "config" => [
+                        "sessionID" => $sessionID,
+                        "sessionInfo" => $session
+                    ],
                 ];
                 respond($response);
 
