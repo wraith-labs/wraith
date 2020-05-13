@@ -139,15 +139,17 @@
                                 </a>
                             </div>
                             <div class="login-form">
-                                <div class="form-group">
-                                    <label>Username</label>
-                                    <input class="au-input au-input--full" type="username" id="username" placeholder="Username">
-                                </div>
-                                <div class="form-group">
-                                    <label>Password</label>
-                                    <input class="au-input au-input--full" type="password" id="password" placeholder="Password">
-                                </div>
-                                <button class="au-btn au-btn--block au-btn--green m-b-20" type="submit" id="auth-button" onclick="authenticate();">sign in</button>
+                                <form method="POST" action="" onsubmit="authenticate(); return false;">
+                                    <div class="form-group">
+                                        <label>Username</label>
+                                        <input class="au-input au-input--full" type="text" id="username" placeholder="Username" tabindex="1" autocapitalize="off" autocorrect="off" autocomplete="username" required="required" autofocus="autofocus" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Password</label>
+                                        <input class="au-input au-input--full" type="password" id="password" placeholder="Password" tabindex="2" autocomplete="current-password" required="true" />
+                                    </div>
+                                    <button class="au-btn au-btn--block au-btn--green m-b-20" type="submit" id="auth-button">sign in</button>
+                                </form>
                             </div>
                         </div>
                     </div>
