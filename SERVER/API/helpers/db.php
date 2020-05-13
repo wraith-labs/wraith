@@ -378,7 +378,7 @@ function dbGetSessions() {
     // Create an array to store a processed list of sessions
     $sessions = [];
 
-    foreach ($sessions as $session) {
+    foreach ($sessions_db as $session) {
 
         // Move the session ID to a separate variable
         $sessionID = $session["sessionID"];
