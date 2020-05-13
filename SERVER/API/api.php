@@ -154,10 +154,12 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 $response = [
                     "status" => "SUCCESS",
                     "config" => [
+                        // TODO add prefix
                         "sessionID" => $sessionID,
                         "sessionToken" => $thisSession["sessionToken"],
                         "username" => $thisSession["username"],
                         "updateInterval" => $SETTINGS["managementSessionExpiryDelay"] / 2,
+                        "APIPrefix" => $SETTINGS["APIPrefix"],
                         "firstLayerEncryptionKey" => $SETTINGS["managementFirstLayerEncryptionKey"],
                         "APIVersion" => API_VERSION,
                     ],
