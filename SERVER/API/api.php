@@ -140,13 +140,17 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 $sessionID = dbCreateSession($user["userName"]);
 
                 // Get the information of the session
-                $session = dbGetSessions()[$sessionID];
+                $allSessions = dbGetSessions();
+                $thisSession = $allSessions[$sessionID];
 
                 $response = [
                     "status" => "SUCCESS",
                     "config" => [
                         "sessionID" => $sessionID,
-                        "sessionInfo" => $session
+                        "sessionToken" => $thisSession["sessionToken"],
+                        "username" => $thisSession["username"],
+                        "updateInterval" => $SETTINGS["managementSessionExpiryDelay"] / 2,
+                        "firstLayerEncryptionKey" => $SETTINGS["managementFirstLayerEncryptionKey"],
                     ],
                 ];
                 respond($response);
