@@ -95,22 +95,16 @@
 
                 } else if (this.readyState == 4 && this.status != 200) {
 
-                    alert("The authentication request returned a non-200 status code!\n\nERR: " + this.status + "\n\n");
+                    alert("The authentication request failed!\n\nERR: " + this.status + "\n\n");
 
                 }
 
-            }
-            request.onerror = function(err) {
-
-                // If there was any kind of error when sending the request
-                alert("The authentication request could not be made! Please check whether the API URL is correct.\n\nERR: " + err.target.status + "\n\n");
+                // Return to previous text
+                document.getElementById("auth-button").innerText = "sign in";
 
             }
             request.open("PUT", APILocation, true);
             request.send(authString);
-
-            // Return to previous text
-            document.getElementById("auth-button").innerText = "sign in";
 
         }
     </script>
