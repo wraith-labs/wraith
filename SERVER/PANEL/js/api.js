@@ -105,7 +105,7 @@ function api(data) {
 
     // Send the API request
     request.open("POST", APILocation, true);
-    request.send(finalPayload);
+    request.send(finalData);
     console.log(finalResponse);
 
 }
