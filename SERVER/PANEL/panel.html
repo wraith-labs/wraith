@@ -64,28 +64,53 @@
 
     <!-- Page updates (heartbeats) -->
     <script type="text/javascript">
+        // Define a function to update each UI element with the correct data
+        function updateUI(data) {
+
+            // Update the username field(s)
+            const usernameFields = document.getElementsByName("usernameField")
+            for (index = 0, len = usernameFields.length; index < len; ++index) {
+
+                usernameFields[index].value = data["username"];
+
+            }
+
+            // Update the stats page
+            // TODO
+
+            // Update the manager page
+            // TODO
+
+            // Update the settings page
+            // TODO
+
+        }
+
         // Define a function to regularly update the data (every 1/3 of the
         // session timeout set in the API settings)
         function updatePageLoop() {
 
-            setInterval(function(){
+            var req = new XMLHttpRequest();
+            req.onreadystatechange = function() {
 
-                var req = new XMLHttpRequest();
-                req.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
 
-                    if (this.readyState == 4 && this.status == 200) {
+                    data = this.responseText;
+                    console.log(data);
 
-                        data = this.responseText;
-                        console.log(data);
+                }
 
-                    }
+            };
 
-                };
+            // Send the data request
+            req.open("POST", window.wraithManagerStorage["config"]["APILocation"], true);
+            req.send();
 
-                req.open("POST", window.wraithManagerStorage["config"]["APILocation"], true);
-                req.send();
+            // Update the UI with the new data
+            updateUI(window.wraithManagerStorage["data"]);
 
-            }, window.wraithManagerStorage["config"]["updateInterval"] * 1000);
+            // Repeat
+            setTimeout(updatePageLoop, window.wraithManagerStorage["config"]["updateInterval"] * 1000);
 
         }
     </script>
@@ -167,7 +192,7 @@
                 </div>
                 <div class="menu-sidebar2__content js-scrollbar1">
                     <div class="account2">
-                        <h4 class="name" name="username">-</h4>
+                        <h4 class="name" name="usernameField">-</h4>
                         <a href="javascript:void(0)" onclick="endSession();">sign out</a>
                     </div>
                     <nav class="navbar-sidebar2">
@@ -219,7 +244,7 @@
                     </div>
                     <div class="menu-sidebar2__content js-scrollbar2">
                         <div class="account2">
-                            <h4 class="name" name="username">-</h4>
+                            <h4 class="name" name="usernameField">-</h4>
                             <a href="javascript:void(0)" onclick="endSession();">sign out</a>
                         </div>
                         <nav class="navbar-sidebar2">
