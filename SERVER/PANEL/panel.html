@@ -57,6 +57,8 @@
 
             }
 
+            return false;
+
         }
     </script>
 
@@ -85,11 +87,11 @@
 
     <!-- Logging out -->
     <script>
-    function endSession() {
+        function endSession() {
 
-        sessionStorage.removeItem();
+            sessionStorage.removeItem();
 
-    }
+        }
     </script>
 
     <!-- On page load -->
@@ -149,27 +151,27 @@
             <!-- MENU SIDEBAR-->
             <aside class="menu-sidebar d-none d-lg-block">
                 <div class="logo">
-                    <a href="#">
+                    <a href="javascript:void(0)">
                         <img src="images/logo.png" alt="Wraith Logo" />
                     </a>
                 </div>
                 <div class="menu-sidebar2__content js-scrollbar1">
                     <div class="account2">
                         <h4 class="name" name="username">-</h4>
-                        <a href="#">sign out</a>
+                        <a href="javascript:void(0)" onclick="endSession();">sign out</a>
                     </div>
                     <nav class="navbar-sidebar2">
                         <ul class="list-unstyled navbar__list">
                             <li>
-                                <a href="#" onclick="switchPage('info');">
+                                <a href="javascript:void(0)" onclick="switchPage('info');">
                                     <i class="fas fa-chart-bar"></i>Info &amp Stats</a>
                             </li>
                             <li>
-                                <a href="#" onclick="switchPage('manager');">
+                                <a href="javascript:void(0)" onclick="switchPage('manager');">
                                     <i class="fas fa-desktop"></i>Wraith Manager</a>
                             </li>
                             <li>
-                                <a href="#" onclick="switchPage('settings');">
+                                <a href="javascript:void(0)" onclick="switchPage('settings');">
                                     <i class="fas fa-cog"></i>Settings</a>
                             </li>
                         </ul>
@@ -186,7 +188,7 @@
                         <div class="container-fluid">
                             <div class="header-wrap2">
                                 <div class="logo d-block d-lg-none">
-                                    <a href="#">
+                                    <a href="javascript:void(0)">
                                         <img src="images/logo.png" alt="Wraith Logo" />
                                     </a>
                                 </div>
@@ -201,27 +203,27 @@
                 </header>
                 <aside class="menu-sidebar2 js-right-sidebar d-block d-lg-none">
                     <div class="logo">
-                        <a href=" ">
+                        <a href="javascript:void(0)">
                             <img src="images/logo.png" alt="Wraith Logo" />
                         </a>
                     </div>
                     <div class="menu-sidebar2__content js-scrollbar2">
                         <div class="account2">
                             <h4 class="name" name="username">-</h4>
-                            <a href=" ">sign out</a>
+                            <a href="javascript:void(0)" onclick="endSession();">sign out</a>
                         </div>
                         <nav class="navbar-sidebar2">
                             <ul class="list-unstyled navbar__list">
                                 <li>
-                                    <a href="#" onclick="switchPage('info');">
+                                    <a href="javascript:void(0)" onclick="switchPage('info');">
                                         <i class="fas fa-chart-bar"></i>Info &amp Stats</a>
                                 </li>
                                 <li>
-                                    <a href="#" onclick="switchPage('manager');">
+                                    <a href="javascript:void(0)" onclick="switchPage('manager');">
                                         <i class="fas fa-desktop"></i>Wraith Manager</a>
                                 </li>
                                 <li>
-                                    <a href="#" onclick="switchPage('settings');">
+                                    <a href="javascript:void(0)" onclick="switchPage('settings');">
                                         <i class="fas fa-cog"></i>Settings</a>
                                 </li>
                             </ul>
@@ -230,7 +232,7 @@
                 </aside>
                 <!-- END HEADER DESKTOP-->
 
-                <div id="page-info" name="page" class="animsition">
+                <div id="page-info" name="page">
                     <!-- BREADCRUMB-->
                     <section class="au-breadcrumb m-t-75">
                         <div class="section__content section__content--p30">
@@ -583,7 +585,7 @@
                     </section>
                 </div>
 
-                <div id="page-manager" name="page" class="animsition">
+                <div id="page-manager" name="page">
                     <!-- BREADCRUMB-->
                     <section class="au-breadcrumb m-t-75">
                         <div class="section__content section__content--p30">
@@ -936,7 +938,7 @@
                     </section>
                 </div>
 
-                <div id="page-settings" name="page" class="animsition">
+                <div id="page-settings" name="page">
                     <!-- BREADCRUMB-->
                     <section class="au-breadcrumb m-t-75">
                         <div class="section__content section__content--p30">
