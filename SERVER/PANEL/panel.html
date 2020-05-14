@@ -62,25 +62,30 @@
         }
     </script>
 
-    <!-- Data refreshing (heartbeats) -->
+    <!-- Page updates (heartbeats) -->
     <script type="text/javascript">
-        // Define a function to regularly update the data (every 5 seconds)
+        // Define a function to regularly update the data (every 1/3 of the
+        // session timeout set in the API settings)
         function updatePageLoop() {
 
-            /*
             setInterval(function(){
+
                 var req = new XMLHttpRequest();
                 req.onreadystatechange = function() {
+
                     if (this.readyState == 4 && this.status == 200) {
+
                         data = this.responseText;
                         console.log(data);
+
                     }
+
                 };
-                // TODO: Get URL from login form
-                req.open("POST", "/API/api.php", true);
+
+                req.open("POST", window.wraithManagerStorage["config"]["APILocation"], true);
                 req.send();
-            }, 5000);
-            */
+
+            }, window.wraithManagerStorage["config"]["updateInterval"] * 1000);
 
         }
     </script>
@@ -89,7 +94,12 @@
     <script>
         function endSession() {
 
-            sessionStorage.removeItem();
+            // TODO: send delete-session request to API
+
+            // Remove all session configuration from the browser
+            sessionStorage.removeItem("wraithManagerConfig");
+            // Redirect to the login page
+            window.location.href = "login.html";
 
         }
     </script>
@@ -106,10 +116,6 @@
             // by the panel. This should be second as it is used by updatePageLoop
             window.wraithManagerStorage = {};
 
-            // Start the page update loop - this should be third so the page
-            // updates as soon as possible to keep everything seamless
-            updatePageLoop();
-
             // Get the session config (if it exists)
             if ("wraithManagerConfig" in sessionStorage) {
 
@@ -122,6 +128,10 @@
                 window.location.href = "login.html";
 
             }
+
+            // Start the page update loop - this should be third so the page
+            // updates as soon as possible to keep everything seamless
+            updatePageLoop();
 
             // Switch the page to "info"
             switchPage("info");
