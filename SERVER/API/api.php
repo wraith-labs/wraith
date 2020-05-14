@@ -165,6 +165,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                         "APIPrefix" => $SETTINGS["APIPrefix"],
                         "firstLayerEncryptionKey" => $SETTINGS["managementFirstLayerEncryptionKey"],
                         "APIVersion" => API_VERSION,
+                        "APIFingerprint" => $SETTINGS["APIFingerprint"],
                     ],
                 ];
                 // ...and send it
