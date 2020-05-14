@@ -82,13 +82,26 @@
             // Hide no-js-content - this should be first to hide the warning
             // as quickly as possible
             document.getElementById('non-js-content').style.display = 'none';
+
             // Start the page update loop - this should be second so the page
             // updates as soon as possible to keep everything seamless
             updateDataInBackground();
-            // Get the session config
-            window.wraithManagerConfig = sessionStorage.getItem("wraithManagerConfig");
+
+            // Get the session config (if it exists)
+            if ("wraithManagerConfig" in sessionStorage) {
+
+                window.wraithManagerConfig = sessionStorage.getItem("wraithManagerConfig");
+
+            } else {
+
+                // Redirect back to the login page
+                window.location.href = "login.html";
+
+            }
+
             // Switch the page to "info"
             switchPage("info");
+
             // Show the normal panel (js-content) - this should be the last
             // part of onload to make any changes as seamless as possible
             document.getElementById('js-content').style.display = 'block';
