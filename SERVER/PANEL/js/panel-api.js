@@ -7,7 +7,7 @@ function api(data) {
     // Define the required constants
     const request = new XMLHttpRequest();
     const APIPrefix = window.wraithManagerStorage["config"]["APIPrefix"];
-    const firstLayerEncryptionKey = window.wraithManagerStorage["config"]["managementFirstLayerEncryptionKey"];
+    const firstLayerEncryptionKey = window.wraithManagerStorage["config"]["firstLayerEncryptionKey"];
     const sessionID = window.wraithManagerStorage["config"]["sessionID"];
     const sessionToken = window.wraithManagerStorage["config"]["sessionToken"];
     const APILocation = window.wraithManagerStorage["config"]["APILocation"];
@@ -78,6 +78,5 @@ function api(data) {
             response_dict = undefined;
         }
     }
-
 
 }
