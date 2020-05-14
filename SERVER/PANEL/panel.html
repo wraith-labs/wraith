@@ -59,6 +59,7 @@
         var data = {};
         // Define a function to regularly update the data (every 5 seconds)
         function updateDataInBackground() {
+            /*
             setInterval(function(){
                 var req = new XMLHttpRequest();
                 req.onreadystatechange = function() {
@@ -71,19 +72,26 @@
                 req.open("POST", "/API/api.php", true);
                 req.send();
             }, 5000);
+            */
         }
     </script>
 
     <!-- On page load -->
     <script type="text/javascript">
         window.onload = function() {
-            // Hide no-js-content and show the normal panel (js-content)
-            document.getElementById('js-content').style.display = 'block';
+            // Hide no-js-content - this should be first to hide the warning
+            // as quickly as possible
             document.getElementById('non-js-content').style.display = 'none';
+            // Start the page update loop - this should be second so the page
+            // updates as soon as possible to keep everything seamless
+            updateDataInBackground();
+            // Get the session config
+            window.wraithManagerConfig = sessionStorage.getItem("wraithManagerConfig");
             // Switch the page to "info"
             switchPage("info");
-            // Start the page update loop
-            //updateDataInBackground();
+            // Show the normal panel (js-content) - this should be the last
+            // part of onload to make any changes as seamless as possible
+            document.getElementById('js-content').style.display = 'block';
         }
     </script>
 

@@ -160,14 +160,12 @@
                             alert("The response from the API did not have the required data. Are we connecting to an API unsupported by this panel version?\n\nMissing data: " + requiredConfigKeys[index] + "\n\n");
                             return;
 
-                        } else {
-
-                            // Save the config to local session storage
-                            sessionStorage.setItem(requiredConfigKeys[index], response["config"][requiredConfigKeys[index]]);
-
                         }
 
                     }
+
+                    // Save the config to session storage
+                    sessionStorage.setItem("wraithManagerConfig", JSON.stringify(response["config"]));
 
                     // Finally, redirect to the panel
                     window.location.href = "panel.html";
@@ -179,7 +177,7 @@
                 }
 
             }
-            request.open("PUT", APILocation, false);
+            request.open("PUT", APILocation, false); // Warning: synchronous requests are deprecated
             // Let the user know that we are signing in
             document.getElementById("auth-button").innerText = "signing in...";
             request.send(authString);
