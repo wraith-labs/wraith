@@ -150,7 +150,7 @@ The below are remains of the Wraith 3.0.0 API. They will be re-written to
 work with the new structure. They will only be here temporarily and are the
 last parts of any Wraith 3.0.0 code which get comitted to the repo. They
 are also the last part of the code to use tabs instead of spaces. Nothing
-against tabs. I quite like them in fact. But my IDE uses spaces :P
+against tabs. I quite like them in fact. But my IDE uses spaces by default :P
 
 // Only do this if we're talking to a wraith
 if ($response["requester_type"] === "wraith") {
