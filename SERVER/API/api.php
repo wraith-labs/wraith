@@ -414,7 +414,15 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     } elseif ($requester === "manager") {
 
-        //
+        // The decryption key for the whole request body in the case of a
+        // manager will be the management first layer encryption key in
+        // the settings table in the database. This key is generated when
+        // the database is first created and re-generated on each valid
+        // autoconf request when no sessions are active to increase security.
+        // The key is sent to the manager on successful login (autoconf).
+        // The decrypted body of the request will have a session ID
+        // as well as another encrypted payload. This payload can be decrypted
+        // using the session token attached to the session ID in the database.
 
     } else {
 
