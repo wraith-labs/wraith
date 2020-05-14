@@ -115,7 +115,7 @@ try {
         // Create a stats table entry
         "INSERT INTO `WraithAPI_Stats` VALUES (
             'databaseSetupAPIVersion',
-            '" . API_VERSION . "'
+            '" . constant("API_VERSION") . "'
         );",
         // Create a stats table entry
         "INSERT INTO `WraithAPI_Stats` VALUES (
@@ -174,7 +174,7 @@ try {
 }
 
 // Set the global API_USERS variable
-$API_USERS = $db->query("SELECT * FROM WraithAPI_Users LIMIT 1")->fetchAll();
+$API_USERS = $db->query("SELECT * FROM WraithAPI_Users")->fetchAll();
 
 // Functions for database management
 
@@ -249,7 +249,26 @@ function dbGetWraiths() {
 
     global $SETTINGS, $db;
 
-    // TODO
+    // Get a list of wraiths from the database
+    $wraiths_db = $db->query("SELECT * FROM WraithAPI_ActiveWraiths")->fetchAll();
+
+    // Create an array to store a processed list of wraiths
+    $wraiths = [];
+
+    foreach ($wraiths_db as $wraith) {
+
+        // Move the assigned ID to a separate variable
+        $wraithID = $wraith["assignedID"];
+        unset($wraith["assignedID"]);
+
+        // Set the (assignedID-less) wraith array as an element of the $wraiths
+        // array
+        $wraiths[$wraithID] = $wraith;
+
+    }
+
+    // Return the processed wraiths array
+    return $wraiths;
 
 }
 
@@ -270,6 +289,13 @@ function dbCancelCommands($ids) {
     global $SETTINGS, $db;
 
     // TODO
+    $statement = $db->prepare("DELETE FROM `WraithAPI_CommandsIssued` WHERE assignedID == :IDToDelete");
+
+    // Remove each ID
+    foreach ($ids as $id) {
+        $statement->bindParam(":IDToDelete", $id);
+        $statement->execute();
+    }
 
 }
 
@@ -282,19 +308,43 @@ function dbGetCommands($ids) {
 
 }
 
-// USERS & SETTINGS
+// SETTINGS
 
 // Edit an API setting
-function dbEditSettings($setting, $value) {
+function dbSetSetting($setting, $value) {
 
     global $SETTINGS, $db;
 
-    // TODO
+    $statement = $db->prepare("UPDATE WraithAPI_Settings
+        SET `value` = :value WHERE `key` = :setting;");
+    $statement->bindParam(":setting", $setting);
+    $statement->bindParam(":value", $value);
+    $statement->execute();
 
 }
 
+// Get the value of a setting
+function dbGetSetting($setting) {
+
+    global $SETTINGS, $db;
+
+    // Get the setting directly from the database. This function should
+    // only be used to get the most up-to-date values of settings as
+    // using the $SETTINGS array is easier and more efficient
+    $statement = $db->prepare("SELECT * FROM WraithAPI_Settings
+        WHERE `key` = :setting LIMIT 1");
+    $statement->bindParam(":setting", $setting);
+    $statement->execute();
+    $value = $statement->fetchAll()[0]["value"];
+
+    return $value;
+
+}
+
+// USERS
+
 // Create a new user
-function dbAddUsers($user) {
+function dbAddUser($user) {
 
     global $SETTINGS, $db;
 
@@ -429,19 +479,58 @@ function dbExpireSessions() {
 // STATS
 
 // Update a statistic
-function dbGetStats($statID) {
+function dbGetStats() {
 
     global $SETTINGS, $db;
 
-    // TODO
+    // Get a list of statistics from the database
+    $stats_db = $db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
+
+    // Create an array to store a processed list of statistics
+    $stats = [];
+
+    foreach ($stats_db as $stat) {
+
+        // Get the stat key
+        $key = $stat["key"];
+
+        // Copy the stat value to the stats array
+        $stats[$key] = $stat["value"];
+
+    }
+
+    // Return the processed stats array
+    return $stats;
+
+}
+var_dump(dbGetStats());
+
+// Update a statistic
+function dbUpdateStat($stat, $value) {
+
+    global $SETTINGS, $db;
+
+    $statement = $db->prepare("UPDATE WraithAPI_Stats
+        SET `value` = :value WHERE `key` = :stat;");
+    $statement->bindParam(":stat", $stat);
+    $statement->bindParam(":value", $value);
+    $statement->execute();
 
 }
 
-// Update a statistic
-function dbUpdateStats($statID, $newValue) {
+// MISC
+
+// Re-generate the first-layer encryption key for management sessions
+function dbRegenMgmtCryptKeyIfNoSessions() {
 
     global $SETTINGS, $db;
 
-    // TODO
+    // If there are no active sessions
+    if (sizeof(dbGetSessions()) == 0) {
+
+        // Update the first layer encryption key
+        dbSetSetting("managementFirstLayerEncryptionKey", bin2hex(random_bytes(25)));
+
+    }
 
 }
