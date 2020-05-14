@@ -38,7 +38,7 @@ class Handler_proto_v_0 {
         // so it is safe to add the API fingerprint to the response
         $this->response["APIFingerprint"] = $this->SETTINGS["APIFingerprint"];
 
-        // Determine if the client is a panel or Wraith
+        // Determine if the client is a manager or Wraith
         if ($this->cType === "wraith") {
 
             // Wraith
@@ -121,9 +121,9 @@ class Handler_proto_v_0 {
 
             }
 
-        } else if ($this->cType === "panel") {
+        } else if ($this->cType === "manager") {
 
-            // Panel
+            // Manager
 
             // TODO
 

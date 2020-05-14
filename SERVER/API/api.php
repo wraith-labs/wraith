@@ -101,7 +101,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Wraiths, expire any that have not had a heartbeat in a while first.
     dbExpireWraiths();
 
-    // Expire any panel sessions which have not had a heartbeat recently for
+    // Expire any manager sessions which have not had a heartbeat recently for
     // security and to prevent sessions from sticking around because a user
     // forgot to log out.
     dbExpireSessions();
@@ -198,7 +198,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Wraiths, expire any that have not had a heartbeat in a while first.
     dbExpireWraiths();
 
-    // Expire any panel sessions which have not had a heartbeat recently for
+    // Expire any manager sessions which have not had a heartbeat recently for
     // security and to prevent sessions from sticking around because a user
     // forgot to log out.
     dbExpireSessions();
@@ -266,9 +266,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     }
 
     // The character following this should be a non-zero, integer.
-    // It indicates whether the client is a Wraith or panel:
+    // It indicates whether the client is a Wraith or manager:
     // Odd == Wraith
-    // Even == Panel
+    // Even == Manager
     // First, check if the character after the prefix is a non-zero integer
     $reqIdentificationChar = $reqBody[strlen($SETTINGS["APIPrefix"])];
     if ($reqIdentificationChar % 10 === 0) {
@@ -289,8 +289,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     } elseif ($reqIdentificationChar % 2 === 0) {
 
-        // Even - the request is coming from a panel
-        $requester = "panel";
+        // Even - the request is coming from a manager
+        $requester = "manager";
 
     } else {
 
@@ -322,7 +322,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     }
 
     // Now that we know that the request is valid and whether it comes from a
-    // Wraith or panel, as well as the protocol version in use, we can get rid of
+    // Wraith or manager, as well as the protocol version in use, we can get rid of
     // the header from the message.
     $reqBody = substr($reqBody, strlen($SETTINGS["APIPrefix"])+2);
 
@@ -412,9 +412,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // The Wraith's request has now been fully validated and prepared and can
         // be processed
 
-    } elseif ($requester === "panel") {
+    } elseif ($requester === "manager") {
 
-        // TODO
+        //
 
     } else {
 
