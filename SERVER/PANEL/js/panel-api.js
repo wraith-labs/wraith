@@ -31,8 +31,9 @@ function api(data) {
     ];
     // JSON encode the first layer
     firstLayerPayload = JSON.stringify(firstLayerPayload);
-    // Encrypt the first layer with the first layer key
-    const finalPayload = aes.encrypt(firstLayerPayload, firstLayerEncryptionKey);
+    // Encrypt the first layer with the first layer key and add the prefix
+    const finalPayload = fullPrefix + aes.encrypt(firstLayerPayload, firstLayerEncryptionKey);
+    console.log(finalPayload);
 
     // Define what happens when a response from the API is received
     var finalResponse;
@@ -78,5 +79,8 @@ function api(data) {
             response_dict = undefined;
         }
     }
+
+    request.open("POST", APILocation, true);
+    request.send(finalPayload);
 
 }
