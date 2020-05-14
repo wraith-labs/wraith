@@ -164,6 +164,9 @@
 
                     }
 
+                    // Add the API URL to the config
+                    response["config"]["APILocation"] = APILocation;
+
                     // Save the config to session storage
                     sessionStorage.setItem("wraithManagerConfig", JSON.stringify(response["config"]));
 
