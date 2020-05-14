@@ -36,8 +36,6 @@
     <!-- Main CSS-->
     <link href="css/theme.css" rel="stylesheet" media="all">
 
-    <!-- TODO Detect if browser has JS enabled and warn otherwise -->
-
     <!-- Page switcher -->
     <script type="text/javascript">
         function switchPage(pageName) {
@@ -58,7 +56,7 @@
         // Define a dict to hold all the data we receive from the API
         var data = {};
         // Define a function to regularly update the data (every 5 seconds)
-        function updateDataInBackground() {
+        function updatePageInBackground() {
             /*
             setInterval(function(){
                 var req = new XMLHttpRequest();
@@ -85,16 +83,17 @@
 
             // Start the page update loop - this should be second so the page
             // updates as soon as possible to keep everything seamless
-            updateDataInBackground();
+            updatePageInBackground();
 
             // Get the session config (if it exists)
             if ("wraithManagerConfig" in sessionStorage) {
 
+                // Store the session config in wraithManagerConfig
                 window.wraithManagerConfig = sessionStorage.getItem("wraithManagerConfig");
 
             } else {
 
-                // Redirect back to the login page
+                // Redirect back to the login page if not
                 window.location.href = "login.html";
 
             }
@@ -132,7 +131,7 @@
                 </div>
                 <div class="menu-sidebar2__content js-scrollbar1">
                     <div class="account2">
-                        <h4 class="name">-</h4>
+                        <h4 class="name" name="username">-</h4>
                         <a href="#">sign out</a>
                     </div>
                     <nav class="navbar-sidebar2">
@@ -184,7 +183,7 @@
                     </div>
                     <div class="menu-sidebar2__content js-scrollbar2">
                         <div class="account2">
-                            <h4 class="name">-</h4>
+                            <h4 class="name" name="username">-</h4>
                             <a href=" ">sign out</a>
                         </div>
                         <nav class="navbar-sidebar2">
