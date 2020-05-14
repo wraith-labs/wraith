@@ -26,14 +26,14 @@ function api(data) {
     finalData = aes.encrypt(finalData, sessionToken);
 
     // Generate the first layer
-    var finalData = [
+    finalData = [
         sessionID,
         finalData,
     ];
     // JSON encode the first layer
     finalData = JSON.stringify(finalData);
     // Encrypt the first layer with the first layer key and add the prefix
-    const finalData = fullPrefix + aes.encrypt(finalData, firstLayerEncryptionKey);
+    finalData = fullPrefix + aes.encrypt(finalData, firstLayerEncryptionKey);
 
     // Define what happens when a response from the API is received
     var finalResponse;
@@ -106,5 +106,6 @@ function api(data) {
     // Send the API request
     request.open("POST", APILocation, true);
     request.send(finalPayload);
+    console.log(finalResponse);
 
 }
