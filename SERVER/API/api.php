@@ -161,7 +161,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                         "sessionID" => $sessionID,
                         "sessionToken" => $thisSession["sessionToken"],
                         "username" => $thisSession["username"],
-                        "updateInterval" => $SETTINGS["managementSessionExpiryDelay"] / 2,
+                        "updateInterval" => $SETTINGS["managementSessionExpiryDelay"] / 3,
                         "APIPrefix" => $SETTINGS["APIPrefix"],
                         "firstLayerEncryptionKey" => $SETTINGS["managementFirstLayerEncryptionKey"],
                         "APIVersion" => API_VERSION,
