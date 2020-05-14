@@ -503,7 +503,6 @@ function dbGetStats() {
     return $stats;
 
 }
-var_dump(dbGetStats());
 
 // Update a statistic
 function dbUpdateStat($stat, $value) {
