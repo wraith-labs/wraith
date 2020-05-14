@@ -53,49 +53,51 @@ function api(data) {
                 // Verify the fingerprint of the server (only if the communication is encrypted because otherwise the server does not attach it)
                 if (finalResponse["APIFingerprint"] != trustedAPIFingerprint) {
 
-                    console.log("WARNING: the API did not provide a trusted fingerprint (expected = `" + response_dict["server_id"] + "` | received = `" + trusted_server_signature + "`. The API response will be ignored.");
+                    console.log("WARNING: The API did not provide a trusted fingerprint (expected = `" + response_dict["server_id"] + "` | received = `" + trusted_server_signature + "`. The API response will be ignored.");
                     return;
 
                 }
 
+                // If we got here, the response was processed successfully so
+                // can be assigned to finalResponse
+                finalResponse = response;
+
             } catch (err) {
 
-                // If we got here, the response was not encrypted or the server provided the wrong ID
-                // If the latter, re-throw the error so the user can see
-                if (err.message.startsWith("The server provided an incorrect ID. ")) { throw err; }
-                // If we got here, that means it was just a simple decryption problem so get the response as plaintext
+                // If we got here, the response was not encrypted or invalid
                 response = request.responseText;
-                // Parse the JSON response
+                // Try to JSON parse the response
                 try {
 
-                    response_dict = JSON.parse(response);
+                    response = JSON.parse(response);
 
-                // If the API response is not valid JSON, log the error
+                // If this fails, log the error and return
                 } catch {
 
-                    console.log("The API response contains invalid JSON");
-                    // Set both response variables to undefined so this error can be detected down the line
-                    response = undefined;
-                    response_dict = undefined;
+                    console.log("ERROR: The API response could not be parsed.");
+                    return;
 
                 }
 
-            }
-
-            // If the API returns a message, tell the user
-            if ("message" in response_dict) {
-
-                console.log("The server says: "+response_dict["message"]);
+                // If we got here, the response was not encrypted but processed
+                // successfully so can be assigned to finalResponse
+                finalResponse = response;
 
             }
 
-        // If the API returns an error in the form of a HTTP code
+            // If the API returns a message, log it
+            if ("message" in finalResponse) {
+
+                console.log("Message from API: " + finalResponse["message"]);
+
+            }
+
+        // If the API returns a HTTP error code
         } else if (this.readyState == 4 && this.status != 200) {
 
-            console.log("the API returned a non-200 code when called (" + this.status + ")");
+            console.log("ERROR: The API returned a non-200 code when called (" + this.status + ").");
             // Set both response variables to undefined so this error can be detected down the line
-            response = undefined;
-            response_dict = undefined;
+            return;
 
         }
 
