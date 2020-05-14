@@ -147,6 +147,7 @@
                         "sessionToken",
                         "username",
                         "updateInterval",
+                        "APIPrefix",
                         "firstLayerEncryptionKey",
                         "APIVersion",
 
@@ -159,12 +160,17 @@
                             alert("The response from the API did not have the required data. Are we connecting to an API unsupported by this panel version?\n\nMissing data: " + requiredConfigKeys[index] + "\n\n");
                             return;
 
+                        } else {
+
+                            // Save the config to local session storage
+                            sessionStorage.setItem(requiredConfigKeys[index], response["config"][requiredConfigKeys[index]]);
+
                         }
 
                     }
 
-                    // Save the data to session storage and load the panel
-                    //sessionStorage.setItem("", "")
+                    // Finally, redirect to the panel
+                    window.location.href = "panel.html";
 
                 } else if (this.readyState == 4 && this.status != 200) {
 
