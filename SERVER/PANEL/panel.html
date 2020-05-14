@@ -39,24 +39,32 @@
     <!-- Page switcher -->
     <script type="text/javascript">
         function switchPage(pageName) {
+
             const pages = document.getElementsByName("page");
             for (var i = 0; i < pages.length; i++) {
+
                 page = pages[i];
+
                 if (page.id == "page-" + pageName) {
+
                     page.style.display = "block";
+
                 } else {
+
                     page.style.display = "none";
+
                 }
+
             }
+
         }
     </script>
 
     <!-- Data refreshing (heartbeats) -->
     <script type="text/javascript">
-        // Define a dict to hold all the data we receive from the API
-        var data = {};
         // Define a function to regularly update the data (every 5 seconds)
-        function updatePageInBackground() {
+        function updatePageLoop() {
+
             /*
             setInterval(function(){
                 var req = new XMLHttpRequest();
@@ -71,29 +79,44 @@
                 req.send();
             }, 5000);
             */
+
         }
+    </script>
+
+    <!-- Logging out -->
+    <script>
+    function endSession() {
+
+        sessionStorage.removeItem();
+
+    }
     </script>
 
     <!-- On page load -->
     <script type="text/javascript">
         window.onload = function() {
+
             // Hide no-js-content - this should be first to hide the warning
             // as quickly as possible
             document.getElementById('non-js-content').style.display = 'none';
 
-            // Start the page update loop - this should be second so the page
+            // Define a window property (dict) to store all information needed
+            // by the panel. This should be second as it is used by updatePageLoop
+            window.wraithManagerStorage = {};
+
+            // Start the page update loop - this should be third so the page
             // updates as soon as possible to keep everything seamless
-            updatePageInBackground();
+            updatePageLoop();
 
             // Get the session config (if it exists)
             if ("wraithManagerConfig" in sessionStorage) {
 
-                // Store the session config in wraithManagerConfig
-                window.wraithManagerConfig = sessionStorage.getItem("wraithManagerConfig");
+                // Store the session config in wraithManagerStorage
+                wraithManagerStorage["config"] = JSON.parse(sessionStorage.getItem("wraithManagerConfig"));
 
             } else {
 
-                // Redirect back to the login page if not
+                // Redirect back to the login page if it doesn't exist
                 window.location.href = "login.html";
 
             }
@@ -104,6 +127,7 @@
             // Show the normal panel (js-content) - this should be the last
             // part of onload to make any changes as seamless as possible
             document.getElementById('js-content').style.display = 'block';
+
         }
     </script>
 
