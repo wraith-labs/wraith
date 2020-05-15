@@ -102,12 +102,12 @@ class Handler_proto_v_0 {
                 // Respond
                 return;
 
-                // Wraith is sending heartbeat
+            // Wraith is sending heartbeat
             } else if ($this->cData["reqType"] === "heartbeat") {
 
                     // TODO
 
-                // Wraith is uploading a file
+            // Wraith is uploading a file
             } else if ($this->cData["reqType"] === "upload") {
 
                     // TODO
@@ -125,9 +125,24 @@ class Handler_proto_v_0 {
 
             // Manager
 
-            $this->response["status"] = "SUCCESS";
-            $this->response["message"] = "Manager API success!";
-            return;
+            // The panel is requesting general information
+            if ($this->cData["reqType"] === "fetchInfo") {
+
+                // TODO
+
+            // The manager in issuing a Wraith command
+            } else if ($this->cData["reqType"] === "issueCommand") {
+
+                // TODO
+
+            // Unrecognised request type
+            } else {
+
+                $this->response["status"] = "ERROR";
+                $this->response["message"] = "request type not implemented in protocol";
+                return;
+
+            }
 
         } else {
 
