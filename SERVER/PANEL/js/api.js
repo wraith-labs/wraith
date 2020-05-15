@@ -2,7 +2,7 @@
 // placeholders filled in
 
 // A function which sends requests to the API and returns a processed response
-function api(data) {
+async function api(data) {
 
     // Define the required constants
     const request = new XMLHttpRequest();
@@ -104,8 +104,10 @@ function api(data) {
     }
 
     // Send the API request
-    request.open("POST", APILocation, true);
-    request.send(finalData);
-    console.log(finalResponse);
+    request.open("POST", APILocation, false);
+    await request.send(finalData);
+
+    // Return the response
+    return finalResponse;
 
 }
