@@ -430,9 +430,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // using the session token attached to the session ID in the database.
 
         // Decrypt with the first layer key
-        echo $reqBody;
         $data = $crypt->decrypt($reqBody, $SETTINGS["managementFirstLayerEncryptionKey"]);
-        echo $data;
 
         // Try JSON decoding the decrypted data
         $data = json_decode($data, true);
@@ -540,8 +538,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             respond($response);
 
         }
-
-        respond(["test" => "successful"]); // 0_0
 
         // The manager's request has now been fully validated and prepared and can
         // be processed

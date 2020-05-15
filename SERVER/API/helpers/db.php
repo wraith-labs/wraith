@@ -525,7 +525,8 @@ function dbRegenMgmtCryptKeyIfNoSessions() {
     global $SETTINGS, $db;
 
     // If there are no active sessions
-    if (sizeof(dbGetSessions()) == 0) {
+    $allSessions = dbGetSessions();
+    if (sizeof($allSessions) == 0) {
 
         // Update the first layer encryption key
         dbSetSetting("managementFirstLayerEncryptionKey", bin2hex(random_bytes(25)));

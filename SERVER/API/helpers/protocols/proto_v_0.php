@@ -125,7 +125,9 @@ class Handler_proto_v_0 {
 
             // Manager
 
-            // TODO
+            $this->response["status"] = "SUCCESS";
+            $this->response["message"] = "Manager API success!";
+            return;
 
         } else {
 
