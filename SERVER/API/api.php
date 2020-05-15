@@ -163,7 +163,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                         "username" => $thisSession["username"],
                         "updateInterval" => $SETTINGS["managementSessionExpiryDelay"] / 3,
                         "APIPrefix" => $SETTINGS["APIPrefix"],
-                        "firstLayerEncryptionKey" => $SETTINGS["managementFirstLayerEncryptionKey"],
+                        "firstLayerEncryptionKey" => dbGetSetting("managementFirstLayerEncryptionKey"),
                         "APIVersion" => API_VERSION,
                         "APIFingerprint" => $SETTINGS["APIFingerprint"],
                     ],
@@ -541,7 +541,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         }
 
-        respond(["boobies" => "nom nom"]);
+        respond(["test" => "successful"]); // 0_0
 
         // The manager's request has now been fully validated and prepared and can
         // be processed
