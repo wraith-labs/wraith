@@ -45,16 +45,35 @@ async function api(data) {
         // If the response was received successfully
         if (this.readyState == 4 && this.status == 200) {
 
+            // Create a variable to hold the API response
+            var response;
+
             // The response could be encrypted but it might not be
             try {
 
+                // Set the response to the data from the API
+                response = request.responseText;
+
+                // Check if the response starts with the prefix.
+                if (!(response.startsWith(APIPrefix))) {
+
+                    // If it does not, it's either not encrypted or
+                    // invalid so skip straight to the unencrypted
+                    // parsing
+                    throw "No Prefix";
+
+                }
+
+                // Remove the prefix
+                response = response.replace(APIPrefix, "");
+
                 // Try decrypting the response (API responses are only encrypted)
                 // with the session token
-                response = aes.decrypt(request.responseText, sessionToken);
+                response = aes.decrypt(response, sessionToken);
                 // Parse the JSON response
-                finalResponse = JSON.parse(response);
+                response = JSON.parse(response);
                 // Verify the fingerprint of the server (only if the communication is encrypted because otherwise the server does not attach it)
-                if (finalResponse["APIFingerprint"] != trustedAPIFingerprint) {
+                if (response["APIFingerprint"] != trustedAPIFingerprint) {
 
                     console.log("WARNING: The API did not provide a trusted fingerprint (expected = `" + response_dict["server_id"] + "` | received = `" + trusted_server_signature + "`. The API response will be ignored.");
                     return;
@@ -68,7 +87,10 @@ async function api(data) {
             } catch (err) {
 
                 // If we got here, the response was not encrypted or invalid
+
+                // Re-set the response variable
                 response = request.responseText;
+
                 // Try to JSON parse the response
                 try {
 
