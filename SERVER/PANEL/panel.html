@@ -90,7 +90,7 @@
         async function updatePageLoop() {
 
             // Send a page update query to the API
-            await window.wraithManagerStorage["data"] = api({
+            window.wraithManagerStorage["data"] = await api({
 
                 //
 
