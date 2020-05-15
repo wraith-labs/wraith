@@ -469,8 +469,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         }
 
         // Make sure that the first element of the array is a valid session ID
+        $requestSessionID = $data[0];
         $activeSessions = dbGetSessions();
-        if (!(array_key_exists($data[0], $activeSessions))) {
+        if (!(array_key_exists($requestSessionID, $activeSessions))) {
 
             $response = [
                 "status" => "ERROR",
@@ -481,7 +482,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         }
 
         // Get the session token associated with the session ID
-        $sessionToken = $activeSessions[$data[0]]["sessionToken"];
+        $sessionToken = $activeSessions[$requestSessionID]["sessionToken"];
 
         // Decrypt the second layer
         $data = $crypt->decrypt($data[1], $sessionToken);
@@ -538,6 +539,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             respond($response);
 
         }
+
+        // Add the session ID to the data array for easier processing
+        // by the protocol handler
+        $data["sessionID"] = $requestSessionID;
 
         // The manager's request has now been fully validated and prepared and can
         // be processed
