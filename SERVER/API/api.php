@@ -440,7 +440,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
             $response = [
                 "status" => "ERROR",
-                "message" => "aincorrectly formatted request",
+                "message" => "incorrectly formatted request",
             ];
             respond($response);
 
@@ -451,7 +451,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
             $response = [
                 "status" => "ERROR",
-                "message" => "bincorrectly formatted request",
+                "message" => "incorrectly formatted request",
             ];
             respond($response);
 
@@ -462,7 +462,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
             $response = [
                 "status" => "ERROR",
-                "message" => "cincorrectly formatted request",
+                "message" => "incorrectly formatted request",
             ];
             respond($response);
 
@@ -474,7 +474,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
             $response = [
                 "status" => "ERROR",
-                "message" => "dinvalid session data",
+                "message" => "invalid session data",
             ];
             respond($response);
 
@@ -494,7 +494,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
             $response = [
                 "status" => "ERROR",
-                "message" => "einvalid session data",
+                "message" => "invalid session data",
             ];
             respond($response);
 
