@@ -89,22 +89,12 @@
         // session timeout set in the API settings)
         async function updatePageLoop() {
 
-            var req = new XMLHttpRequest();
-            req.onreadystatechange = function() {
+            // Send a page update query to the API
+            await window.wraithManagerStorage["data"] = api({
 
-                if (this.readyState == 4 && this.status == 200) {
+                //
 
-                    data = this.responseText;
-                    console.log(data);
-
-                }
-
-            };
-
-            // Send the data request
-            //req.open("POST", window.wraithManagerStorage["config"]["APILocation"], true);
-            //req.send();
-            await api({});
+            });
 
             // Update the UI with the new data
             //updateUI(window.wraithManagerStorage["data"]);
