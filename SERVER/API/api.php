@@ -206,7 +206,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Expire any manager sessions which have not had a heartbeat recently for
     // security and to prevent sessions from sticking around because a user
     // forgot to log out.
-    dbExpireSessions();
+    //dbExpireSessions();
 
     // Define a function to respond to the client
     function respond($response) {
@@ -428,6 +428,123 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // The decrypted body of the request will have a session ID
         // as well as another encrypted payload. This payload can be decrypted
         // using the session token attached to the session ID in the database.
+
+        // Decrypt with the first layer key
+        echo $reqBody;
+        $data = $crypt->decrypt($reqBody, $SETTINGS["managementFirstLayerEncryptionKey"]);
+        echo $data;
+
+        // Try JSON decoding the decrypted data
+        $data = json_decode($data, true);
+        // If this failed, the data is invalid (encrypted with an invalid key
+        // or not encrypted)
+        if ($data === null) {
+
+            $response = [
+                "status" => "ERROR",
+                "message" => "aincorrectly formatted request",
+            ];
+            respond($response);
+
+        }
+
+        // Check that the result is an array
+        if (!(is_array($data))) {
+
+            $response = [
+                "status" => "ERROR",
+                "message" => "bincorrectly formatted request",
+            ];
+            respond($response);
+
+        }
+
+        // Make sure the array has exactly two elements
+        if (sizeof($data) !== 2) {
+
+            $response = [
+                "status" => "ERROR",
+                "message" => "cincorrectly formatted request",
+            ];
+            respond($response);
+
+        }
+
+        // Make sure that the first element of the array is a valid session ID
+        $activeSessions = dbGetSessions();
+        if (!(array_key_exists($data[0], $activeSessions))) {
+
+            $response = [
+                "status" => "ERROR",
+                "message" => "dinvalid session data",
+            ];
+            respond($response);
+
+        }
+
+        // Get the session token associated with the session ID
+        $sessionToken = $activeSessions[$data[0]];
+
+        // Decrypt the second layer
+        $data = $crypt->decrypt($data, $sessionToken);
+
+        // Try JSON decoding the decrypted data
+        $data = json_decode($data, true);
+
+        // If this failed, the data is invalid
+        if ($data === null) {
+
+            $response = [
+                "status" => "ERROR",
+                "message" => "einvalid session data",
+            ];
+            respond($response);
+
+        }
+
+        // Set the encryption key to the session token
+        $cryptKey = $sessionToken;
+
+        // Ensure that the new data is an array
+        if (!(is_array($data))) {
+
+            $response = [
+                "status" => "ERROR",
+                "message" => "incorrectly formatted request",
+            ];
+            respond($response);
+
+        }
+
+        // Make sure the array has the required keys
+        if (!(hasKeys($data, [
+            "reqType", // So we know what to do with the request
+            "sessionToken", // To catch decryption errors and key collisions
+        ]))) {
+
+            $response = [
+                "status" => "ERROR",
+                "message" => "incorrectly formatted request",
+            ];
+            respond($response);
+
+        }
+
+        // Make sure that the session token matches
+        if ($data["sessionToken"] !== $sessionToken) {
+
+            $response = [
+                "status" => "ERROR",
+                "message" => "invalid session data",
+            ];
+            respond($response);
+
+        }
+
+        respond(["boobies" => "nom nom"]);
+
+        // The manager's request has now been fully validated and prepared and can
+        // be processed
 
     } else {
 
