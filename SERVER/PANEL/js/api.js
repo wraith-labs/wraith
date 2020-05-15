@@ -14,6 +14,9 @@ async function api(data) {
     const trustedAPIFingerprint = window.wraithManagerStorage["config"]["APIFingerprint"];
     const protocolVersion = 0;
 
+    // Attach the session token to the data
+    data["sessionToken"] = sessionToken;
+
     // Generate the full prefix for the message
     var fullPrefix = APIPrefix; // Start with API prefix
     fullPrefix += ["2", "4", "6", "8"][Math.floor(Math.random() * 4)]; // Add panel ID char
