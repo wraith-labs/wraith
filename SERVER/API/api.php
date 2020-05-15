@@ -481,10 +481,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         }
 
         // Get the session token associated with the session ID
-        $sessionToken = $activeSessions[$data[0]];
+        $sessionToken = $activeSessions[$data[0]]["sessionToken"];
 
         // Decrypt the second layer
-        $data = $crypt->decrypt($data, $sessionToken);
+        $data = $crypt->decrypt($data[1], $sessionToken);
 
         // Try JSON decoding the decrypted data
         $data = json_decode($data, true);
