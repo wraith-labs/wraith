@@ -39,7 +39,7 @@ async function api(data) {
     finalData = fullPrefix + aes.encrypt(finalData, firstLayerEncryptionKey);
 
     // Define what happens when a response from the API is received
-    var finalResponse;
+    var finalResponse = {};
     request.onreadystatechange = function() {
 
         // If the response was received successfully
