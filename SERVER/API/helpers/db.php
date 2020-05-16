@@ -476,6 +476,19 @@ function dbExpireSessions() {
 
 }
 
+// Update the session last heartbeat time
+function dbUpdateSessionLastHeartbeat($sessionID) {
+
+    global $SETTINGS, $db;
+
+    $statement = $db->prepare("UPDATE WraithAPI_Sessions
+        SET `lastSessionHeartbeat` = :currentTime WHERE `sessionID` = :sessionID;");
+    $statement->bindParam(":currentTime", time());
+    $statement->bindParam(":sessionID", $sessionID);
+    $statement->execute();
+
+}
+
 // STATS
 
 // Update a statistic
