@@ -571,6 +571,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // Other needed variables
         "GLOBALS",
         "SETTINGS",
+        "API_USERS",
         "db",
         "data",
         "requester",
@@ -601,7 +602,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     // Create an instance of the handler class for the specified protocol
     $handlerClassName = "Handler_proto_v_".$protocolVersion;
-    $handler = new $handlerClassName($db, $requester, $requesterIP, $data, $SETTINGS);
+    $handler = new $handlerClassName($db, $requester, $requesterIP, $data, $SETTINGS, $API_USERS);
 
     // Handle the request using the created handler
     $handler->handleRequest();

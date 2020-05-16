@@ -10,9 +10,10 @@ class Handler_proto_v_0 {
     private $cAddress; // The IP address of the client
     private $cData; // The data to be processed
     private $SETTINGS; // A copy of the API settings
+    private $API_USERS; // A copy of the API users
     private $response = []; // The response dict sent when responding
 
-    function __construct($db, $clientType, $clientAddress, $clientData, $SETTINGS) {
+    function __construct($db, $clientType, $clientAddress, $clientData, $SETTINGS, $API_USERS) {
 
         // Copy args to private properties
         $this->db = $db;
@@ -20,6 +21,7 @@ class Handler_proto_v_0 {
         $this->cAddress = $clientAddress;
         $this->cData = $clientData;
         $this->SETTINGS = $SETTINGS;
+        $this->API_USERS = $API_USERS;
 
     }
 
@@ -80,7 +82,7 @@ class Handler_proto_v_0 {
                 // Add the connecting IP to the host info array
                 $this->cData["hostInfo"]["connectingIP"] = getClientIP();
                 // Add a generated fingerprint to the host info array
-                $this->cData["hostInfo"]["fingerprint"] = "";
+                $this->cData["hostInfo"]["fingerprint"] = ""; // TODO
 
                 // Create a database entry for the Wraith
                 dbAddWraith([
@@ -137,7 +139,16 @@ class Handler_proto_v_0 {
 
                 $this->response["data"] = [
                     "sessionUsername" => $session["username"],
-                    "" => "",
+                    "stats" => [
+                        // TODO
+                    ],
+                    "wraiths" => [
+                        // TODO
+                    ],
+                    // This is a lot of information disclosure if someone
+                    // unauthenticated is able to fetch it
+                    "settings" => $SETTINGS,
+                    "users" => $API_USERS,
                 ];
                 $this->response["status"] = "SUCCESS";
                 return;
