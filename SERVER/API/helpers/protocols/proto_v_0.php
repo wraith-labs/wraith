@@ -131,9 +131,15 @@ class Handler_proto_v_0 {
             // The panel is requesting general information
             if ($this->cData["reqType"] === "fetchInfo") {
 
+                // Get necessary variables
+                $sessionID = $this->cData["sessionID"];
+                $session = dbGetSessions()[$sessionID];
+
                 $this->response["data"] = [
+                    "sessionUsername" => $session["username"],
                     "" => "",
                 ];
+                $this->response["status"] = "SUCCESS";
                 return;
 
             // The manager in issuing a Wraith command
