@@ -138,17 +138,18 @@ class Handler_proto_v_0 {
                 $session = dbGetSessions()[$sessionID];
 
                 $this->response["data"] = [
+                    "APIVersion" => constant("API_VERSION"),
                     "sessionUsername" => $session["username"],
                     "stats" => [
-                        // TODO
+                        "activeWraiths" => sizeof(dbGetWraiths()),
                     ],
                     "wraiths" => [
                         // TODO
                     ],
                     // This is a lot of information disclosure if someone
                     // unauthenticated is able to fetch it
-                    "settings" => $SETTINGS,
-                    "users" => $API_USERS,
+                    "settings" => $this->SETTINGS,
+                    "users" => $this->API_USERS,
                 ];
                 $this->response["status"] = "SUCCESS";
                 return;
