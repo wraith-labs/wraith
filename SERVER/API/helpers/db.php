@@ -235,9 +235,11 @@ function dbExpireWraiths() {
     // the $SETTINGS["wraithMarkOfflineDelay"]
     $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths`
         WHERE `lastHeartbeatTime` < :earliestValidHeartbeat");
+
     // Get the unix timestamp for $SETTINGS["wraithMarkOfflineDelay"] seconds ago
     $earliestValidHeartbeat = time()-$SETTINGS["wraithMarkOfflineDelay"];
     $statement->bindParam(":earliestValidHeartbeat", $earliestValidHeartbeat);
+
     // Execute
     $statement->execute();
 
@@ -314,10 +316,15 @@ function dbSetSetting($setting, $value) {
 
     global $SETTINGS, $db;
 
+    // Update setting value
     $statement = $db->prepare("UPDATE WraithAPI_Settings
         SET `value` = :value WHERE `key` = :setting;");
+
+    // Bind the required parameters
     $statement->bindParam(":setting", $setting);
     $statement->bindParam(":value", $value);
+
+    // Execute
     $statement->execute();
 
 }
@@ -332,10 +339,17 @@ function dbGetSetting($setting) {
     // using the $SETTINGS array is easier and more efficient
     $statement = $db->prepare("SELECT * FROM WraithAPI_Settings
         WHERE `key` = :setting LIMIT 1");
+
+    // Bind parameters
     $statement->bindParam(":setting", $setting);
+
+    // Execute
     $statement->execute();
+
+    // Fetch results
     $value = $statement->fetchAll()[0]["value"];
 
+    // Return results
     return $value;
 
 }
@@ -452,7 +466,10 @@ function dbDestroySession($sessionID) {
     // Remove the session with the specified ID
     $statement = $db->prepare("DELETE FROM `WraithAPI_Sessions`
         WHERE `sessionID` = :sessionID");
+
+    // Bind parameters
     $statement->bindParam(":sessionID", $sessionID);
+
     // Execute
     $statement->execute();
 
@@ -467,9 +484,11 @@ function dbExpireSessions() {
     // the $SETTINGS["managementSessionExpiryDelay"]
     $statement = $db->prepare("DELETE FROM `WraithAPI_Sessions`
         WHERE `lastSessionHeartbeat` < :earliestValidHeartbeat");
+
     // Get the unix timestamp for $SETTINGS["managementSessionExpiryDelay"] seconds ago
     $earliestValidHeartbeat = time()-$SETTINGS["managementSessionExpiryDelay"];
     $statement->bindParam(":earliestValidHeartbeat", $earliestValidHeartbeat);
+
     // Execute
     $statement->execute();
 
@@ -480,10 +499,15 @@ function dbUpdateSessionLastHeartbeat($sessionID) {
 
     global $SETTINGS, $db;
 
+    // Update the last heartbeat time to the current time
     $statement = $db->prepare("UPDATE WraithAPI_Sessions
         SET `lastSessionHeartbeat` = :currentTime WHERE `sessionID` = :sessionID;");
+
+    // Get the current time and the session ID and bind them to the params
     $statement->bindParam(":currentTime", time());
     $statement->bindParam(":sessionID", $sessionID);
+
+    // Execute
     $statement->execute();
 
 }
@@ -521,10 +545,15 @@ function dbUpdateStat($stat, $value) {
 
     global $SETTINGS, $db;
 
+    // Update a stat
     $statement = $db->prepare("UPDATE WraithAPI_Stats
         SET `value` = :value WHERE `key` = :stat;");
+
+    // Bind the parameters
     $statement->bindParam(":stat", $stat);
     $statement->bindParam(":value", $value);
+
+    // Execute
     $statement->execute();
 
 }
