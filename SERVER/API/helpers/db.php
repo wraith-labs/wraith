@@ -21,17 +21,17 @@ try {
 
     // SQL Commands to be executed to initialise the database
     $dbInitCommands = [
-        // Settings table
+        // SETTINGS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
             `key` TEXT UNIQUE,
             `value` TEXT
         );",
-        // Statistics table
+        // STATS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Stats` (
             `key` TEXT UNIQUE,
             `value` TEXT
         );",
-        // Connected Wraiths table
+        // CONNECTED WRAITHS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
             `assignedID` TEXT UNIQUE,
             `hostProperties` TEXT,
@@ -39,7 +39,7 @@ try {
             `lastHeartbeatTime` TEXT,
             `issuedCommands` TEXT
         );",
-        // Command queue table
+        // COMMAND QUEUE Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_CommandsIssued` (
             `commandID` TEXT UNIQUE,
             `commandName` TEXT,
@@ -48,7 +48,7 @@ try {
             `commandResponses` TEXT,
             `timeIssued` TEXT
         );",
-        // Users table
+        // USERS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
             `userName` TEXT NOT NULL UNIQUE,
             `userPassword` TEXT,
@@ -56,14 +56,14 @@ try {
             `userFailedLogins` INTEGER,
             `userFailedLoginsTimeoutStart` TEXT
         );",
-        // Users table
+        // SESSIONS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
             `sessionID` TEXT UNIQUE,
             `username` TEXT,
             `sessionToken` TEXT,
             `lastSessionHeartbeat` TEXT
         );",
-        // Create default settings entries
+        // SETTINGS entries
         "INSERT INTO `WraithAPI_Settings` VALUES (
             'wraithMarkOfflineDelay',
             '16'
@@ -112,12 +112,11 @@ try {
             'managementBruteForceTimeoutSeconds',
             '300'
         );",
-        // Create a stats table entry
+        // STATS Entries
         "INSERT INTO `WraithAPI_Stats` VALUES (
             'databaseSetupAPIVersion',
             '" . constant("API_VERSION") . "'
         );",
-        // Create a stats table entry
         "INSERT INTO `WraithAPI_Stats` VALUES (
             'databaseSetupTime',
             '" . time() . "'
