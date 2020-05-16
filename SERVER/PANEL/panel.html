@@ -89,30 +89,40 @@
         // session timeout set in the API settings)
         async function updatePageLoop() {
 
-            // Send a page update query to the API
-            var APIResponse = await api({
-                "reqType": "fetchInfo",
-            });
+            // This loop should never error out. Any errors should be logged
+            // and the loop should continue
+            try {
 
-            if (!("data" in APIResponse)) {
+                // Send a page update query to the API
+                var APIResponse = await api({
+                    "reqType": "fetchInfo",
+                });
 
-                // Log the error
-                console.log("WARNING: No data in API response.");
+                if (!("data" in APIResponse)) {
 
-                // Data will not be modified
+                    // Log the error
+                    console.log("WARNING: No data in API response.");
 
-            } else {
+                    // Data will not be modified
 
-                // Update the local copy of the data
-                window.wraithManagerStorage["data"] = APIResponse["data"];
+                } else {
+
+                    // Update the local copy of the data
+                    window.wraithManagerStorage["data"] = APIResponse["data"];
+
+                }
+
+                // Update the UI with the new data
+                updateUI(window.wraithManagerStorage["data"]);
+
+            } catch (err) {
+
+                console.log("ERROR: Encountered error in updatePageLoop (" + err.message + ")")
 
             }
 
-            // Update the UI with the new data
-            updateUI(window.wraithManagerStorage["data"]);
-
             // Repeat
-            setTimeout(updatePageLoop, window.wraithManagerStorage["config"]["updateInterval"] * 1000);
+            setTimeout(updatePageLoop, (window.wraithManagerStorage["config"]["updateInterval"] * 1000) - 10);
 
         }
     </script>
