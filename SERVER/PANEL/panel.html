@@ -107,6 +107,9 @@
 
             }
 
+            // Update the last panel refresh info
+            document.getElementById("lastRefreshTime").innerText = (new Date()).toLocaleString();
+
         }
 
         // Define a function to regularly update the data (every 1/3 of the
@@ -269,6 +272,9 @@
                                     <a href="javascript:void(0)">
                                         <img src="images/logo.png" alt="Wraith Logo" />
                                     </a>
+                                </div>
+                                <div>
+                                    <p style="color: #fefefe;">Last successful refresh: <p style="color: #fafafa;" id="lastRefreshTime">never</p></p>
                                 </div>
                                 <div class="header-button2">
                                     <div class="header-button-item mr-0 js-sidebar-btn d-lg-none">
