@@ -70,7 +70,7 @@
             const usernameFields = document.getElementsByName("usernameField")
             for (index = 0, len = usernameFields.length; index < len; ++index) {
 
-                usernameFields[index].value = data["username"];
+                usernameFields[index].innerText = data["sessionUsername"];
 
             }
 
@@ -90,14 +90,26 @@
         async function updatePageLoop() {
 
             // Send a page update query to the API
-            window.wraithManagerStorage["data"] = await api({
-
+            var APIResponse = await api({
                 "reqType": "fetchInfo",
-
             });
 
+            if (!("data" in APIResponse)) {
+
+                // Log the error
+                console.log("WARNING: No data in API response.");
+
+                // Data will not be modified
+
+            } else {
+
+                // Update the local copy of the data
+                window.wraithManagerStorage["data"] = APIResponse["data"];
+
+            }
+
             // Update the UI with the new data
-            //updateUI(window.wraithManagerStorage["data"]);
+            updateUI(window.wraithManagerStorage["data"]);
 
             // Repeat
             setTimeout(updatePageLoop, window.wraithManagerStorage["config"]["updateInterval"] * 1000);
