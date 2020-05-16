@@ -66,22 +66,46 @@
         // Define a function to update each UI element with the correct data
         function updateUI(data) {
 
-            // Update the username field(s)
-            const usernameFields = document.getElementsByName("usernameField")
-            for (index = 0, len = usernameFields.length; index < len; ++index) {
+            // Get all elements on the page
+            var all = document.getElementsByTagName("*");
 
-                usernameFields[index].innerText = data["sessionUsername"];
+            // For each element on the page
+            for (var i = 0; i < all.length; i++) {
+
+                // If the element has no name attribute
+                if (!(all[i].hasAttribute("name"))) {
+
+                    // Skip it
+                    continue;
+
+                }
+
+                // If the element name starts with "updateUI-updateto-"
+                if (all[i].getAttribute("name").startsWith("updateUI-updateto-")) {
+
+                    // Get the element name without the prefix
+                    var valueName = all[i].getAttribute("name").replace("updateUI-updateto-", "");
+
+                    // Check if data has a key which matches the name
+                    var value;
+                    if (!(valueName in data)) {
+
+                        // If not, use `-` to indicate no data
+                        value = "-";
+
+                    } else {
+
+                        // If yes, use the value in data
+                        value = data[valueName];
+                    }
+
+                    // Update the value of the element to the value in the data
+                    // (.innerText prevents XSS)
+                    all[i].innerText = value;
+
+                }
 
             }
-
-            // Update the stats page
-            // TODO
-
-            // Update the manager page
-            // TODO
-
-            // Update the settings page
-            // TODO
 
         }
 
@@ -207,7 +231,7 @@
                 </div>
                 <div class="menu-sidebar2__content js-scrollbar1">
                     <div class="account2">
-                        <h4 class="name" name="usernameField">-</h4>
+                        <h4 class="name" name="updateUI-updateto-sessionUsername">-</h4>
                         <a href="javascript:void(0)" onclick="endSession();">sign out</a>
                     </div>
                     <nav class="navbar-sidebar2">
@@ -263,7 +287,7 @@
                     </div>
                     <div class="menu-sidebar2__content js-scrollbar2">
                         <div class="account2">
-                            <h4 class="name" name="usernameField">-</h4>
+                            <h4 class="name" name="updateUI-updateto-sessionUsername">-</h4>
                             <a href="javascript:void(0)" onclick="endSession();">sign out</a>
                         </div>
                         <nav class="navbar-sidebar2">
