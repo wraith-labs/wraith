@@ -125,6 +125,17 @@ async function api(data) {
 
             } else if (finalResponse["status"] == "ERROR") {
 
+                // Special case
+                // If the API reply message is "invalid session data" the session
+                // has died and the user should be "logged out" else all further
+                // API requests will fail.
+                if ("message" in finalResponse &&
+                    finalResponse["message"] == "invalid session data") {
+
+                        endSession();
+
+                }
+
                 // Output a warning to the console
                 console.log("WARNING: The API returned an error.")
 
