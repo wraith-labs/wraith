@@ -110,6 +110,31 @@ async function api(data) {
 
             }
 
+            // If the API does not give a status
+            if (!("status" in finalResponse)) {
+
+                // Assume success
+                finalResponse["status"] = "SUCCESS";
+
+            }
+
+            // Check the status reported by the API
+            if (finalResponse["status"] == "SUCCESS") {
+
+                // Nothing (currently)
+
+            } else if (finalResponse["status"] == "ERROR") {
+
+                // Output a warning to the console
+                console.log("WARNING: The API returned an error.")
+
+            } else {
+
+                // No other status is valid
+                console.log("ERROR: The API provided an invalid status code.")
+
+            }
+
             // If the API returns a message, log it
             if ("message" in finalResponse) {
 
