@@ -125,10 +125,16 @@ class Handler_proto_v_0 {
 
             // Manager
 
+            // Update the session last heartbeat time
+            dbUpdateSessionLastHeartbeat($this->cData["sessionID"]);
+
             // The panel is requesting general information
             if ($this->cData["reqType"] === "fetchInfo") {
 
-                // TODO
+                $this->response["data"] = [
+                    "" => "",
+                ];
+                return;
 
             // The manager in issuing a Wraith command
             } else if ($this->cData["reqType"] === "issueCommand") {
