@@ -140,12 +140,7 @@ class Handler_proto_v_0 {
                 $this->response["data"] = [
                     "APIVersion" => constant("API_VERSION"),
                     "sessionUsername" => $session["username"],
-                    "stats" => [
-                        "activeWraiths" => sizeof(dbGetWraiths()),
-                    ],
-                    "wraiths" => [
-                        // TODO
-                    ],
+                    "activeWraiths" => sizeof(dbGetWraiths()),
                     // This is a lot of information disclosure if someone
                     // unauthenticated is able to fetch it
                     "settings" => $this->SETTINGS,
