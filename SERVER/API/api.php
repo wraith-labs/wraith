@@ -206,7 +206,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Expire any manager sessions which have not had a heartbeat recently for
     // security and to prevent sessions from sticking around because a user
     // forgot to log out.
-    //dbExpireSessions();
+    dbExpireSessions();
 
     // Define a function to respond to the client
     function respond($response) {
