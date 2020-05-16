@@ -160,7 +160,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                     "config" => [
                         "sessionID" => $sessionID,
                         "sessionToken" => $thisSession["sessionToken"],
-                        "username" => $thisSession["username"],
                         "updateInterval" => $SETTINGS["managementSessionExpiryDelay"] / 3,
                         "APIPrefix" => $SETTINGS["APIPrefix"],
                         "firstLayerEncryptionKey" => dbGetSetting("managementFirstLayerEncryptionKey"),
