@@ -73,7 +73,19 @@ $API_USERS = $db->query("SELECT * FROM WraithAPI_Users")->fetchAll();
 
 class DatabaseManager {
 
-    // PROPERTIES
+
+    /*
+
+    PROPERTIES
+
+    */
+
+    // The location of the database file. This can be edited, for example to
+    // force the API to share a database with other APIs (not recommended) or
+    // when changing the file structure. The path can be relative or full but
+    // when relative, the path will be relative to the api.php file, not this
+    // file.
+    private $dbLocation = "./storage/wraithdb";
 
     // Database object (not exposed to functions outside of the class to
     // prevent low-level access and limit database access to what is defined
@@ -210,7 +222,53 @@ class DatabaseManager {
 
     ];
 
-    // METHODS
+
+    /*
+
+    METHODS
+
+    */
+
+    // OBJECT CONSTRUCTOR AND DESTRUCTOR
+
+    // On object creation
+    function __construct() {
+
+        // TODO (create db connection, check if db post init, init if not)
+
+    }
+
+    // On object destruction
+    function __destruct() {
+
+        // TODO (close the database connection and clean up)
+
+    }
+
+    // DATABASE MANAGEMENT (internal)
+
+    // Check if the database has been initialised
+    private function isDatabasePostInit() {
+
+        // TODO
+
+    }
+
+    // Initialise the database
+    private function initDB() {
+
+        // TODO
+
+    }
+
+    // Delete everything from the database (init will not be called automatically)
+    private function clearDB() {
+
+        // TODO
+
+    }
+
+    // ACTIVE WRAITH TABLE MANAGEMENT (public)
 
     // Add a Wraith to the database
     function dbAddWraith($wraith) {
@@ -306,6 +364,7 @@ class DatabaseManager {
 
     }
 
+    // ISSUED COMMAND TABLE MANAGEMENT (public)
 
     // Issue a command to Wraith(s)
     function dbIssueCommand($command) {
@@ -341,7 +400,7 @@ class DatabaseManager {
 
     }
 
-    // SETTINGS
+    // SETTINGS TABLE MANAGEMENT (public)
 
     // Edit an API setting
     function dbSetSetting($setting, $value) {
@@ -386,7 +445,7 @@ class DatabaseManager {
 
     }
 
-    // USERS
+    // USERS TABLE MANAGEMENT (public)
 
     // Create a new user
     function dbAddUser($user) {
@@ -424,7 +483,7 @@ class DatabaseManager {
 
     }
 
-    // SESSIONS
+    // SESSIONS TABLE MANAGEMENT (public)
 
     // Create a session for a user
     function dbCreateSession($username) {
@@ -544,7 +603,7 @@ class DatabaseManager {
 
     }
 
-    // STATS
+    // STATS TABLE MANAGEMENT (public)
 
     // Update a statistic
     function dbGetStats() {
