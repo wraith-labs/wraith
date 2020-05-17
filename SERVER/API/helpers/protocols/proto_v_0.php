@@ -48,6 +48,9 @@ class Handler_proto_v_0 {
             // Wraith is logging in
             if ($this->cData["reqType"] === "handshake") {
 
+                // Update relevant statistics
+                dbUpdateStat("totalWraithConnections", dbGetStats()["totalWraithConnections"] + 1);
+
                 // Ensure that the required fields are present in the request
                 if (
                     !hasKeys($this->cData, [
