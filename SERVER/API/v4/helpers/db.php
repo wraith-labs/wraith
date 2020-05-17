@@ -32,7 +32,7 @@ try {
             `value` TEXT
         );",
         // EVENTS Table
-        "CREATE TABLE IF NOT EXISTS `WraithAPI_Events` (
+        "CREATE TABLE IF NOT EXISTS `WraithAPI_EventHistory` (
             `eventID` TEXT NOT NULL UNIQUE PRIMARY KEY,
             `eventType` TEXT,
             `eventTime` TEXT,
