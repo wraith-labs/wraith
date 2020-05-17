@@ -121,6 +121,22 @@ try {
             'databaseSetupTime',
             '" . time() . "'
         );",
+        "INSERT INTO `WraithAPI_Stats` VALUES (
+            'totalWraithConnections',
+            '0'
+        );",
+        "INSERT INTO `WraithAPI_Stats` VALUES (
+            'totalCommandsIssued',
+            '0'
+        );",
+        "INSERT INTO `WraithAPI_Stats` VALUES (
+            'totalManagerLogins',
+            '0'
+        );",
+        "INSERT INTO `WraithAPI_Stats` VALUES (
+            'pastWeekWraithActivity',
+            '" . json_encode([]) . "'
+        );",
         // Mark the database as initialised
         "CREATE TABLE IF NOT EXISTS `DB_INIT_INDICATOR` (
             `DB_INIT_INDICATOR` INTEGER
