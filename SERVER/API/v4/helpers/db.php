@@ -23,17 +23,24 @@ try {
     $dbInitCommands = [
         // SETTINGS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
-            `key` TEXT UNIQUE,
+            `key` TEXT NOT NULL UNIQUE PRIMARY KEY,
             `value` TEXT
         );",
         // STATS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Stats` (
-            `key` TEXT UNIQUE,
+            `key` TEXT NOT NULL UNIQUE PRIMARY KEY,
             `value` TEXT
+        );",
+        // EVENTS Table
+        "CREATE TABLE IF NOT EXISTS `WraithAPI_Events` (
+            `eventID` TEXT NOT NULL UNIQUE PRIMARY KEY,
+            `eventType` TEXT,
+            `eventTime` TEXT,
+            `eventProperties` TEXT
         );",
         // CONNECTED WRAITHS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
-            `assignedID` TEXT UNIQUE,
+            `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
             `hostProperties` TEXT,
             `wraithProperties` TEXT,
             `lastHeartbeatTime` TEXT,
@@ -41,7 +48,7 @@ try {
         );",
         // COMMAND QUEUE Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_CommandsIssued` (
-            `commandID` TEXT UNIQUE,
+            `commandID` TEXT NOT NULL UNIQUE PRIMARY KEY,
             `commandName` TEXT,
             `commandParams` TEXT,
             `commandTargets` TEXT,
@@ -50,7 +57,7 @@ try {
         );",
         // USERS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
-            `userName` TEXT NOT NULL UNIQUE,
+            `userName` TEXT NOT NULL UNIQUE PRIMARY KEY,
             `userPassword` TEXT,
             `userPrivileges` TEXT,
             `userFailedLogins` INTEGER,
@@ -58,7 +65,7 @@ try {
         );",
         // SESSIONS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
-            `sessionID` TEXT UNIQUE,
+            `sessionID` TEXT NOT NULL UNIQUE PRIMARY KEY,
             `username` TEXT,
             `sessionToken` TEXT,
             `lastSessionHeartbeat` TEXT
@@ -132,10 +139,6 @@ try {
         "INSERT INTO `WraithAPI_Stats` VALUES (
             'totalManagerLogins',
             '0'
-        );",
-        "INSERT INTO `WraithAPI_Stats` VALUES (
-            'pastWeekWraithActivity',
-            '" . json_encode([]) . "'
         );",
         // Mark the database as initialised
         "CREATE TABLE IF NOT EXISTS `DB_INIT_INDICATOR` (
