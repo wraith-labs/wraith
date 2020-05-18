@@ -1,35 +1,5 @@
 <?php
 
-// SQLite database file location relative to API.php
-$DATABASE_LOCATION = "./storage/wraithdb";
-
-// Get a database instance
-// This can be edited to use MySQL or equivalent databases. As long as
-// there is a $db variable holding a PDO database connection
-// all should work (untested).
-$GLOBALS["db"] = new PDO("sqlite:" . $DATABASE_LOCATION);
-$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-// Check whether the database is initialised
-try {
-
-    $db->query("SELECT * FROM DB_INIT_INDICATOR")->fetchAll();
-
-} catch (PDOException $e) {
-
-    // If not, prepare the database
-
-    // SQL Commands to be executed to initialise the database
-
-    // Execute the SQL queries to initialise the database
-    foreach ($dbInitCommands as $command) {
-
-        $db->exec($command);
-
-    }
-
-}
-
 // Set the global SETTINGS variable with the settings from the database
 $settingsTable = $db->query("SELECT * FROM WraithAPI_Settings");
 $SETTINGS = [];
@@ -71,7 +41,7 @@ $API_USERS = $db->query("SELECT * FROM WraithAPI_Users")->fetchAll();
 
 // Functions for database management
 
-class DatabaseManager {
+class DBManager {
 
 
     /*
@@ -98,11 +68,6 @@ class DatabaseManager {
 
         // SETTINGS Table
         "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
-            `key` TEXT NOT NULL UNIQUE PRIMARY KEY,
-            `value` TEXT
-        );",
-        // STATS Table
-        "CREATE TABLE IF NOT EXISTS `WraithAPI_Stats` (
             `key` TEXT NOT NULL UNIQUE PRIMARY KEY,
             `value` TEXT
         );",
@@ -194,27 +159,6 @@ class DatabaseManager {
             'managementBruteForceTimeoutSeconds',
             '300'
         );",
-        // STATS Entries
-        "INSERT INTO `WraithAPI_Stats` VALUES (
-            'databaseSetupAPIVersion',
-            '" . constant("API_VERSION") . "'
-        );",
-        "INSERT INTO `WraithAPI_Stats` VALUES (
-            'databaseSetupTime',
-            '" . time() . "'
-        );",
-        "INSERT INTO `WraithAPI_Stats` VALUES (
-            'totalWraithConnections',
-            '0'
-        );",
-        "INSERT INTO `WraithAPI_Stats` VALUES (
-            'totalCommandsIssued',
-            '0'
-        );",
-        "INSERT INTO `WraithAPI_Stats` VALUES (
-            'totalManagerLogins',
-            '0'
-        );",
         // Mark the database as initialised
         "CREATE TABLE IF NOT EXISTS `DB_INIT_INDICATOR` (
             `DB_INIT_INDICATOR` INTEGER
@@ -234,6 +178,29 @@ class DatabaseManager {
     // On object creation
     function __construct() {
 
+        // Create the database connection
+        // This can be edited to use MySQL or equivalent databases. As long as
+        // there is a $db variable holding a PDO database connection
+        // all should work fine (untested).
+        $this->db = new PDO("sqlite:" . $this->dbLocation);
+
+        // Start a transaction (prevent modification to the database by other
+        // scripts running at the same time). If a transaction is currently in
+        // progress, this will error so a try/catch and a loop is needed.
+        while (true) {
+
+            try {
+
+                $this->db->beginTransaction();
+                break;
+
+            } catch (PDOException $e) {}
+
+        }
+
+        // Set database error handling policy
+        $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
         // TODO (create db connection, check if db post init, init if not)
 
     }
@@ -241,7 +208,12 @@ class DatabaseManager {
     // On object destruction
     function __destruct() {
 
-        // TODO (close the database connection and clean up)
+        // Commit database changes (write changes made during the runtime of the
+        // script to the database and allow other scripts to access the database)
+        $this->db->commit();
+
+        // Close the database connection
+        $this->db = NULL;
 
     }
 
@@ -250,21 +222,76 @@ class DatabaseManager {
     // Check if the database has been initialised
     private function isDatabasePostInit() {
 
-        // TODO
+        // Check if the DB_INIT_INDICATOR table exists
+        $statement = $this->db->prepare("DESCRIBE  `DB_INIT_INDICATOR`");
+        if ($statement->execute()) {
+
+            // DB_INIT_INDICATOR exists
+            return true;
+
+        } else {
+
+            // DB_INIT_INDICATOR does not exist
+            return false;
+
+        }
 
     }
 
     // Initialise the database
     private function initDB() {
 
-        // TODO
+        // Execute the dbInitCommands initialise the database
+        foreach ($this->dbInitCommands as $command) {
+
+            try {
+
+                $db->exec($command);
+
+            } catch (PDOException $e) {
+
+                // If a command fails, return false
+                return false;
+
+            }
+
+        }
+
+        // If false was not yet returned, everything was successful
+        return true;
 
     }
 
-    // Delete everything from the database (init will not be called automatically)
+    // Delete all Wraith API tables from the database
+    // (init will not be called automatically)
     private function clearDB() {
 
-        // TODO
+        // List of Wraith table names (without prefix)
+        $tables = [
+            "Settings",
+            "EventHistory",
+            "ActiveWraiths",
+            "CommandsIssued",
+            "Users",
+            "Sessions",
+        ];
+
+        // Statement for deleting a table
+        $statement = $this->db->prepare("DROP TABLE IF EXISTS :tableName");
+
+        // Define a variable to hold the name of the table to be dropped
+        $tableToDrop = "DB_INIT_INDICATOR";
+
+        // Bind the parameter
+        $statement->bindParam(":tableName", $tableToDrop);
+
+        // Drop the tables
+        for ($i = 0; $i < sizeof($tables); $i++) {
+
+            $statement->execute();
+            $tableToDrop = $tables[i];
+
+        }
 
     }
 
