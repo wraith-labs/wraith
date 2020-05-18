@@ -107,9 +107,6 @@
 
             }
 
-            // Update the last panel refresh info
-            document.getElementById("lastRefreshTime").innerText = (new Date()).toLocaleString();
-
         }
 
         // Define a function to regularly update the data (every 1/3 of the
@@ -134,13 +131,23 @@
 
                 } else {
 
-                    // Update the local copy of the data
-                    window.wraithManagerStorage["data"] = APIResponse["data"];
+                    // Check if the data changed since the last update
+                    if (!(window.wraithManagerStorage["data"] == APIResponse["data"])) {
+
+                        // If it has
+
+                        // Update the local copy of the data
+                        window.wraithManagerStorage["data"] = APIResponse["data"];
+
+                        // Update the UI with the new data
+                        updateUI(window.wraithManagerStorage["data"]);
+
+                    }
+
+                    // Update the last panel refresh info regardless
+                    document.getElementById("lastRefreshTime").innerText = (new Date()).toLocaleString();
 
                 }
-
-                // Update the UI with the new data
-                updateUI(window.wraithManagerStorage["data"]);
 
             } catch (err) {
 
