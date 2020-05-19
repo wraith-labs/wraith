@@ -1,5 +1,6 @@
 <?php
 
+/*
 // Set the global SETTINGS variable with the settings from the database
 $settingsTable = $db->query("SELECT * FROM WraithAPI_Settings");
 $SETTINGS = [];
@@ -39,6 +40,8 @@ try {
 // Set the global API_USERS variable
 $API_USERS = $db->query("SELECT * FROM WraithAPI_Users")->fetchAll();
 
+*/
+
 // Functions for database management
 
 class DBManager {
@@ -63,108 +66,9 @@ class DBManager {
     private $db;
 
     // Array of database commands which, when executed, initialise the
-    // database from a blank state to something useable by the API
-    private $dbInitCommands = [
-
-        // SETTINGS Table
-        "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
-            `key` TEXT NOT NULL UNIQUE PRIMARY KEY,
-            `value` TEXT
-        );",
-        // EVENTS Table
-        "CREATE TABLE IF NOT EXISTS `WraithAPI_EventHistory` (
-            `eventID` TEXT NOT NULL UNIQUE PRIMARY KEY,
-            `eventType` TEXT,
-            `eventTime` TEXT,
-            `eventProperties` TEXT
-        );",
-        // CONNECTED WRAITHS Table
-        "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
-            `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
-            `hostProperties` TEXT,
-            `wraithProperties` TEXT,
-            `lastHeartbeatTime` TEXT,
-            `issuedCommands` TEXT
-        );",
-        // COMMAND QUEUE Table
-        "CREATE TABLE IF NOT EXISTS `WraithAPI_CommandsIssued` (
-            `commandID` TEXT NOT NULL UNIQUE PRIMARY KEY,
-            `commandName` TEXT,
-            `commandParams` TEXT,
-            `commandTargets` TEXT,
-            `commandResponses` TEXT,
-            `timeIssued` TEXT
-        );",
-        // USERS Table
-        "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
-            `userName` TEXT NOT NULL UNIQUE PRIMARY KEY,
-            `userPassword` TEXT,
-            `userPrivileges` TEXT,
-            `userFailedLogins` INTEGER,
-            `userFailedLoginsTimeoutStart` TEXT
-        );",
-        // SESSIONS Table
-        "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
-            `sessionID` TEXT NOT NULL UNIQUE PRIMARY KEY,
-            `username` TEXT,
-            `sessionToken` TEXT,
-            `lastSessionHeartbeat` TEXT
-        );",
-        // SETTINGS entries
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'wraithMarkOfflineDelay',
-            '16'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'wraithInitialCryptKey',
-            'QWERTYUIOPASDFGHJKLZXCVBNM'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'wraithSwitchCryptKey',
-            'QWERTYUIOPASDFGHJKLZXCVBNM'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'APIFingerprint',
-            'ABCDEFGHIJKLMNOP'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'wraithDefaultCommands',
-            '" . json_encode([]) . "'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'APIPrefix',
-            'W_'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'requestIPBlacklist',
-            '" . json_encode([]) . "'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'managementSessionExpiryDelay',
-            '12'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'managementFirstLayerEncryptionKey',
-            '" . bin2hex(random_bytes(25)) . "'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'managementIPWhitelist',
-            '[]'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'managementBruteForceMaxAttempts',
-            '3'
-        );",
-        "INSERT INTO `WraithAPI_Settings` VALUES (
-            'managementBruteForceTimeoutSeconds',
-            '300'
-        );",
-        // Mark the database as initialised
-        "CREATE TABLE IF NOT EXISTS `DB_INIT_INDICATOR` (
-            `DB_INIT_INDICATOR` INTEGER
-        );"
-
-    ];
+    // database from a blank state to something useable by the API.
+    // These commands are defined in the object constructor below.
+    private $dbInitCommands = [];
 
 
     /*
@@ -179,9 +83,9 @@ class DBManager {
     function __construct() {
 
         // Create the database connection
-        // This can be edited to use MySQL or equivalent databases. As long as
-        // there is a $db variable holding a PDO database connection
-        // all should work fine (untested).
+        // This can be edited to use a different database such as MySQL
+        // but most of the SQL statements below will need to be edited
+        // to work with the new database.
         $this->db = new PDO("sqlite:" . $this->dbLocation);
 
         // Start a transaction (prevent modification to the database by other
@@ -201,7 +105,116 @@ class DBManager {
         // Set database error handling policy
         $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        // TODO (create db connection, check if db post init, init if not)
+        // Define the SQL commands used to initialise the database
+        $this->dbInitCommands = [
+
+            // SETTINGS Table
+            "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
+                `key` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `value` TEXT
+            );",
+            // EVENTS Table
+            "CREATE TABLE IF NOT EXISTS `WraithAPI_EventHistory` (
+                `eventID` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `eventType` TEXT,
+                `eventTime` TEXT,
+                `eventProperties` TEXT
+            );",
+            // CONNECTED WRAITHS Table
+            "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
+                `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `hostProperties` TEXT,
+                `wraithProperties` TEXT,
+                `lastHeartbeatTime` TEXT,
+                `issuedCommands` TEXT
+            );",
+            // COMMAND QUEUE Table
+            "CREATE TABLE IF NOT EXISTS `WraithAPI_CommandsIssued` (
+                `commandID` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `commandName` TEXT,
+                `commandParams` TEXT,
+                `commandTargets` TEXT,
+                `commandResponses` TEXT,
+                `timeIssued` TEXT
+            );",
+            // USERS Table
+            "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
+                `userName` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `userPassword` TEXT,
+                `userPrivileges` TEXT,
+                `userFailedLogins` INTEGER,
+                `userFailedLoginsTimeoutStart` TEXT
+            );",
+            // SESSIONS Table
+            "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
+                `sessionID` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `username` TEXT,
+                `sessionToken` TEXT,
+                `lastSessionHeartbeat` TEXT
+            );",
+            // SETTINGS entries
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'wraithMarkOfflineDelay',
+                '16'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'wraithInitialCryptKey',
+                'QWERTYUIOPASDFGHJKLZXCVBNM'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'wraithSwitchCryptKey',
+                'QWERTYUIOPASDFGHJKLZXCVBNM'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'APIFingerprint',
+                'ABCDEFGHIJKLMNOP'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'wraithDefaultCommands',
+                '" . json_encode([]) . "'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'APIPrefix',
+                'W_'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'requestIPBlacklist',
+                '" . json_encode([]) . "'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'managementSessionExpiryDelay',
+                '12'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'managementFirstLayerEncryptionKey',
+                '" . bin2hex(random_bytes(25)) . "'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'managementIPWhitelist',
+                '[]'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'managementBruteForceMaxAttempts',
+                '3'
+            );",
+            "INSERT INTO `WraithAPI_Settings` VALUES (
+                'managementBruteForceTimeoutSeconds',
+                '300'
+            );",
+            // Mark the database as initialised
+            "CREATE TABLE IF NOT EXISTS `DB_INIT_INDICATOR` (
+                `DB_INIT_INDICATOR` INTEGER
+            );"
+
+        ];
+
+        // Check if the database was initialised
+        if (!($this->isDatabasePostInit())) {
+
+            // Init if not
+            $this->initDB();
+
+        }
 
     }
 
@@ -223,7 +236,7 @@ class DBManager {
     private function isDatabasePostInit() {
 
         // Check if the DB_INIT_INDICATOR table exists
-        $statement = $this->db->prepare("DESCRIBE  `DB_INIT_INDICATOR`");
+        $statement = $this->db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='DB_INIT_INDICATOR';");
         if ($statement->execute()) {
 
             // DB_INIT_INDICATOR exists
@@ -286,7 +299,7 @@ class DBManager {
         $statement->bindParam(":tableName", $tableToDrop);
 
         // Drop the tables
-        for ($i = 0; $i < sizeof($tables); $i++) {
+        for ($i = 0; $i <= sizeof($tables); $i++) {
 
             $statement->execute();
             $tableToDrop = $tables[i];
@@ -695,3 +708,5 @@ class DBManager {
     }
 
 }
+
+$dbm = new DBManager();
