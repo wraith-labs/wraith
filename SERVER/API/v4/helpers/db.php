@@ -1,48 +1,6 @@
 <?php
 
-/*
-// Set the global SETTINGS variable with the settings from the database
-$settingsTable = $db->query("SELECT * FROM WraithAPI_Settings");
-$SETTINGS = [];
-foreach ($settingsTable as $tableRow) {
-    $SETTINGS[$tableRow[0]] = $tableRow[1];
-}
-
-// Check whether a user account exists
-// There has to be a way to manage the API so if there are no users,
-// create one.
-try {
-
-    $API_USERS = $db->query("SELECT * FROM WraithAPI_Users")->fetchAll();
-
-    if (sizeof($API_USERS) == 0) {
-        throw new Exception("");
-    }
-
-} catch (Exception $e) {
-
-    // Create default super admin user
-
-    $userCreationCommand = "INSERT INTO `WraithAPI_Users` (
-        `userName`,
-        `userPassword`,
-        `userPrivileges`
-    ) VALUES (
-        'SuperAdmin',
-        '" . password_hash("SuperAdminPassword", PASSWORD_BCRYPT) . "',
-        '2'
-    );";
-
-    $db->exec($userCreationCommand);
-
-}
-
-// Set the global API_USERS variable
-$API_USERS = $db->query("SELECT * FROM WraithAPI_Users")->fetchAll();
-
-*/
-
-// Functions for database management
+// Class for Wraith database management
 
 class DBManager {
 
@@ -495,6 +453,42 @@ class DBManager {
     }
 
     // USERS TABLE MANAGEMENT (public)
+
+    /*
+
+    // Check whether a user account exists
+    // There has to be a way to manage the API so if there are no users,
+    // create one.
+    try {
+
+        $API_USERS = $db->query("SELECT * FROM WraithAPI_Users")->fetchAll();
+
+        if (sizeof($API_USERS) == 0) {
+            throw new Exception("");
+        }
+
+    } catch (Exception $e) {
+
+        // Create default super admin user
+
+        $userCreationCommand = "INSERT INTO `WraithAPI_Users` (
+            `userName`,
+            `userPassword`,
+            `userPrivileges`
+        ) VALUES (
+            'SuperAdmin',
+            '" . password_hash("SuperAdminPassword", PASSWORD_BCRYPT) . "',
+            '2'
+        );";
+
+        $db->exec($userCreationCommand);
+
+    }
+
+    // Set the global API_USERS variable
+    $API_USERS = $db->query("SELECT * FROM WraithAPI_Users")->fetchAll();
+
+    */
 
     // Create a new user
     function dbAddUser($userName, $userPassword, $userPrivilegeLevel) {
