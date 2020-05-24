@@ -228,7 +228,7 @@ class DBManager {
 
         // Finally, read the settings from the database and save them
         // to the SETTINGS property
-        dbRefreshSettings();
+        $this->dbRefreshSettings();
 
     }
 
@@ -473,7 +473,7 @@ class DBManager {
     function dbRefreshSettings() {
 
         // Prepare statement to fetch all settings
-        $statement = $db->prepare("SELECT * FROM WraithAPI_Settings");
+        $statement = $this->db->prepare("SELECT * FROM WraithAPI_Settings");
 
         // Execute the statement
         $statement->execute();
@@ -481,8 +481,16 @@ class DBManager {
         // Fetch results
         $result = $statement->fetchAll();
 
+        // Format the results
+        $tmpSettings = [];
+        foreach ($result as $tableRow) {
+
+            $tmpSettings[$tableRow[0]] = $tableRow[1];
+
+        }
+
         // Update SETTINGS property
-        $this->SETTINGS = $result;
+        $this->SETTINGS = $tmpSettings;
 
     }
 
