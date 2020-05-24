@@ -70,6 +70,12 @@ class DBManager {
     // These commands are defined in the object constructor below.
     private $dbInitCommands = [];
 
+    // Array of settings read from the WraithAPI_Settings table in the
+    // database. This is empty by default but is populated with the settings
+    // by the dbRefreshSettings function which is called in the DBManager
+    // constructor.
+    public $SETTINGS = [];
+
 
     /*
 
@@ -220,6 +226,10 @@ class DBManager {
 
         }
 
+        // Finally, read the settings from the database and save them
+        // to the SETTINGS property
+        dbRefreshSettings();
+
     }
 
     // On object destruction
@@ -328,8 +338,6 @@ class DBManager {
     // Add a Wraith to the database
     function dbAddWraith($wraith) {
 
-        global $SETTINGS, $db;
-
         $statement = $db->prepare("INSERT INTO `WraithAPI_ActiveWraiths` (
             `assignedID`,
             `hostProperties`,
@@ -359,8 +367,6 @@ class DBManager {
     // Remove Wraith(s)
     function dbRemoveWraiths($ids) {
 
-        global $SETTINGS, $db;
-
         $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE assignedID == :IDToDelete");
 
         // Remove each ID
@@ -374,8 +380,6 @@ class DBManager {
     // Check which Wraiths have not sent a heartbeat in the mark dead time and remove
     // them from the database
     function dbExpireWraiths() {
-
-        global $SETTINGS, $db;
 
         // Remove all Wraith entries where the last heartbeat time is older than
         // the $SETTINGS["wraithMarkOfflineDelay"]
@@ -393,8 +397,6 @@ class DBManager {
 
     // Get a list of Wraiths and their properties
     function dbGetWraiths() {
-
-        global $SETTINGS, $db;
 
         // Get a list of wraiths from the database
         $wraiths_db = $db->query("SELECT * FROM WraithAPI_ActiveWraiths")->fetchAll();
@@ -424,16 +426,12 @@ class DBManager {
     // Issue a command to Wraith(s)
     function dbIssueCommand($command) {
 
-        global $SETTINGS, $db;
-
         // TODO
 
     }
 
     // Delete command(s) from the command table
     function dbCancelCommands($ids) {
-
-        global $SETTINGS, $db;
 
         // TODO
         $statement = $db->prepare("DELETE FROM `WraithAPI_CommandsIssued` WHERE assignedID == :IDToDelete");
@@ -449,8 +447,6 @@ class DBManager {
     // Get command(s)
     function dbGetCommands($ids) {
 
-        global $SETTINGS, $db;
-
         // TODO
 
     }
@@ -459,8 +455,6 @@ class DBManager {
 
     // Edit an API setting
     function dbSetSetting($setting, $value) {
-
-        global $SETTINGS, $db;
 
         // Update setting value
         $statement = $db->prepare("UPDATE WraithAPI_Settings
@@ -475,28 +469,20 @@ class DBManager {
 
     }
 
-    // Get the value of a setting
-    function dbGetSetting($setting) {
+    // Refresh the settings property of the DBManager
+    function dbRefreshSettings() {
 
-        global $SETTINGS, $db;
+        // Prepare statement to fetch all settings
+        $statement = $db->prepare("SELECT * FROM WraithAPI_Settings");
 
-        // Get the setting directly from the database. This function should
-        // only be used to get the most up-to-date values of settings as
-        // using the $SETTINGS array is easier and more efficient
-        $statement = $db->prepare("SELECT * FROM WraithAPI_Settings
-            WHERE `key` = :setting LIMIT 1");
-
-        // Bind parameters
-        $statement->bindParam(":setting", $setting);
-
-        // Execute
+        // Execute the statement
         $statement->execute();
 
         // Fetch results
-        $value = $statement->fetchAll()[0]["value"];
+        $result = $statement->fetchAll();
 
-        // Return results
-        return $value;
+        // Update SETTINGS property
+        $this->SETTINGS = $result;
 
     }
 
@@ -505,16 +491,12 @@ class DBManager {
     // Create a new user
     function dbAddUser($userName, $userPassword, $userPrivilegeLevel) {
 
-        global $SETTINGS, $db;
-
         // TODO
 
     }
 
     // Change username
     function dbChangeUserName($currentUsername, $newUsername) {
-
-        global $SETTINGS, $db;
 
         // TODO
 
@@ -523,16 +505,12 @@ class DBManager {
     // Change user password
     function dbChangeUserPass($username, $newPassword) {
 
-        global $SETTINGS, $db;
-
         // TODO
 
     }
 
     // Change user privilege level (0=User, 1=Admin, 2=SuperAdmin)
     function dbChangeUserPrivilege($username, $newPrivilegeLevel) {
-
-        global $SETTINGS, $db;
 
         // TODO
 
@@ -542,8 +520,6 @@ class DBManager {
 
     // Create a session for a user
     function dbCreateSession($username) {
-
-        global $SETTINGS, $db;
 
         $statement = $db->prepare("INSERT INTO `WraithAPI_Sessions` (
             `sessionID`,
@@ -579,8 +555,6 @@ class DBManager {
     // Get a list of all sessions
     function dbGetSessions() {
 
-        global $SETTINGS, $db;
-
         // Get a list of sessions from the database
         $sessions_db = $db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
 
@@ -607,8 +581,6 @@ class DBManager {
     // Delete a session
     function dbDestroySession($sessionID) {
 
-        global $SETTINGS, $db;
-
         // Remove the session with the specified ID
         $statement = $db->prepare("DELETE FROM `WraithAPI_Sessions`
             WHERE `sessionID` = :sessionID");
@@ -623,8 +595,6 @@ class DBManager {
 
     // Delete sessions which have not had a heartbeat recently
     function dbExpireSessions() {
-
-        global $SETTINGS, $db;
 
         // Remove all sessions where the last heartbeat time is older than
         // the $SETTINGS["managementSessionExpiryDelay"]
@@ -643,8 +613,6 @@ class DBManager {
     // Update the session last heartbeat time
     function dbUpdateSessionLastHeartbeat($sessionID) {
 
-        global $SETTINGS, $db;
-
         // Update the last heartbeat time to the current time
         $statement = $db->prepare("UPDATE WraithAPI_Sessions
             SET `lastSessionHeartbeat` = :currentTime WHERE `sessionID` = :sessionID;");
@@ -662,8 +630,6 @@ class DBManager {
 
     // Update a statistic
     function dbGetStats() {
-
-        global $SETTINGS, $db;
 
         // Get a list of statistics from the database
         $stats_db = $db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
@@ -689,8 +655,6 @@ class DBManager {
     // Update a statistic
     function dbUpdateStat($stat, $value) {
 
-        global $SETTINGS, $db;
-
         // Update a stat
         $statement = $db->prepare("UPDATE WraithAPI_Stats
             SET `value` = :value WHERE `key` = :stat;");
@@ -708,8 +672,6 @@ class DBManager {
 
     // Re-generate the first-layer encryption key for management sessions
     function dbRegenMgmtCryptKeyIfNoSessions() {
-
-        global $SETTINGS, $db;
 
         // If there are no active sessions
         $allSessions = dbGetSessions();
