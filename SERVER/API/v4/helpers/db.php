@@ -214,6 +214,10 @@ class DBManager {
             // Init if not
             $this->initDB();
 
+            // A user should be added to allow managing the API
+            // fresh after install or when the DB is reset
+            $this->dbAddUser("SuperAdmin", "SuperAdminPass", 2);
+
         }
 
     }
@@ -237,7 +241,18 @@ class DBManager {
 
         // Check if the DB_INIT_INDICATOR table exists
         $statement = $this->db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='DB_INIT_INDICATOR';");
-        if ($statement->execute()) {
+        $statement->execute();
+
+        // Convert the result into a boolean
+        // The result will be an array of all tables named "DB_INIT_INDICATOR"
+        // If the array is of length 0 (no such table), the boolean will be false.
+        // All other cases result in true. It's unlikely that there will be
+        // multiple DB_INIT_INDICATOR tables but if there are, this can safely
+        // be ignored here.
+        $dbIsPostInit = (bool)sizeof($statement->fetchAll());
+
+        // Return to caller
+        if ($dbIsPostInit) {
 
             // DB_INIT_INDICATOR exists
             return true;
@@ -259,7 +274,7 @@ class DBManager {
 
             try {
 
-                $db->exec($command);
+                $this->db->exec($command);
 
             } catch (PDOException $e) {
 
@@ -488,7 +503,7 @@ class DBManager {
     // USERS TABLE MANAGEMENT (public)
 
     // Create a new user
-    function dbAddUser($user) {
+    function dbAddUser($userName, $userPassword, $userPrivilegeLevel) {
 
         global $SETTINGS, $db;
 
