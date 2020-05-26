@@ -257,29 +257,17 @@ class DBManager {
     // (init will not be called automatically)
     private function clearDB() {
 
-        // List of Wraith table names (without prefix)
-        $tables = [
-            "Settings",
-            "EventHistory",
-            "ActiveWraiths",
-            "CommandsIssued",
-            "Users",
-            "Sessions",
-        ];
+        // The following will generate an array of SQL commands which will
+        // delete every table in the database
+        $statement = $this->db->prepare("SELECT 'DROP TABLE ' || name ||';' FROM sqlite_master WHERE type = 'table';");
+        $statement->execute();
 
-        // Statement for deleting a table
-        $statement = $this->db->prepare("DROP TABLE IF EXISTS :tableName");
+        // Get the SQL commands
+        $commands = $statement->fetchAll();
 
-        // Define a variable to hold the name of the table to be dropped
-        $tableToDrop = "DB_INIT_INDICATOR";
+        foreach ($commands as $command) {
 
-        $statement->bindParam(":tableName", $tableToDrop);
-
-        // Drop the tables
-        for ($i = 0; $i <= sizeof($tables); $i++) {
-
-            $statement->execute();
-            $tableToDrop = "WraithAPI_" . $tables[i];
+            $this->db->exec($command[0]);
 
         }
 
