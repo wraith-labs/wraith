@@ -5,6 +5,13 @@ the client is capable of encrypted communication using the Wraith/HTTP protocol 
 will automatically encrypt its replies.
 */
 
+// Convert all errors into catch-able exceptions
+set_error_handler(function($errno, $errstr, $errfile, $errline ){
+
+    throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
+
+});
+
 // Define the API version
 define("API_VERSION", "4.0.0");
 
