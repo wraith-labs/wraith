@@ -472,11 +472,15 @@ class DBManager {
         $statement = $this->db->prepare("INSERT INTO `WraithAPI_Users` (
             `userName`,
             `userPassword`,
-            `userPrivileges`
+            `userPrivileges`,
+            `userFailedLogins`,
+            `userFailedLoginsTimeoutStart`
         ) VALUES (
             :userName,
             :userPassword,
-            :userPrivilegeLevel
+            :userPrivilegeLevel,
+            '0',
+            '0'
         );");
 
         $statement->bindParam(":userName", $userName);
