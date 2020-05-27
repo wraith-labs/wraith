@@ -278,7 +278,7 @@ class DBManager {
     // Add a Wraith to the database
     function dbAddWraith($wraith) {
 
-        $statement = $db->prepare("INSERT INTO `WraithAPI_ActiveWraiths` (
+        $statement = $this->db->prepare("INSERT INTO `WraithAPI_ActiveWraiths` (
             `assignedID`,
             `hostProperties`,
             `wraithProperties`,
@@ -305,7 +305,7 @@ class DBManager {
     // Remove Wraith(s)
     function dbRemoveWraiths($ids) {
 
-        $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE assignedID == :IDToDelete");
+        $statement = $this->db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE assignedID == :IDToDelete");
 
         // Remove each ID
         foreach ($ids as $id) {
@@ -321,7 +321,7 @@ class DBManager {
 
         // Remove all Wraith entries where the last heartbeat time is older than
         // the $SETTINGS["wraithMarkOfflineDelay"]
-        $statement = $db->prepare("DELETE FROM `WraithAPI_ActiveWraiths`
+        $statement = $this->db->prepare("DELETE FROM `WraithAPI_ActiveWraiths`
             WHERE `lastHeartbeatTime` < :earliestValidHeartbeat");
 
         // Get the unix timestamp for $SETTINGS["wraithMarkOfflineDelay"] seconds ago
@@ -336,7 +336,7 @@ class DBManager {
     function dbGetWraiths() {
 
         // Get a list of wraiths from the database
-        $wraiths_db = $db->query("SELECT * FROM WraithAPI_ActiveWraiths")->fetchAll();
+        $wraiths_db = $this->db->query("SELECT * FROM WraithAPI_ActiveWraiths")->fetchAll();
 
         $wraiths = [];
 
@@ -367,7 +367,7 @@ class DBManager {
     function dbCancelCommands($ids) {
 
         // TODO
-        $statement = $db->prepare("DELETE FROM `WraithAPI_CommandsIssued` WHERE assignedID == :IDToDelete");
+        $statement = $this->db->prepare("DELETE FROM `WraithAPI_CommandsIssued` WHERE assignedID == :IDToDelete");
 
         // Remove each ID
         foreach ($ids as $id) {
@@ -390,7 +390,7 @@ class DBManager {
     function dbSetSetting($setting, $value) {
 
         // Update setting value
-        $statement = $db->prepare("UPDATE WraithAPI_Settings
+        $statement = $this->db->prepare("UPDATE WraithAPI_Settings
             SET `value` = :value WHERE `key` = :setting;");
 
         $statement->bindParam(":setting", $setting);
@@ -517,7 +517,7 @@ class DBManager {
     // Create a session for a user
     function dbCreateSession($username) {
 
-        $statement = $db->prepare("INSERT INTO `WraithAPI_Sessions` (
+        $statement = $this->db->prepare("INSERT INTO `WraithAPI_Sessions` (
             `sessionID`,
             `username`,
             `sessionToken`,
@@ -549,7 +549,7 @@ class DBManager {
     function dbGetSessions() {
 
         // Get a list of sessions from the database
-        $sessions_db = $db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
+        $sessions_db = $this->db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
 
         $sessions = [];
 
@@ -571,7 +571,7 @@ class DBManager {
     function dbDestroySession($sessionID) {
 
         // Remove the session with the specified ID
-        $statement = $db->prepare("DELETE FROM `WraithAPI_Sessions`
+        $statement = $this->db->prepare("DELETE FROM `WraithAPI_Sessions`
             WHERE `sessionID` = :sessionID");
 
         $statement->bindParam(":sessionID", $sessionID);
@@ -585,7 +585,7 @@ class DBManager {
 
         // Remove all sessions where the last heartbeat time is older than
         // the $SETTINGS["managementSessionExpiryDelay"]
-        $statement = $db->prepare("DELETE FROM `WraithAPI_Sessions`
+        $statement = $this->db->prepare("DELETE FROM `WraithAPI_Sessions`
             WHERE `lastSessionHeartbeat` < :earliestValidHeartbeat");
 
         // Get the unix timestamp for $SETTINGS["managementSessionExpiryDelay"] seconds ago
@@ -600,7 +600,7 @@ class DBManager {
     function dbUpdateSessionLastHeartbeat($sessionID) {
 
         // Update the last heartbeat time to the current time
-        $statement = $db->prepare("UPDATE WraithAPI_Sessions
+        $statement = $this->db->prepare("UPDATE WraithAPI_Sessions
             SET `lastSessionHeartbeat` = :currentTime WHERE `sessionID` = :sessionID;");
 
         $statement->bindParam(":currentTime", time());
@@ -616,7 +616,7 @@ class DBManager {
     function dbGetStats() {
 
         // Get a list of statistics from the database
-        $stats_db = $db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
+        $stats_db = $this->db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
 
         $stats = [];
 
@@ -636,7 +636,7 @@ class DBManager {
     function dbUpdateStat($stat, $value) {
 
         // Update a stat
-        $statement = $db->prepare("UPDATE WraithAPI_Stats
+        $statement = $this->db->prepare("UPDATE WraithAPI_Stats
             SET `value` = :value WHERE `key` = :stat;");
 
         $statement->bindParam(":stat", $stat);
