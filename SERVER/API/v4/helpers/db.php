@@ -183,7 +183,7 @@ class DBManager {
 
         }
 
-        $this->dbRefreshSettings();
+        $this->SETTINGS = $this->dbGetSettings();
 
     }
 
@@ -376,7 +376,7 @@ class DBManager {
 
             $statement->bindParam(":IDToDelete", $id);
             $statement->execute();
-            
+
         }
 
     }
@@ -405,7 +405,7 @@ class DBManager {
     }
 
     // Refresh the settings property of the DBManager
-    function dbRefreshSettings() {
+    function dbGetSettings() {
 
         // Prepare statement to fetch all settings
         $statement = $this->db->prepare("SELECT * FROM WraithAPI_Settings");
@@ -415,14 +415,14 @@ class DBManager {
         $result = $statement->fetchAll();
 
         // Format the results
-        $tmpSettings = [];
+        $settings = [];
         foreach ($result as $tableRow) {
 
-            $tmpSettings[$tableRow[0]] = $tableRow[1];
+            $settings[$tableRow[0]] = $tableRow[1];
 
         }
 
-        $this->SETTINGS = $tmpSettings;
+        return $settings;
 
     }
 
