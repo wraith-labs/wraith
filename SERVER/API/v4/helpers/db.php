@@ -309,8 +309,10 @@ class DBManager {
 
         // Remove each ID
         foreach ($ids as $id) {
+
             $statement->bindParam(":IDToDelete", $id);
             $statement->execute();
+
         }
 
     }
@@ -371,8 +373,10 @@ class DBManager {
 
         // Remove each ID
         foreach ($ids as $id) {
+
             $statement->bindParam(":IDToDelete", $id);
             $statement->execute();
+            
         }
 
     }
