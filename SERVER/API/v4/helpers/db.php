@@ -317,23 +317,6 @@ class DBManager {
 
     }
 
-    // Check which Wraiths have not sent a heartbeat in the mark dead time and remove
-    // them from the database
-    function dbExpireWraiths() {
-
-        // Remove all Wraith entries where the last heartbeat time is older than
-        // the $SETTINGS["wraithMarkOfflineDelay"]
-        $statement = $this->db->prepare("DELETE FROM `WraithAPI_ActiveWraiths`
-            WHERE `lastHeartbeatTime` < :earliestValidHeartbeat");
-
-        // Get the unix timestamp for $SETTINGS["wraithMarkOfflineDelay"] seconds ago
-        $earliestValidHeartbeat = time()-$SETTINGS["wraithMarkOfflineDelay"];
-        $statement->bindParam(":earliestValidHeartbeat", $earliestValidHeartbeat);
-
-        $statement->execute();
-
-    }
-
     // Get a list of Wraiths and their properties
     function dbGetWraiths() {
 
@@ -356,17 +339,34 @@ class DBManager {
 
     }
 
+    // Check which Wraiths have not sent a heartbeat in the mark dead time and remove
+    // them from the database
+    function dbExpireWraiths() {
+
+        // Remove all Wraith entries where the last heartbeat time is older than
+        // the $SETTINGS["wraithMarkOfflineDelay"]
+        $statement = $this->db->prepare("DELETE FROM `WraithAPI_ActiveWraiths`
+            WHERE `lastHeartbeatTime` < :earliestValidHeartbeat");
+
+        // Get the unix timestamp for $SETTINGS["wraithMarkOfflineDelay"] seconds ago
+        $earliestValidHeartbeat = time()-$SETTINGS["wraithMarkOfflineDelay"];
+        $statement->bindParam(":earliestValidHeartbeat", $earliestValidHeartbeat);
+
+        $statement->execute();
+
+    }
+
     // ISSUED COMMAND TABLE MANAGEMENT (public)
 
     // Issue a command to Wraith(s)
-    function dbIssueCommand($command) {
+    function dbAddCommand($command) {
 
         // TODO
 
     }
 
     // Delete command(s) from the command table
-    function dbCancelCommands($ids) {
+    function dbRemoveCommands($ids) {
 
         // TODO
         $statement = $this->db->prepare("DELETE FROM `WraithAPI_CommandsIssued` WHERE assignedID == :IDToDelete");
@@ -464,12 +464,6 @@ class DBManager {
 
     */
 
-    function dbGetUsers() {
-
-        // TODO
-
-    }
-
     // Create a new user
     function dbAddUser($userName, $userPassword, $userPrivilegeLevel) {
 
@@ -492,6 +486,20 @@ class DBManager {
         $statement->bindParam(":userPrivilegeLevel", password_hash($userPassword, PASSWORD_BCRYPT));
 
         $statement->execute();
+
+    }
+
+    // Delete a user
+    function dbRemoveUsers() {
+
+        // TODO
+
+    }
+
+    // Get a list of users and their properties
+    function dbGetUsers() {
+
+        // TODO
 
     }
 
@@ -519,7 +527,7 @@ class DBManager {
     // SESSIONS TABLE MANAGEMENT (public)
 
     // Create a session for a user
-    function dbCreateSession($username) {
+    function dbAddSession($username) {
 
         $statement = $this->db->prepare("INSERT INTO `WraithAPI_Sessions` (
             `sessionID`,
@@ -549,6 +557,19 @@ class DBManager {
 
     }
 
+    // Delete a session
+    function dbRemoveSession($sessionID) {
+
+        // Remove the session with the specified ID
+        $statement = $this->db->prepare("DELETE FROM `WraithAPI_Sessions`
+            WHERE `sessionID` = :sessionID");
+
+        $statement->bindParam(":sessionID", $sessionID);
+
+        $statement->execute();
+
+    }
+
     // Get a list of all sessions
     function dbGetSessions() {
 
@@ -568,19 +589,6 @@ class DBManager {
         }
 
         return $sessions;
-
-    }
-
-    // Delete a session
-    function dbDestroySession($sessionID) {
-
-        // Remove the session with the specified ID
-        $statement = $this->db->prepare("DELETE FROM `WraithAPI_Sessions`
-            WHERE `sessionID` = :sessionID");
-
-        $statement->bindParam(":sessionID", $sessionID);
-
-        $statement->execute();
 
     }
 
