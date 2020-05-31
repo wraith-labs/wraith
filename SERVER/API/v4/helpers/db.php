@@ -292,11 +292,11 @@ class DBManager {
             :issuedCommands
         )");
 
-        $statement->bindParam(":assignedID", $wraith["assignedID"]);
-        $statement->bindParam(":hostProperties", $wraith["hostProperties"]);
-        $statement->bindParam(":wraithProperties", $wraith["wraithProperties"]);
-        $statement->bindParam(":lastHeartbeatTime", $wraith["lastHeartbeatTime"]);
-        $statement->bindParam(":issuedCommands", $wraith["issuedCommands"]);
+        $statement->bindParam(":assignedID", $data["assignedID"]);
+        $statement->bindParam(":hostProperties", $data["hostProperties"]);
+        $statement->bindParam(":wraithProperties", $data["wraithProperties"]);
+        $statement->bindParam(":lastHeartbeatTime", $data["lastHeartbeatTime"]);
+        $statement->bindParam(":issuedCommands", $data["issuedCommands"]);
 
         $statement->execute();
 
