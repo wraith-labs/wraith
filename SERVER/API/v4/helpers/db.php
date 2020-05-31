@@ -276,7 +276,7 @@ class DBManager {
     // ACTIVE WRAITH TABLE MANAGEMENT (public)
 
     // Add a Wraith to the database
-    function dbAddWraith($wraith) {
+    function dbAddWraith($data) {
 
         $statement = $this->db->prepare("INSERT INTO `WraithAPI_ActiveWraiths` (
             `assignedID`,
@@ -303,7 +303,7 @@ class DBManager {
     }
 
     // Remove Wraith(s)
-    function dbRemoveWraiths($ids) {
+    function dbRemoveWraiths($filter) {
 
         $statement = $this->db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE assignedID == :IDToDelete");
 
@@ -318,7 +318,7 @@ class DBManager {
     }
 
     // Get a list of Wraiths and their properties
-    function dbGetWraiths() {
+    function dbGetWraiths($filter) {
 
         // Get a list of wraiths from the database
         $wraiths_db = $this->db->query("SELECT * FROM WraithAPI_ActiveWraiths")->fetchAll();
@@ -336,6 +336,22 @@ class DBManager {
         }
 
         return $wraiths;
+
+    }
+
+    // Update the Wraith last heartbeat time
+    function dbUpdateWraithLastHeartbeat($WraithID) {
+
+        // TODO
+
+        // Update the last heartbeat time to the current time
+        $statement = $this->db->prepare("UPDATE WraithAPI_Sessions
+            SET `lastSessionHeartbeat` = :currentTime WHERE `sessionID` = :sessionID;");
+
+        $statement->bindParam(":currentTime", time());
+        $statement->bindParam(":sessionID", $sessionID);
+
+        $statement->execute();
 
     }
 
@@ -359,14 +375,14 @@ class DBManager {
     // ISSUED COMMAND TABLE MANAGEMENT (public)
 
     // Issue a command to Wraith(s)
-    function dbAddCommand($command) {
+    function dbAddCommand($data) {
 
         // TODO
 
     }
 
     // Delete command(s) from the command table
-    function dbRemoveCommands($ids) {
+    function dbRemoveCommands($filter) {
 
         // TODO
         $statement = $this->db->prepare("DELETE FROM `WraithAPI_CommandsIssued` WHERE assignedID == :IDToDelete");
@@ -382,7 +398,7 @@ class DBManager {
     }
 
     // Get command(s)
-    function dbGetCommands($ids) {
+    function dbGetCommands($filter) {
 
         // TODO
 
@@ -391,7 +407,7 @@ class DBManager {
     // SETTINGS TABLE MANAGEMENT (public)
 
     // Edit an API setting
-    function dbSetSetting($setting, $value) {
+    function dbSetSetting($name, $value) {
 
         // Update setting value
         $statement = $this->db->prepare("UPDATE WraithAPI_Settings
@@ -405,7 +421,7 @@ class DBManager {
     }
 
     // Refresh the settings property of the DBManager
-    function dbGetSettings() {
+    function dbGetSettings($filter) {
 
         // Prepare statement to fetch all settings
         $statement = $this->db->prepare("SELECT * FROM WraithAPI_Settings");
@@ -465,7 +481,7 @@ class DBManager {
     */
 
     // Create a new user
-    function dbAddUser($userName, $userPassword, $userPrivilegeLevel) {
+    function dbAddUser($data) {
 
         $statement = $this->db->prepare("INSERT INTO `WraithAPI_Users` (
             `userName`,
@@ -490,14 +506,14 @@ class DBManager {
     }
 
     // Delete a user
-    function dbRemoveUsers() {
+    function dbRemoveUsers($filter) {
 
         // TODO
 
     }
 
     // Get a list of users and their properties
-    function dbGetUsers() {
+    function dbGetUsers($filter) {
 
         // TODO
 
@@ -505,6 +521,13 @@ class DBManager {
 
     // Change username
     function dbChangeUserName($currentUsername, $newUsername) {
+
+        // TODO
+
+    }
+
+    // Verify that a user password is correct
+    function dbVerifyUserPass($username, $password) {
 
         // TODO
 
@@ -527,7 +550,7 @@ class DBManager {
     // SESSIONS TABLE MANAGEMENT (public)
 
     // Create a session for a user
-    function dbAddSession($username) {
+    function dbAddSession($data) {
 
         $statement = $this->db->prepare("INSERT INTO `WraithAPI_Sessions` (
             `sessionID`,
@@ -558,7 +581,7 @@ class DBManager {
     }
 
     // Delete a session
-    function dbRemoveSession($sessionID) {
+    function dbRemoveSessions($filter) {
 
         // Remove the session with the specified ID
         $statement = $this->db->prepare("DELETE FROM `WraithAPI_Sessions`
@@ -571,7 +594,7 @@ class DBManager {
     }
 
     // Get a list of all sessions
-    function dbGetSessions() {
+    function dbGetSessions($filter) {
 
         // Get a list of sessions from the database
         $sessions_db = $this->db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
@@ -592,6 +615,20 @@ class DBManager {
 
     }
 
+    // Update the session last heartbeat time
+    function dbUpdateSessionLastHeartbeat($sessionID) {
+
+        // Update the last heartbeat time to the current time
+        $statement = $this->db->prepare("UPDATE WraithAPI_Sessions
+            SET `lastSessionHeartbeat` = :currentTime WHERE `sessionID` = :sessionID;");
+
+        $statement->bindParam(":currentTime", time());
+        $statement->bindParam(":sessionID", $sessionID);
+
+        $statement->execute();
+
+    }
+
     // Delete sessions which have not had a heartbeat recently
     function dbExpireSessions() {
 
@@ -608,24 +645,24 @@ class DBManager {
 
     }
 
-    // Update the session last heartbeat time
-    function dbUpdateSessionLastHeartbeat($sessionID) {
+    // STATS TABLE MANAGEMENT (public)
 
-        // Update the last heartbeat time to the current time
-        $statement = $this->db->prepare("UPDATE WraithAPI_Sessions
-            SET `lastSessionHeartbeat` = :currentTime WHERE `sessionID` = :sessionID;");
+    // Update a statistic
+    function dbSetStat($name, $value) {
 
-        $statement->bindParam(":currentTime", time());
-        $statement->bindParam(":sessionID", $sessionID);
+        // Update a stat
+        $statement = $this->db->prepare("UPDATE WraithAPI_Stats
+            SET `value` = :value WHERE `key` = :stat;");
+
+        $statement->bindParam(":stat", $stat);
+        $statement->bindParam(":value", $value);
 
         $statement->execute();
 
     }
 
-    // STATS TABLE MANAGEMENT (public)
-
     // Update a statistic
-    function dbGetStats() {
+    function dbGetStats($filter) {
 
         // Get a list of statistics from the database
         $stats_db = $this->db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
@@ -641,20 +678,6 @@ class DBManager {
         }
 
         return $stats;
-
-    }
-
-    // Update a statistic
-    function dbUpdateStat($stat, $value) {
-
-        // Update a stat
-        $statement = $this->db->prepare("UPDATE WraithAPI_Stats
-            SET `value` = :value WHERE `key` = :stat;");
-
-        $statement->bindParam(":stat", $stat);
-        $statement->bindParam(":value", $value);
-
-        $statement->execute();
 
     }
 
@@ -676,4 +699,5 @@ class DBManager {
 
 }
 
+// Create an instance of the database manager
 $dbm = new DBManager();
