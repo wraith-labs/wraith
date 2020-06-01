@@ -199,6 +199,15 @@ class DBManager {
 
     }
 
+    // HELPERS (internal)
+
+    // Convert $filter parameters in database functions to SQL
+    private function generateFilter() {
+
+        // TODO
+
+    }
+
     // DATABASE MANAGEMENT (internal)
 
     // Check if the database has been initialised
