@@ -283,15 +283,14 @@ class DBManager {
 
         // The following will generate an array of SQL commands which will
         // delete every table in the database
-        $statement = $this->db->prepare("SELECT 'DROP TABLE ' || name ||';' FROM sqlite_master WHERE type = 'table';");
-        $statement->execute();
+        $statement = $this->SQLExec("SELECT 'DROP TABLE ' || name ||';' FROM sqlite_master WHERE type = 'table';");
 
         // Get the SQL commands
         $commands = $statement->fetchAll();
 
         foreach ($commands as $command) {
 
-            $this->db->exec($command[0]);
+            $this->SQLExec($command[0]);
 
         }
 
