@@ -226,8 +226,7 @@ class DBManager {
     private function isDatabasePostInit() {
 
         // Check if the DB_INIT_INDICATOR table exists
-        $statement = $this->db->prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='DB_INIT_INDICATOR';");
-        $statement->execute();
+        $statement = $this->SQLExec("SELECT name FROM sqlite_master WHERE type='table' AND name='DB_INIT_INDICATOR';");
 
         // Convert the result into a boolean
         // The result will be an array of all tables named "DB_INIT_INDICATOR"
@@ -259,7 +258,7 @@ class DBManager {
 
             try {
 
-                $this->db->exec($command);
+                $this->SQLExec($command);
 
             } catch (PDOException $e) {
 
@@ -324,7 +323,7 @@ class DBManager {
     }
 
     // Remove Wraith(s)
-    function dbRemoveWraiths($filter) {
+    function dbRemoveWraiths($filter = "") {
 
         $statement = $this->db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE assignedID == :IDToDelete");
 
@@ -339,7 +338,7 @@ class DBManager {
     }
 
     // Get a list of Wraiths and their properties
-    function dbGetWraiths($filter) {
+    function dbGetWraiths($filter = "") {
 
         // Get a list of wraiths from the database
         $wraiths_db = $this->db->query("SELECT * FROM WraithAPI_ActiveWraiths")->fetchAll();
@@ -403,7 +402,7 @@ class DBManager {
     }
 
     // Delete command(s) from the command table
-    function dbRemoveCommands($filter) {
+    function dbRemoveCommands($filter = "") {
 
         // TODO
         $statement = $this->db->prepare("DELETE FROM `WraithAPI_CommandsIssued` WHERE assignedID == :IDToDelete");
@@ -419,7 +418,7 @@ class DBManager {
     }
 
     // Get command(s)
-    function dbGetCommands($filter) {
+    function dbGetCommands($filter = "") {
 
         // TODO
 
@@ -442,7 +441,7 @@ class DBManager {
     }
 
     // Refresh the settings property of the DBManager
-    function dbGetSettings($filter) {
+    function dbGetSettings($filter = "") {
 
         // Prepare statement to fetch all settings
         $statement = $this->db->prepare("SELECT * FROM WraithAPI_Settings");
@@ -527,14 +526,14 @@ class DBManager {
     }
 
     // Delete a user
-    function dbRemoveUsers($filter) {
+    function dbRemoveUsers($filter = "") {
 
         // TODO
 
     }
 
     // Get a list of users and their properties
-    function dbGetUsers($filter) {
+    function dbGetUsers($filter = "") {
 
         // TODO
 
@@ -602,7 +601,7 @@ class DBManager {
     }
 
     // Delete a session
-    function dbRemoveSessions($filter) {
+    function dbRemoveSessions($filter = "") {
 
         // Remove the session with the specified ID
         $statement = $this->db->prepare("DELETE FROM `WraithAPI_Sessions`
@@ -615,7 +614,7 @@ class DBManager {
     }
 
     // Get a list of all sessions
-    function dbGetSessions($filter) {
+    function dbGetSessions($filter = "") {
 
         // Get a list of sessions from the database
         $sessions_db = $this->db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
@@ -683,7 +682,7 @@ class DBManager {
     }
 
     // Update a statistic
-    function dbGetStats($filter) {
+    function dbGetStats($filter = "") {
 
         // Get a list of statistics from the database
         $stats_db = $this->db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
