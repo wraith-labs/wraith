@@ -28,13 +28,6 @@ class DBManager {
     // These commands are defined in the object constructor below.
     private $dbInitCommands = [];
 
-    // Array of settings read from the WraithAPI_Settings table in the
-    // database. This is empty by default but is populated with the settings
-    // by the dbRefreshSettings function which is called in the DBManager
-    // constructor.
-    public $SETTINGS = [];
-
-
     /*
 
     METHODS
@@ -186,8 +179,6 @@ class DBManager {
             ]);
 
         }
-
-        $this->SETTINGS = $this->dbGetSettings();
 
     }
 
