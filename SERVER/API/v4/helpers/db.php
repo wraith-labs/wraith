@@ -222,14 +222,12 @@ class DBManager {
     private function isDatabasePostInit() {
 
         // Check if the DB_INIT_INDICATOR table exists
-        $statement = $this->SQLExec("SELECT name FROM sqlite_master WHERE type='table' AND name='DB_INIT_INDICATOR';");
+        $statement = $this->SQLExec("SELECT name FROM sqlite_master WHERE type='table' AND name='DB_INIT_INDICATOR' LIMIT 1;");
 
         // Convert the result into a boolean
         // The result will be an array of all tables named "DB_INIT_INDICATOR"
         // If the array is of length 0 (no such table), the boolean will be false.
-        // All other cases result in true. It's unlikely that there will be
-        // multiple DB_INIT_INDICATOR tables but if there are, this can safely
-        // be ignored here.
+        // All other cases result in true (the only other case is 1).
         $dbIsPostInit = (bool)sizeof($statement->fetchAll());
 
         if ($dbIsPostInit) {
