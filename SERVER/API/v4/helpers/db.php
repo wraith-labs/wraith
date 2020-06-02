@@ -196,7 +196,8 @@ class DBManager {
 
     // HELPERS (internal)
 
-    // Execute SQL on the database
+    // Execute SQL on the database with optional parameters using secure
+    // prepared statements
     private function SQLExec($SQL, $params = []) {
 
         $statement = $this->db->prepare($SQL);
