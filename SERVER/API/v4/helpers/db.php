@@ -179,7 +179,11 @@ class DBManager {
 
             // A user should be added to allow managing the API
             // fresh after install or when the DB is reset
-            $this->dbAddUser("SuperAdmin", "SuperAdminPass", 2);
+            $this->dbAddUser([
+                "userName" => "SuperAdmin",
+                "userPassword" => "SuperAdminPass",
+                "userPrivilegeLevel" => 2]
+            );
 
         }
 
@@ -206,9 +210,9 @@ class DBManager {
 
         $statement = $this->db->prepare($SQL);
 
-        foreach ($params as $paramName => $paramValue) {
+        for ($i = 0; $i < sizeof($params); $i++) {//$params as $paramName => $paramValue) {
 
-            $statement->bindParam($paramName, $paramValue);
+            $statement->bindParam($params[$i][0], $params[$i][1]);
 
         }
 
@@ -504,23 +508,23 @@ class DBManager {
     function dbAddUser($data) {
 
         $this->SQLExec("INSERT INTO `WraithAPI_Users` (
-            `userName`,
-            `userPassword`,
-            `userPrivileges`,
-            `userFailedLogins`,
-            `userFailedLoginsTimeoutStart`
-        ) VALUES (
-            :userName,
-            :userPassword,
-            :userPrivilegeLevel,
-            '0',
-            '0'
-        );",
-        [
-            ":userName" => $userName,
-            ":userPassword" => $userPassword,
-            ":userPrivilegeLevel" => password_hash($userPassword, PASSWORD_BCRYPT)
-        ]
+                `userName`,
+                `userPassword`,
+                `userPrivileges`,
+                `userFailedLogins`,
+                `userFailedLoginsTimeoutStart`
+            ) VALUES (
+                :userName,
+                :userPassword,
+                :userPrivilegeLevel,
+                '0',
+                '0'
+            );",
+            [
+                [":userName", $data["userName"]],
+                [":userPassword", password_hash($data["userPassword"], PASSWORD_BCRYPT)],
+                [":userPrivilegeLevel", $data["userPrivilegeLevel"]]
+            ]
         );
 
     }
