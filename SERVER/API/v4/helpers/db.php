@@ -182,8 +182,8 @@ class DBManager {
             $this->dbAddUser([
                 "userName" => "SuperAdmin",
                 "userPassword" => "SuperAdminPass",
-                "userPrivilegeLevel" => 2]
-            );
+                "userPrivilegeLevel" => 2
+            ]);
 
         }
 
@@ -301,27 +301,27 @@ class DBManager {
     // Add a Wraith to the database
     function dbAddWraith($data) {
 
-        $statement = $this->db->prepare("INSERT INTO `WraithAPI_ActiveWraiths` (
-            `assignedID`,
-            `hostProperties`,
-            `wraithProperties`,
-            `lastHeartbeatTime`,
-            `issuedCommands`
-        ) VALUES (
-            :assignedID,
-            :hostProperties,
-            :wraithProperties,
-            :lastHeartbeatTime,
-            :issuedCommands
-        )");
-
-        $statement->bindParam(":assignedID", $data["assignedID"]);
-        $statement->bindParam(":hostProperties", $data["hostProperties"]);
-        $statement->bindParam(":wraithProperties", $data["wraithProperties"]);
-        $statement->bindParam(":lastHeartbeatTime", $data["lastHeartbeatTime"]);
-        $statement->bindParam(":issuedCommands", $data["issuedCommands"]);
-
-        $statement->execute();
+        $this->SQLExec("INSERT INTO `WraithAPI_ActiveWraiths` (
+                `assignedID`,
+                `hostProperties`,
+                `wraithProperties`,
+                `lastHeartbeatTime`,
+                `issuedCommands`
+            ) VALUES (
+                :assignedID,
+                :hostProperties,
+                :wraithProperties,
+                :lastHeartbeatTime,
+                :issuedCommands
+            )",
+            [
+                [":assignedID", $data["assignedID"]],
+                [":hostProperties", $data["hostProperties"]],
+                [":wraithProperties", $data["wraithProperties"]],
+                [":lastHeartbeatTime", $data["lastHeartbeatTime"]],
+                [":issuedCommands", $data["issuedCommands"]],
+            ]
+        );
 
     }
 
