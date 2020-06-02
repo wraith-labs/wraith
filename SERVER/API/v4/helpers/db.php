@@ -227,7 +227,7 @@ class DBManager {
         // Convert the result into a boolean
         // The result will be an array of all tables named "DB_INIT_INDICATOR"
         // If the array is of length 0 (no such table), the boolean will be false.
-        // All other cases result in true (the only other case is 1).
+        // All other cases result in true (the only other possible case here is 1).
         $dbIsPostInit = (bool)sizeof($statement->fetchAll());
 
         if ($dbIsPostInit) {
