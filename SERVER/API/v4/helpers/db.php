@@ -503,7 +503,7 @@ class DBManager {
     // Create a new user
     function dbAddUser($data) {
 
-        $statement = $this->db->prepare("INSERT INTO `WraithAPI_Users` (
+        $this->SQLExec("INSERT INTO `WraithAPI_Users` (
             `userName`,
             `userPassword`,
             `userPrivileges`,
@@ -515,13 +515,13 @@ class DBManager {
             :userPrivilegeLevel,
             '0',
             '0'
-        );");
-
-        $statement->bindParam(":userName", $userName);
-        $statement->bindParam(":userPassword", $userPassword);
-        $statement->bindParam(":userPrivilegeLevel", password_hash($userPassword, PASSWORD_BCRYPT));
-
-        $statement->execute();
+        );",
+        [
+            ":userName" => $userName,
+            ":userPassword" => $userPassword,
+            ":userPrivilegeLevel" => password_hash($userPassword, PASSWORD_BCRYPT)
+        ]
+        );
 
     }
 
