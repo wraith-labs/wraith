@@ -201,10 +201,22 @@ class DBManager {
 
     // HELPERS (internal)
 
-    // Convert $filter parameters in database functions to SQL
-    private function generateFilter() {
+    // Execute SQL on the database
+    private function SQLExec($SQL, $params) {
 
-        // TODO
+        $statement = $this->db->prepare($SQL);
+
+        foreach ($params as $paramName => $paramValue) {
+
+            $statement->bindParam(":" . $paramName, $paramValue);
+
+        }
+
+        $statement->execute();
+
+        // Return the statement so further actions can be performed on it like
+        // fetchAll().
+        return $statement;
 
     }
 
