@@ -202,13 +202,13 @@ class DBManager {
     // HELPERS (internal)
 
     // Execute SQL on the database
-    private function SQLExec($SQL, $params) {
+    private function SQLExec($SQL, $params = []) {
 
         $statement = $this->db->prepare($SQL);
 
         foreach ($params as $paramName => $paramValue) {
 
-            $statement->bindParam(":" . $paramName, $paramValue);
+            $statement->bindParam($paramName, $paramValue);
 
         }
 
