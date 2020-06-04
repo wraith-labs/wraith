@@ -180,22 +180,6 @@ class DBManager {
 
         }
 
-        /*
-        TODO - remove this testing code
-        $id = uniqid();
-        $this->dbAddWraith([
-            "assignedID" => $id,
-            "hostProperties" => "",
-            "wraithProperties" => "",
-            "lastHeartbeatTime" => "",
-            "issuedCommands" => ""
-        ]);
-
-        $this->dbRemoveWraiths([
-            "assignedID" => [$id]
-        ]);
-        */
-
     }
 
     // On object destruction
@@ -412,8 +396,27 @@ class DBManager {
     // Get a list of Wraiths and their properties
     function dbGetWraiths($filter = [], $limit = -1, $offset = -1) {
 
+        $validFilterColumnNames = [
+            "assignedID",
+            "hostProperties",
+            "wraithProperties",
+            "lastHeartbeatTime",
+            "issuedCommands"
+        ];
+
+        $SQL = "SELECT * FROM WraithAPI_ActiveWraiths";
+
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
+
         // Get a list of wraiths from the database
-        $wraiths_db = $this->db->query("SELECT * FROM WraithAPI_ActiveWraiths")->fetchAll();
+        $wraiths_db = $statement->fetchAll();
 
         $wraiths = [];
 
