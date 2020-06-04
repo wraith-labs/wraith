@@ -211,7 +211,7 @@ class DBManager {
     }
 
     // Convert an array into a SQL WHERE clause for use as a filter
-    // https://stackoverflow.com/q/62179711/8623347
+    // Adapted from https://stackoverflow.com/a/62181134/8623347
     private function generateFilter($filter, $columnNameWhitelist, $limit = -1, $offset = -1) {
 
         $conditions = [];
@@ -219,22 +219,27 @@ class DBManager {
 
         foreach ($filter as $key => $values) {
 
+            // Ensure that the column names are whitelisted to prevent SQL
+            // injection
             if (array_search($key, $columnNameWhitelist, true) === false) {
 
                 throw new InvalidArgumentException("invalid field name in filter");
 
             }
 
+            // Generate the SQL for each condition and add the values to the list
+            // of parameters
             $conditions[] = "`$key` in (".str_repeat('?,', count($values) - 1) . '?'.")";
             $parameters = array_merge($parameters, $values);
 
         }
 
+        // Generate the SQL (no SQL needs to be generated if no conditions
+        // were given)
         $sql = "";
-
         if ($conditions) {
 
-            $sql .= " WHERE ".implode(" AND ", $conditions);
+            $sql .= " WHERE " . implode(" AND ", $conditions);
 
         }
 
@@ -243,11 +248,13 @@ class DBManager {
         if ((int)$limit >= 0) {
 
             $sql .= " LIMIT " . (int)$limit;
+
         }
 
         if ((int)$offset >= 0) {
 
             $sql .= " OFFSET " . (int)$offset;
+
         }
 
         // The filter should now be translated into valid SQL and parameters
