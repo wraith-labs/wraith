@@ -202,13 +202,7 @@ class DBManager {
 
         $statement = $this->db->prepare($SQL);
 
-        for ($i = 0; $i < sizeof($params); $i++) {//$params as $paramName => $paramValue) {
-
-            $statement->bindParam($params[$i][0], $params[$i][1]);
-
-        }
-
-        $statement->execute();
+        $statement->execute($params);
 
         // Return the statement so further actions can be performed on it like
         // fetchAll().
@@ -298,18 +292,18 @@ class DBManager {
                 `lastHeartbeatTime`,
                 `issuedCommands`
             ) VALUES (
-                :assignedID,
-                :hostProperties,
-                :wraithProperties,
-                :lastHeartbeatTime,
-                :issuedCommands
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
             )",
             [
-                [":assignedID", $data["assignedID"]],
-                [":hostProperties", $data["hostProperties"]],
-                [":wraithProperties", $data["wraithProperties"]],
-                [":lastHeartbeatTime", $data["lastHeartbeatTime"]],
-                [":issuedCommands", $data["issuedCommands"]],
+                $data["assignedID"],
+                $data["hostProperties"],
+                $data["wraithProperties"],
+                $data["lastHeartbeatTime"],
+                $data["issuedCommands"],
             ]
         );
 
@@ -503,16 +497,16 @@ class DBManager {
                 `userFailedLogins`,
                 `userFailedLoginsTimeoutStart`
             ) VALUES (
-                :userName,
-                :userPassword,
-                :userPrivilegeLevel,
+                ?,
+                ?,
+                ?,
                 '0',
                 '0'
             );",
             [
-                [":userName", $data["userName"]],
-                [":userPassword", password_hash($data["userPassword"], PASSWORD_BCRYPT)],
-                [":userPrivilegeLevel", $data["userPrivilegeLevel"]]
+                $data["userName"],
+                password_hash($data["userPassword"], PASSWORD_BCRYPT),
+                $data["userPrivilegeLevel"]
             ]
         );
 
