@@ -204,6 +204,11 @@ class DBManager {
 
         $statement->execute($params);
 
+        // TODO - remove this debugging bloc
+        echo "<pre><br/>";
+        var_dump($SQL, $params);
+        echo "<br/></pre>";
+
         // Return the statement so further actions can be performed on it like
         // fetchAll().
         return $statement;
@@ -251,7 +256,7 @@ class DBManager {
 
         }
 
-        if ((int)$offset >= 0) {
+        if ((int)$offset >= 1) {
 
             $sql .= " OFFSET " . (int)$offset;
 
@@ -338,7 +343,7 @@ class DBManager {
     // Add a Wraith to the database
     function dbAddWraith($data) {
 
-        $this->SQLExec("INSERT INTO `WraithAPI_ActiveWraiths` (
+        $SQL = "INSERT INTO `WraithAPI_ActiveWraiths` (
                 `assignedID`,
                 `hostProperties`,
                 `wraithProperties`,
@@ -350,30 +355,41 @@ class DBManager {
                 ?,
                 ?,
                 ?
-            )",
-            [
-                $data["assignedID"],
-                $data["hostProperties"],
-                $data["wraithProperties"],
-                $data["lastHeartbeatTime"],
-                $data["issuedCommands"],
-            ]
-        );
+            )";
+
+        $params = [
+            $data["assignedID"],
+            $data["hostProperties"],
+            $data["wraithProperties"],
+            $data["lastHeartbeatTime"],
+            $data["issuedCommands"],
+        ];
+
+        $this->SQLExec($SQL, $params);
 
     }
 
     // Remove Wraith(s)
     function dbRemoveWraiths($filter = [], $limit = -1, $offset = -1) {
 
-        $statement = $this->db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE assignedID == :IDToDelete");
+        $validColumns = [
+            "assignedID",
+            "hostProperties",
+            "wraithProperties",
+            "lastHeartbeatTime",
+            "issuedCommands"
+        ];
 
-        // Remove each ID
-        foreach ($ids as $id) {
+        $SQL = "DELETE FROM `WraithAPI_ActiveWraiths`";
 
-            $statement->bindParam(":IDToDelete", $id);
-            $statement->execute();
+        $params = [];
 
-        }
+        // Apply the filter
+        $filterSQL = $this->generateFilter($filter, $validColumns, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
 
     }
 
