@@ -180,6 +180,22 @@ class DBManager {
 
         }
 
+        /*
+        TODO - remove this testing code
+        $id = uniqid();
+        $this->dbAddWraith([
+            "assignedID" => $id,
+            "hostProperties" => "",
+            "wraithProperties" => "",
+            "lastHeartbeatTime" => "",
+            "issuedCommands" => ""
+        ]);
+
+        $this->dbRemoveWraiths([
+            "assignedID" => [$id]
+        ]);
+        */
+
     }
 
     // On object destruction
@@ -372,7 +388,7 @@ class DBManager {
     // Remove Wraith(s)
     function dbRemoveWraiths($filter = [], $limit = -1, $offset = -1) {
 
-        $validColumns = [
+        $validFilterColumnNames = [
             "assignedID",
             "hostProperties",
             "wraithProperties",
@@ -384,8 +400,8 @@ class DBManager {
 
         $params = [];
 
-        // Apply the filter
-        $filterSQL = $this->generateFilter($filter, $validColumns, $limit, $offset);
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
         $SQL .= $filterSQL[0];
         $params = array_merge($params, $filterSQL[1]);
 
