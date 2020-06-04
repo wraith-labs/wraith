@@ -210,6 +210,14 @@ class DBManager {
 
     }
 
+    // Convert an array into a SQL WHERE clause for use as a filter
+    // https://stackoverflow.com/questions/62179711/convert-array-into-a-sql-query-securely-php7pdosqlite#62181134
+    private function generateFilter($filter, $start, $end) {
+
+        // TODO
+
+    }
+
     // DATABASE MANAGEMENT (internal)
 
     // Check if the database has been initialised
