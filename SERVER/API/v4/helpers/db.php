@@ -204,11 +204,6 @@ class DBManager {
 
         $statement->execute($params);
 
-        // TODO - remove this debugging bloc
-        echo "<pre><br/>";
-        var_dump($SQL, $params);
-        echo "<br/></pre>";
-
         // Return the statement so further actions can be performed on it like
         // fetchAll().
         return $statement;
