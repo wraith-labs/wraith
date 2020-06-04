@@ -211,10 +211,48 @@ class DBManager {
     }
 
     // Convert an array into a SQL WHERE clause for use as a filter
-    // https://stackoverflow.com/questions/62179711/convert-array-into-a-sql-query-securely-php7pdosqlite#62181134
-    private function generateFilter($filter, $start, $end) {
+    // https://stackoverflow.com/q/62179711/8623347
+    private function generateFilter($filter, $columnNameWhitelist, $limit = -1, $offset = -1) {
 
-        // TODO
+        $conditions = [];
+        $parameters = [];
+
+        foreach ($filter as $key => $values) {
+
+            if (array_search($key, $columnNameWhitelist, true) === false) {
+
+                throw new InvalidArgumentException("invalid field name in filter");
+
+            }
+
+            $conditions[] = "`$key` in (".str_repeat('?,', count($values) - 1) . '?'.")";
+            $parameters = array_merge($parameters, $values);
+
+        }
+
+        $sql = "";
+
+        if ($conditions) {
+
+            $sql .= " WHERE ".implode(" AND ", $conditions);
+
+        }
+
+        // Add the LIMIT and OFFSET for pagination
+
+        if ((int)$limit >= 0) {
+
+            $sql .= " LIMIT " . (int)$limit;
+        }
+
+        if ((int)$offset >= 0) {
+
+            $sql .= " OFFSET " . (int)$offset;
+        }
+
+        // The filter should now be translated into valid SQL and parameters
+        // so it can be returned
+        return [$sql, $parameters];
 
     }
 
