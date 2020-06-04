@@ -363,7 +363,7 @@ class DBManager {
     }
 
     // Remove Wraith(s)
-    function dbRemoveWraiths($filter = []) {
+    function dbRemoveWraiths($filter = [], $limit = -1, $offset = -1) {
 
         $statement = $this->db->prepare("DELETE FROM `WraithAPI_ActiveWraiths` WHERE assignedID == :IDToDelete");
 
@@ -378,7 +378,7 @@ class DBManager {
     }
 
     // Get a list of Wraiths and their properties
-    function dbGetWraiths($filter = []) {
+    function dbGetWraiths($filter = [], $limit = -1, $offset = -1) {
 
         // Get a list of wraiths from the database
         $wraiths_db = $this->db->query("SELECT * FROM WraithAPI_ActiveWraiths")->fetchAll();
@@ -442,7 +442,7 @@ class DBManager {
     }
 
     // Delete command(s) from the command table
-    function dbRemoveCommands($filter = []) {
+    function dbRemoveCommands($filter = [], $limit = -1, $offset = -1) {
 
         // TODO
         $statement = $this->db->prepare("DELETE FROM `WraithAPI_CommandsIssued` WHERE assignedID == :IDToDelete");
@@ -458,7 +458,7 @@ class DBManager {
     }
 
     // Get command(s)
-    function dbGetCommands($filter = []) {
+    function dbGetCommands($filter = [], $limit = -1, $offset = -1) {
 
         // TODO
 
@@ -481,7 +481,7 @@ class DBManager {
     }
 
     // Refresh the settings property of the DBManager
-    function dbGetSettings($filter = []) {
+    function dbGetSettings($filter = [], $limit = -1, $offset = -1) {
 
         // Prepare statement to fetch all settings
         $statement = $this->db->prepare("SELECT * FROM WraithAPI_Settings");
@@ -566,14 +566,14 @@ class DBManager {
     }
 
     // Delete a user
-    function dbRemoveUsers($filter = []) {
+    function dbRemoveUsers($filter = [], $limit = -1, $offset = -1) {
 
         // TODO
 
     }
 
     // Get a list of users and their properties
-    function dbGetUsers($filter = []) {
+    function dbGetUsers($filter = [], $limit = -1, $offset = -1) {
 
         // TODO
 
@@ -641,7 +641,7 @@ class DBManager {
     }
 
     // Delete a session
-    function dbRemoveSessions($filter = []) {
+    function dbRemoveSessions($filter = [], $limit = -1, $offset = -1) {
 
         // Remove the session with the specified ID
         $statement = $this->db->prepare("DELETE FROM `WraithAPI_Sessions`
@@ -654,7 +654,7 @@ class DBManager {
     }
 
     // Get a list of all sessions
-    function dbGetSessions($filter = []) {
+    function dbGetSessions($filter = [], $limit = -1, $offset = -1) {
 
         // Get a list of sessions from the database
         $sessions_db = $this->db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
@@ -722,7 +722,7 @@ class DBManager {
     }
 
     // Update a statistic
-    function dbGetStats($filter = []) {
+    function dbGetStats($filter = [], $limit = -1, $offset = -1) {
 
         // Get a list of statistics from the database
         $stats_db = $this->db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
