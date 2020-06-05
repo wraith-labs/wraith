@@ -432,16 +432,15 @@ class DBManager {
     // Update the Wraith last heartbeat time
     function dbUpdateWraithLastHeartbeat($WraithID) {
 
-        // TODO
-
         // Update the last heartbeat time to the current time
-        $statement = $this->db->prepare("UPDATE WraithAPI_Sessions
-            SET `lastSessionHeartbeat` = :currentTime WHERE `sessionID` = :sessionID;");
+        $SQL = "UPDATE WraithAPI_ActiveWraiths SET `lastHeartbeatTime` = ? WHERE `assignedID` = ?;";
 
-        $statement->bindParam(":currentTime", time());
-        $statement->bindParam(":sessionID", $sessionID);
+        $params = [
+            time(),
+            $WraithID
+        ];
 
-        $statement->execute();
+        $this->SQLExec($SQL, $params);
 
     }
 
