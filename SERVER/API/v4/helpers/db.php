@@ -513,10 +513,21 @@ class DBManager {
     // Refresh the settings property of the DBManager
     function dbGetSettings($filter = [], $limit = -1, $offset = -1) {
 
-        // Prepare statement to fetch all settings
-        $statement = $this->db->prepare("SELECT * FROM WraithAPI_Settings");
+        $validFilterColumnNames = [
+            "key",
+            "value"
+        ];
 
-        $statement->execute();
+        $SQL = "SELECT * FROM WraithAPI_Settings";
+
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
 
         $result = $statement->fetchAll();
 
