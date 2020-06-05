@@ -170,8 +170,12 @@ class DBManager {
 
             $this->initDB();
 
+        }
+
+        // Check if a user account exists (LIMIT 1 for efficiency)
+        if (sizeof($this->dbGetUsers([], 1, 0)) < 1) {
+
             // A user should be added to allow managing the API
-            // fresh after install or when the DB is reset
             $this->dbAddUser([
                 "userName" => "SuperAdmin",
                 "userPassword" => "SuperAdminPass",
