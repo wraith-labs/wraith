@@ -450,14 +450,15 @@ class DBManager {
 
         // Remove all Wraith entries where the last heartbeat time is older than
         // the $SETTINGS["wraithMarkOfflineDelay"]
-        $statement = $this->db->prepare("DELETE FROM `WraithAPI_ActiveWraiths`
-            WHERE `lastHeartbeatTime` < :earliestValidHeartbeat");
+        $SQL = "DELETE FROM `WraithAPI_ActiveWraiths` WHERE `lastHeartbeatTime` < ?";
 
-        // Get the unix timestamp for $SETTINGS["wraithMarkOfflineDelay"] seconds ago
-        $earliestValidHeartbeat = time()-$SETTINGS["wraithMarkOfflineDelay"];
-        $statement->bindParam(":earliestValidHeartbeat", $earliestValidHeartbeat);
+        $params = [
+            // Get the unix timestamp for $SETTINGS["wraithMarkOfflineDelay"] seconds ago
+            // TODO - fix the settings source ($SETTINGS is not a thing)
+            $earliestValidHeartbeat = time()-$SETTINGS["wraithMarkOfflineDelay"]
+        ];
 
-        $statement->execute();
+        $this->SQLExec($SQL, $params);
 
     }
 
