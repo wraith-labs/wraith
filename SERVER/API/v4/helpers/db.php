@@ -633,7 +633,40 @@ class DBManager {
     // Get a list of users and their properties
     function dbGetUsers($filter = [], $limit = -1, $offset = -1) {
 
-        // TODO
+        $validFilterColumnNames = [
+            "userName",
+            "userPassword",
+            "userPrivileges",
+            "userFailedLoginsTimeoutStart"
+        ];
+
+        $SQL = "SELECT * FROM WraithAPI_Users";
+
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
+
+        // Get a list of users from the database
+        $usersDB = $statement->fetchAll();
+
+        $users = [];
+
+        foreach ($usersDB as $user) {
+
+            // Move the userName to a separate variable
+            $userName = $user["userName"];
+            unset($user["userName"]);
+
+            $users[$userName] = $user;
+
+        }
+
+        return $users;
 
     }
 
