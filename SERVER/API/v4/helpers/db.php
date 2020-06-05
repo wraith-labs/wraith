@@ -500,13 +500,14 @@ class DBManager {
     function dbSetSetting($name, $value) {
 
         // Update setting value
-        $statement = $this->db->prepare("UPDATE WraithAPI_Settings
-            SET `value` = :value WHERE `key` = :setting;");
+        $SQL = "UPDATE WraithAPI_Settings SET `value` = ? WHERE `key` = ?;";
 
-        $statement->bindParam(":setting", $setting);
-        $statement->bindParam(":value", $value);
+        $params = [
+            $value,
+            $name
+        ]
 
-        $statement->execute();
+        $this->SQLExec($SQL, $params);
 
     }
 
