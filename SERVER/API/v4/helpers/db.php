@@ -641,7 +641,15 @@ class DBManager {
     // Change username
     function dbChangeUserName($currentUsername, $newUsername) {
 
-        // TODO
+        // Update userName value
+        $SQL = "UPDATE WraithAPI_Users SET `userName` = ? WHERE `userName` = ?;";
+
+        $params = [
+            $newUsername,
+            $currentUsername
+        ];
+
+        $this->SQLExec($SQL, $params);
 
     }
 
