@@ -104,10 +104,10 @@ class DBManager {
             );",
             // SESSIONS Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
-                `sessionID` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
                 `username` TEXT,
                 `sessionToken` TEXT,
-                `lastSessionHeartbeat` TEXT
+                `lastHeartbeatTime` TEXT
             );",
             // SETTINGS entries
             "INSERT INTO `WraithAPI_Settings` VALUES (
