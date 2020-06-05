@@ -411,11 +411,11 @@ class DBManager {
         $statement = $this->SQLExec($SQL, $params);
 
         // Get a list of wraiths from the database
-        $wraiths_db = $statement->fetchAll();
+        $wraithsDB = $statement->fetchAll();
 
         $wraiths = [];
 
-        foreach ($wraiths_db as $wraith) {
+        foreach ($wraithsDB as $wraith) {
 
             // Move the assigned ID to a separate variable
             $wraithID = $wraith["assignedID"];
@@ -545,42 +545,6 @@ class DBManager {
     }
 
     // USERS TABLE MANAGEMENT (public)
-
-    /*
-
-    // Check whether a user account exists
-    // There has to be a way to manage the API so if there are no users,
-    // create one.
-    try {
-
-        $API_USERS = $db->query("SELECT * FROM WraithAPI_Users")->fetchAll();
-
-        if (sizeof($API_USERS) == 0) {
-            throw new Exception("");
-        }
-
-    } catch (Exception $e) {
-
-        // Create default super admin user
-
-        $userCreationCommand = "INSERT INTO `WraithAPI_Users` (
-            `userName`,
-            `userPassword`,
-            `userPrivileges`
-        ) VALUES (
-            'SuperAdmin',
-            '" . password_hash("SuperAdminPassword", PASSWORD_BCRYPT) . "',
-            '2'
-        );";
-
-        $db->exec($userCreationCommand);
-
-    }
-
-    // Set the global API_USERS variable
-    $API_USERS = $db->query("SELECT * FROM WraithAPI_Users")->fetchAll();
-
-    */
 
     // Create a new user
     function dbAddUser($data) {
@@ -748,11 +712,11 @@ class DBManager {
     function dbGetSessions($filter = [], $limit = -1, $offset = -1) {
 
         // Get a list of sessions from the database
-        $sessions_db = $this->db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
+        $sessionsDB = $this->db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
 
         $sessions = [];
 
-        foreach ($sessions_db as $session) {
+        foreach ($sessionsDB as $session) {
 
             // Move the session ID to a separate variable
             $sessionID = $session["sessionID"];
@@ -817,11 +781,11 @@ class DBManager {
     function dbGetStats($filter = [], $limit = -1, $offset = -1) {
 
         // Get a list of statistics from the database
-        $stats_db = $this->db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
+        $statsDB = $this->db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
 
         $stats = [];
 
-        foreach ($stats_db as $stat) {
+        foreach ($statsDB as $stat) {
 
             $key = $stat["key"];
 
