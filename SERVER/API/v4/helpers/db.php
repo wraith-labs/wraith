@@ -610,7 +610,23 @@ class DBManager {
     // Delete a user
     function dbRemoveUsers($filter = [], $limit = -1, $offset = -1) {
 
-        // TODO
+        $validFilterColumnNames = [
+            "userName",
+            "userPassword",
+            "userPrivileges",
+            "userFailedLoginsTimeoutStart"
+        ];
+
+        $SQL = "DELETE FROM `WraithAPI_Users`";
+
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
 
     }
 
