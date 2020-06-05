@@ -505,7 +505,7 @@ class DBManager {
         $params = [
             $value,
             $name
-        ]
+        ];
 
         $this->SQLExec($SQL, $params);
 
