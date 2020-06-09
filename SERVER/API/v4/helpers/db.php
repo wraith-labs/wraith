@@ -605,6 +605,7 @@ class DBManager {
             "userName",
             "userPassword",
             "userPrivileges",
+            "userFailedLogins",
             "userFailedLoginsTimeoutStart"
         ];
 
@@ -657,8 +658,8 @@ class DBManager {
     function dbVerifyUserPass($username, $password) {
 
         $user = $this->dbGetUsers([
-            "userName" => $username
-        ])[0];
+            "userName" => [$username]
+        ])[$username];
 
         return password_verify($password, $user["userPassword"]);
 
