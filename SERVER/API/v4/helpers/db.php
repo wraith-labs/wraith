@@ -683,7 +683,15 @@ class DBManager {
     // Change user privilege level (0=User, 1=Admin, 2=SuperAdmin)
     function dbChangeUserPrivilege($username, $newPrivilegeLevel) {
 
-        // TODO
+        // Update userPassword value
+        $SQL = "UPDATE WraithAPI_Users SET `userPrivileges` = ? WHERE `userName` = ?;";
+
+        $params = [
+            $newPrivilegeLevel,
+            $username
+        ];
+
+        $this->SQLExec($SQL, $params);
 
     }
 
