@@ -656,7 +656,11 @@ class DBManager {
     // Verify that a user password is correct
     function dbVerifyUserPass($username, $password) {
 
-        // TODO
+        $user = $this->dbGetUsers([
+            "userName" => $username
+        ])[0];
+
+        return password_verify($password, $user["userPassword"]);
 
     }
 
