@@ -667,7 +667,16 @@ class DBManager {
     // Change user password
     function dbChangeUserPass($username, $newPassword) {
 
-        // TODO
+        // Update userPassword value
+        $SQL = "UPDATE WraithAPI_Users SET `userPassword` = ? WHERE `userName` = ?;";
+
+        $params = [
+            password_hash($newPassword, PASSWORD_BCRYPT),
+            $username
+        ];
+
+        $this->SQLExec($SQL, $params);
+
 
     }
 
