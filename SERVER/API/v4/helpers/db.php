@@ -458,8 +458,7 @@ class DBManager {
 
         $params = [
             // Get the unix timestamp for $SETTINGS["wraithMarkOfflineDelay"] seconds ago
-            // TODO - fix the settings source ($SETTINGS is not a thing)
-            $earliestValidHeartbeat = time()-$SETTINGS["wraithMarkOfflineDelay"]
+            $earliestValidHeartbeat = time()-$this->dbGetSettings(["key" => "wraithMarkOfflineDelay"])["wraithMarkOfflineDelay"]
         ];
 
         $this->SQLExec($SQL, $params);
