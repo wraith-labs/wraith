@@ -552,6 +552,27 @@ class DBManager {
     // Create a new user
     function dbAddUser($data) {
 
+        // Check parameters and set defaults
+
+        if (!(array_key_exists("userName", $data))) {
+
+            // The userName has no default value and is required
+            return false;
+
+        } elseif (!(array_key_exists("userPassword", $data))) {
+
+            // The userPassword has no default value and is required
+            return false;
+
+        } elseif (!(array_key_exists("userPrivilegeLevel", $data))) {
+
+            $data["userPrivilegeLevel"] = 0;
+
+        }
+
+        // Hash the password
+        $data["userPassword"] = password_hash($data["userPassword"], PASSWORD_BCRYPT);
+
         $this->SQLExec("INSERT INTO `WraithAPI_Users` (
                 `userName`,
                 `userPassword`,
@@ -567,7 +588,7 @@ class DBManager {
             );",
             [
                 $data["userName"],
-                password_hash($data["userPassword"], PASSWORD_BCRYPT),
+                $data["userPassword"],
                 $data["userPrivilegeLevel"]
             ]
         );
@@ -677,7 +698,6 @@ class DBManager {
 
         $this->SQLExec($SQL, $params);
 
-
     }
 
     // Change user privilege level (0=User, 1=Admin, 2=SuperAdmin)
@@ -700,31 +720,45 @@ class DBManager {
     // Create a session for a user
     function dbAddSession($data) {
 
-        $statement = $this->db->prepare("INSERT INTO `WraithAPI_Sessions` (
-            `sessionID`,
-            `username`,
-            `sessionToken`,
-            `lastSessionHeartbeat`
-        ) VALUES (
-            :sessionID,
-            :username,
-            :sessionToken,
-            :lastSessionHeartbeat
-        )");
+        // Check parameters and set defaults
 
-        // Create session variables
-        $sessionID = uniqid();
-        $sessionToken = bin2hex(random_bytes(25));
-        $lastSessionHeartbeat = time();
+        if (!(array_key_exists("assignedID", $data))) {
 
-        $statement->bindParam(":username", $username);
-        $statement->bindParam(":sessionID", $sessionID);
-        $statement->bindParam(":sessionToken", $sessionToken);
-        $statement->bindParam(":lastSessionHeartbeat", $lastSessionHeartbeat);
+            $data["assignedID"] = uniqid();
 
-        $statement->execute();
+        } elseif (!(array_key_exists("username", $data))) {
 
-        return $sessionID;
+            // The username has no default value and is required
+            return false;
+
+        } elseif (!(array_key_exists("sessionToken", $data))) {
+
+            $data["sessionToken"] = bin2hex(random_bytes(25));
+
+        } elseif (!(array_key_exists("lastHeartbeatTime", $data))) {
+
+            $data["lastHeartbeatTime"] = time();
+
+        }
+
+        $this->SQLExec("INSERT INTO `WraithAPI_Users` (
+                `assignedID`,
+                `username`,
+                `sessionToken`,
+                `lastHeartbeatTime`
+            ) VALUES (
+                ?,
+                ?,
+                ?,
+                '0'
+            );",
+            [
+                $data["assignedID"],
+                $data["username"],
+                $data["sessionToken"],
+                $data["lastHeartbeatTime"]
+            ]
+        );
 
     }
 
