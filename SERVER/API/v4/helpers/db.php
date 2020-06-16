@@ -788,13 +788,23 @@ class DBManager {
     // Delete a session
     function dbRemoveSessions($filter = [], $limit = -1, $offset = -1) {
 
-        // Remove the session with the specified ID
-        $statement = $this->db->prepare("DELETE FROM `WraithAPI_Sessions`
-            WHERE `sessionID` = :sessionID");
+        $validFilterColumnNames = [
+            "assignedID",
+            "username",
+            "sessionToken",
+            "lastHeartbeatTime"
+        ];
 
-        $statement->bindParam(":sessionID", $sessionID);
+        $SQL = "DELETE FROM `WraithAPI_Sessions`";
 
-        $statement->execute();
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
 
     }
 
