@@ -342,6 +342,31 @@ class DBManager {
     // Add a Wraith to the database
     function dbAddWraith($data) {
 
+        // Check parameters and set defaults
+        if (!(array_key_exists("assignedID", $data))) {
+
+            $data["assignedID"] = uniqid();
+
+        } elseif (!(array_key_exists("hostProperties", $data))) {
+
+            // The hostProperties have no default value and are required
+            return false;
+
+        } elseif (!(array_key_exists("wraithProperties", $data))) {
+
+            // The wraithProperties have no default value and are required
+            return false;
+
+        } elseif (!(array_key_exists("lastHeartbeatTime", $data))) {
+
+            $data["lastHeartbeatTime"] = time();
+
+        } elseif (!(array_key_exists("issueCommands", $data))) {
+
+            $data["issuedCommands"] = [];
+
+        }
+
         $SQL = "INSERT INTO `WraithAPI_ActiveWraiths` (
                 `assignedID`,
                 `hostProperties`,
@@ -358,10 +383,10 @@ class DBManager {
 
         $params = [
             $data["assignedID"],
-            $data["hostProperties"],
-            $data["wraithProperties"],
+            json_encode($data["hostProperties"]),
+            json_encode($data["wraithProperties"]),
             $data["lastHeartbeatTime"],
-            $data["issuedCommands"],
+            json_encode($data["issuedCommands"]),
         ];
 
         $this->SQLExec($SQL, $params);
@@ -553,7 +578,6 @@ class DBManager {
     function dbAddUser($data) {
 
         // Check parameters and set defaults
-
         if (!(array_key_exists("userName", $data))) {
 
             // The userName has no default value and is required
@@ -721,7 +745,6 @@ class DBManager {
     function dbAddSession($data) {
 
         // Check parameters and set defaults
-
         if (!(array_key_exists("assignedID", $data))) {
 
             $data["assignedID"] = uniqid();
