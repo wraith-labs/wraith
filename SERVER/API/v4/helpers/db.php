@@ -811,18 +811,36 @@ class DBManager {
     // Get a list of all sessions
     function dbGetSessions($filter = [], $limit = -1, $offset = -1) {
 
+        $validFilterColumnNames = [
+            "assignedID",
+            "username",
+            "sessionToken",
+            "lastHeartbeatTime"
+        ];
+
+        $SQL = "SELECT * FROM WraithAPI_Sessions";
+
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
+
         // Get a list of sessions from the database
-        $sessionsDB = $this->db->query("SELECT * FROM WraithAPI_Sessions")->fetchAll();
+        $sessionsDB = $statement->fetchAll();
 
         $sessions = [];
 
         foreach ($sessionsDB as $session) {
 
             // Move the session ID to a separate variable
-            $sessionID = $session["sessionID"];
-            unset($session["sessionID"]);
+            $assignedID = $session["assignedID"];
+            unset($session["assignedID"]);
 
-            $sessions[$sessionID] = $session;
+            $sessions[$assignedID] = $session;
 
         }
 
