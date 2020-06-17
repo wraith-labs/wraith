@@ -104,6 +104,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     require_once("helpers/crypto.php");  // Encryption and decryption
     require_once("helpers/misc.php");    // Miscellaneous
 
+    // Create an instance of the database manager
+    $dbm = new DBManager();
+
     // To keep all stats up to-date, and avoid performing actions on disconnected
     // Wraiths, expire any that have not had a heartbeat in a while first.
     dbExpireWraiths();
@@ -204,6 +207,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     require_once("helpers/misc.php");    // Miscellaneous
     // Import protocol handlers
     foreach (glob("helpers/protocols/proto_v_*.php") as $protoHandler) { include($protoHandler); }
+
+    // Create an instance of the database manager
+    $dbm = new DBManager();
 
     // To keep all stats up to-date, and avoid performing actions on disconnected
     // Wraiths, expire any that have not had a heartbeat in a while first.

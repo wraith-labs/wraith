@@ -909,6 +909,3 @@ class DBManager {
     }
 
 }
-
-// Create an instance of the database manager
-$dbm = new DBManager();
