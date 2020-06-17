@@ -892,42 +892,6 @@ class DBManager {
 
     }
 
-    // STATS TABLE MANAGEMENT (public)
-
-    // Update a statistic
-    function dbSetStat($name, $value) {
-
-        // Update a stat
-        $statement = $this->db->prepare("UPDATE WraithAPI_Stats
-            SET `value` = :value WHERE `key` = :stat;");
-
-        $statement->bindParam(":stat", $stat);
-        $statement->bindParam(":value", $value);
-
-        $statement->execute();
-
-    }
-
-    // Update a statistic
-    function dbGetStats($filter = [], $limit = -1, $offset = -1) {
-
-        // Get a list of statistics from the database
-        $statsDB = $this->db->query("SELECT * FROM WraithAPI_Stats")->fetchAll();
-
-        $stats = [];
-
-        foreach ($statsDB as $stat) {
-
-            $key = $stat["key"];
-
-            $stats[$key] = $stat["value"];
-
-        }
-
-        return $stats;
-
-    }
-
     // MISC
 
     // Re-generate the first-layer encryption key for management sessions
