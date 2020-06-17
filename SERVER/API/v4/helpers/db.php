@@ -898,11 +898,11 @@ class DBManager {
     function dbRegenMgmtCryptKeyIfNoSessions() {
 
         // If there are no active sessions
-        $allSessions = dbGetSessions();
+        $allSessions = $this->dbGetSessions();
         if (sizeof($allSessions) == 0) {
 
             // Update the first layer encryption key
-            dbSetSetting("managementFirstLayerEncryptionKey", bin2hex(random_bytes(25)));
+            $this->dbSetSetting("managementFirstLayerEncryptionKey", bin2hex(random_bytes(25)));
 
         }
 
