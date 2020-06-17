@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Define a function to respond to the client
     function respond($response) {
 
-        global $db, $crypt, $cryptKey;
+        global $crypt, $cryptKey;
 
         // Set the text/plain content type header so proxies and browsers
         // don't try interpreting responses
@@ -82,9 +82,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             $message = json_encode($response);
 
         }
-
-        // Close the database connection when exiting
-        $db = NULL;
 
         // Finally, send the response and exit
         die($message);
@@ -109,16 +106,16 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     // To keep all stats up to-date, and avoid performing actions on disconnected
     // Wraiths, expire any that have not had a heartbeat in a while first.
-    dbExpireWraiths();
+    $dbm->dbExpireWraiths();
 
     // Expire any manager sessions which have not had a heartbeat recently for
     // security and to prevent sessions from sticking around because a user
     // forgot to log out.
-    dbExpireSessions();
+    $dbm->dbExpireSessions();
 
     // Re-generate the first-layer encryption key for management
     // sessions for better security (only if there are no active sessions)
-    dbRegenMgmtCryptKeyIfNoSessions();
+    $dbm->dbRegenMgmtCryptKeyIfNoSessions();
 
     // Get the request body to verify the credentials
     $reqBody = file_get_contents("php://input");
@@ -144,7 +141,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $credentials[1] = $crypt->decrypt($credentials[1], $credentials[0] . "wraithCredentials");
 
     // Check whether the username is indeed a valid user account
-    foreach ($API_USERS as $id => $user) {
+    foreach ($dbm->dbGetUsers() as $id => $user) {
 
         // If the username exists in the database
         if ($credentials[0] === $user["userName"]) {
@@ -154,11 +151,12 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
                 // If the username exists and matches the password,
                 // create a session for the user
-                $sessionID = dbCreateSession($user["userName"]);
+                $sessionID = $dbm->dbAddSession($user["userName"]);
 
                 // Get the information of the session
-                $allSessions = dbGetSessions();
-                $thisSession = $allSessions[$sessionID];
+                $thisSession = $dbm->dbGetSessions([
+                    "assignedID" => [$sessionID]
+                ])[$sessionID];
 
                 // Encrypt the response with the password of the user. This
                 // is again not too secure but we're mainly relying on SSL
@@ -170,11 +168,11 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                     "config" => [
                         "sessionID" => $sessionID,
                         "sessionToken" => $thisSession["sessionToken"],
-                        "updateInterval" => $SETTINGS["managementSessionExpiryDelay"] / 3,
-                        "APIPrefix" => $SETTINGS["APIPrefix"],
-                        "firstLayerEncryptionKey" => dbGetSetting("managementFirstLayerEncryptionKey"),
+                        "updateInterval" => $dbm->dbGetSetting(["key" => ["managementSessionExpiryDelay"]])["managementSessionExpiryDelay"] / 3,
+                        "APIPrefix" => $dbm->dbGetSetting(["key" => ["APIPrefix"]])["APIPrefix"],
+                        "firstLayerEncryptionKey" => $dbm->dbGetSetting(["key" => ["managementFirstLayerEncryptionKey"]])["managementFirstLayerEncryptionKey"],
                         "APIVersion" => API_VERSION,
-                        "APIFingerprint" => $SETTINGS["APIFingerprint"],
+                        "APIFingerprint" => $dbm->dbGetSetting(["key" => ["APIFingerprint"]])["APIFingerprint"],
                     ],
                 ];
                 // ...and send it
