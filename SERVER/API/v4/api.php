@@ -141,44 +141,42 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $credentials[1] = $crypt->decrypt($credentials[1], $credentials[0] . "wraithCredentials");
 
     // Check whether the username is indeed a valid user account
-    foreach ($dbm->dbGetUsers() as $id => $user) {
+    $user = $dbm->dbGetUsers(["userName" => [$credentials[0]]]);
 
-        // If the username exists in the database
-        if ($credentials[0] === $user["userName"]) {
+    // If the username exists in the database
+    if (array_key_exists($credentials[0], $user)) {
 
-            // Check whether the password matches
-            if (password_verify($credentials[1], $user["userPassword"])) {
+        // Check whether the password matches
+        if ($dbm->dbVerifyUserPass($credentials[0], $credentials[1])) {
 
-                // If the username exists and matches the password,
-                // create a session for the user
-                $sessionID = $dbm->dbAddSession($user["userName"]);
+            // If the username exists and matches the password,
+            // create a session for the user
+            $sessionID = $dbm->dbAddSession($credentials[0]);
 
-                // Get the information of the session
-                $thisSession = $dbm->dbGetSessions([
-                    "assignedID" => [$sessionID]
-                ])[$sessionID];
+            // Get the information of the session
+            $thisSession = $dbm->dbGetSessions([
+                "assignedID" => [$sessionID]
+            ])[$sessionID];
 
-                // Encrypt the response with the password of the user. This
-                // is again not too secure but we're mainly relying on SSL
-                $cryptKey = $credentials[1];
+            // Encrypt the response with the password of the user. This
+            // is again not too secure but we're mainly relying on SSL
+            $cryptKey = $credentials[1];
 
-                // Generate a response to be sent
-                $response = [
-                    "status" => "SUCCESS",
-                    "config" => [
-                        "sessionID" => $sessionID,
-                        "sessionToken" => $thisSession["sessionToken"],
-                        "updateInterval" => $dbm->dbGetSettings(["key" => ["managementSessionExpiryDelay"]])["managementSessionExpiryDelay"] / 3,
-                        "APIPrefix" => $dbm->dbGetSettings(["key" => ["APIPrefix"]])["APIPrefix"],
-                        "firstLayerEncryptionKey" => $dbm->dbGetSettings(["key" => ["managementFirstLayerEncryptionKey"]])["managementFirstLayerEncryptionKey"],
-                        "APIVersion" => constant("API_VERSION"),
-                        "APIFingerprint" => $dbm->dbGetSettings(["key" => ["APIFingerprint"]])["APIFingerprint"]
-                    ],
-                ];
-                // ...and send it
-                respond($response);
-
-            }
+            // Generate a response to be sent
+            $response = [
+                "status" => "SUCCESS",
+                "config" => [
+                    "sessionID" => $sessionID,
+                    "sessionToken" => $thisSession["sessionToken"],
+                    "updateInterval" => $dbm->dbGetSettings(["key" => ["managementSessionExpiryDelay"]])["managementSessionExpiryDelay"] / 3,
+                    "APIPrefix" => $dbm->dbGetSettings(["key" => ["APIPrefix"]])["APIPrefix"],
+                    "firstLayerEncryptionKey" => $dbm->dbGetSettings(["key" => ["managementFirstLayerEncryptionKey"]])["managementFirstLayerEncryptionKey"],
+                    "APIVersion" => constant("API_VERSION"),
+                    "APIFingerprint" => $dbm->dbGetSettings(["key" => ["APIFingerprint"]])["APIFingerprint"]
+                ],
+            ];
+            // ...and send it
+            respond($response);
 
         }
 
