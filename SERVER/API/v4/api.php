@@ -168,11 +168,11 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                     "config" => [
                         "sessionID" => $sessionID,
                         "sessionToken" => $thisSession["sessionToken"],
-                        "updateInterval" => $dbm->dbGetSetting(["key" => ["managementSessionExpiryDelay"]])["managementSessionExpiryDelay"] / 3,
-                        "APIPrefix" => $dbm->dbGetSetting(["key" => ["APIPrefix"]])["APIPrefix"],
-                        "firstLayerEncryptionKey" => $dbm->dbGetSetting(["key" => ["managementFirstLayerEncryptionKey"]])["managementFirstLayerEncryptionKey"],
+                        "updateInterval" => $dbm->dbGetSettings(["key" => ["managementSessionExpiryDelay"]])["managementSessionExpiryDelay"] / 3,
+                        "APIPrefix" => $dbm->dbGetSettings(["key" => ["APIPrefix"]])["APIPrefix"],
+                        "firstLayerEncryptionKey" => $dbm->dbGetSettings(["key" => ["managementFirstLayerEncryptionKey"]])["managementFirstLayerEncryptionKey"],
                         "APIVersion" => constant("API_VERSION"),
-                        "APIFingerprint" => $dbm->dbGetSetting(["key" => ["APIFingerprint"]])["APIFingerprint"]
+                        "APIFingerprint" => $dbm->dbGetSettings(["key" => ["APIFingerprint"]])["APIFingerprint"]
                     ],
                 ];
                 // ...and send it
@@ -231,7 +231,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // response and add the prefix
         if (isset($crypt) && isset($cryptKey)) {
 
-            $message = $dbm->dbGetSetting(["key" => ["APIPrefix"]])["APIPrefix"] . $crypt->encrypt(json_encode($response), $cryptKey);
+            $message = $dbm->dbGetSettings(["key" => ["APIPrefix"]])["APIPrefix"] . $crypt->encrypt(json_encode($response), $cryptKey);
 
         } else {
 
@@ -245,7 +245,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     // Check if the requesting IP is blacklisted. If so, reject the request
     $requesterIP = getClientIP();
-    $IPBlacklist = json_decode($dbm->dbGetSetting(["key" => ["requestIPBlacklist"]])["requestIPBlacklist"]);
+    $IPBlacklist = json_decode($dbm->dbGetSettings(["key" => ["requestIPBlacklist"]])["requestIPBlacklist"]);
     if (in_array($requesterIP, $IPBlacklist)) {
 
         $response = [
@@ -267,7 +267,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     // Find if the request starts with the pre-defined prefix. If not,
     // it is invalid.
-    if (strpos($reqBody, $dbm->dbGetSetting(["key" => ["APIPrefix"]])["APIPrefix"]) !== 0) {
+    if (strpos($reqBody, $dbm->dbGetSettings(["key" => ["APIPrefix"]])["APIPrefix"]) !== 0) {
 
         $response = [
             "status" => "ERROR",
@@ -282,7 +282,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Odd == Wraith
     // Even == Manager
     // First, check if the character after the prefix is a non-zero integer
-    $reqIdentificationChar = $reqBody[strlen($dbm->dbGetSetting(["key" => ["APIPrefix"]])["APIPrefix"])];
+    $reqIdentificationChar = $reqBody[strlen($dbm->dbGetSettings(["key" => ["APIPrefix"]])["APIPrefix"])];
     if ($reqIdentificationChar % 10 === 0) {
 
         // 0 is only returned by non-integer characters or 0 itself
@@ -318,7 +318,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // The next char indicates the protocol version that the requester is using.
     // This should be checked against the protocol versions we support and the
     // request should be rejected if the protocol is unsupported.
-    $reqProtocolvChar = $reqBody[strlen($dbm->dbGetSetting(["key" => ["APIPrefix"]])["APIPrefix"])+1];
+    $reqProtocolvChar = $reqBody[strlen($dbm->dbGetSettings(["key" => ["APIPrefix"]])["APIPrefix"])+1];
     if (!(in_array($reqProtocolvChar, $SUPPORTED_PROTOCOL_VERSIONS))) {
 
         $response = [
@@ -336,7 +336,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Now that we know that the request is valid and whether it comes from a
     // Wraith or manager, as well as the protocol version in use, we can get rid of
     // the header from the message.
-    $reqBody = substr($reqBody, strlen($dbm->dbGetSetting(["key" => ["APIPrefix"]])["APIPrefix"])+2);
+    $reqBody = substr($reqBody, strlen($dbm->dbGetSettings(["key" => ["APIPrefix"]])["APIPrefix"])+2);
 
     // The remainder of the request should simply be the encrypted data
     // This needs to be decrypted using the correct decryption key which
@@ -354,7 +354,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // try decrypting with both.
 
         // Decrypt with the switch key first as this will be used more often
-        $data = $crypt->decrypt($reqBody, $dbm->dbGetSetting(["key" => ["wraithSwitchCryptKey"]])["wraithSwitchCryptKey"]);
+        $data = $crypt->decrypt($reqBody, $dbm->dbGetSettings(["key" => ["wraithSwitchCryptKey"]])["wraithSwitchCryptKey"]);
 
         // Try JSON decoding the decrypted data
         $data = json_decode($data, true);
@@ -363,7 +363,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         if ($data === null) {
 
             // In case we have used the wrong key, try the default key instead
-            $data = $crypt->decrypt($reqBody, $dbm->dbGetSetting(["key" => ["wraithInitialCryptKey"]])["wraithInitialCryptKey"]);
+            $data = $crypt->decrypt($reqBody, $dbm->dbGetSettings(["key" => ["wraithInitialCryptKey"]])["wraithInitialCryptKey"]);
 
             // Try JSON decoding the decrypted data
             $data = json_decode($data, true);
@@ -380,14 +380,14 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             } else {
 
                 // If this worked, use the default key for the response from now on
-                $cryptKey = $dbm->dbGetSetting(["key" => ["wraithInitialCryptKey"]])["wraithInitialCryptKey"];
+                $cryptKey = $dbm->dbGetSettings(["key" => ["wraithInitialCryptKey"]])["wraithInitialCryptKey"];
 
             }
 
         } else {
 
             // If this worked, use the switch key for the response from now on
-            $cryptKey = $dbm->dbGetSetting(["key" => ["wraithSwitchCryptKey"]])["wraithSwitchCryptKey"];
+            $cryptKey = $dbm->dbGetSettings(["key" => ["wraithSwitchCryptKey"]])["wraithSwitchCryptKey"];
 
         }
 
@@ -437,7 +437,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // using the session token attached to the session ID in the database.
 
         // Decrypt with the first layer key
-        $data = $crypt->decrypt($reqBody, $dbm->dbGetSetting(["key" => ["managementFirstLayerEncryptionKey"]])["managementFirstLayerEncryptionKey"]);
+        $data = $crypt->decrypt($reqBody, $dbm->dbGetSettings(["key" => ["managementFirstLayerEncryptionKey"]])["managementFirstLayerEncryptionKey"]);
 
         // Try JSON decoding the decrypted data
         $data = json_decode($data, true);

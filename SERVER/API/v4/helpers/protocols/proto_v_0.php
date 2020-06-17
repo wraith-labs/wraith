@@ -34,7 +34,7 @@ class Handler_proto_v_0 {
 
         // If the handler was created, the client has passed all checks
         // so it is safe to add the API fingerprint to the response
-        $this->response["APIFingerprint"] = $this->dbm->dbGetSetting(["key" => ["APIFingerprint"]])["APIFingerprint"];
+        $this->response["APIFingerprint"] = $this->dbm->dbGetSettings(["key" => ["APIFingerprint"]])["APIFingerprint"];
 
         // Determine if the client is a manager or Wraith
         if ($this->cType === "wraith") {
@@ -97,7 +97,7 @@ class Handler_proto_v_0 {
 
                 // Add an encryption key switch command to switch to a
                 // more secure, non-hard-coded encryption key
-                $this->response["switchKey"] = $dbm->dbGetSetting(["key" => ["wraithSwitchCryptKey"]])["wraithSwitchCryptKey"];
+                $this->response["switchKey"] = $dbm->dbGetSettings(["key" => ["wraithSwitchCryptKey"]])["wraithSwitchCryptKey"];
 
                 // Respond
                 return;
@@ -141,7 +141,7 @@ class Handler_proto_v_0 {
                     "activeWraiths" => sizeof($this->dbm->dbGetWraiths()),
                     // The following is a lot of information disclosure if someone
                     // unauthenticated is able to fetch it. Be careful!
-                    "settings" => $this->dbm->dbGetSetting(),
+                    "settings" => $this->dbm->dbGetSettings(),
                     "users" => $this->dbm->dbGetUsers(),
                 ];
                 $this->response["status"] = "SUCCESS";
