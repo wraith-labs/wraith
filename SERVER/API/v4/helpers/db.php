@@ -459,13 +459,16 @@ class DBManager {
     }
 
     // Update the Wraith last heartbeat time
-    function dbUpdateWraithLastHeartbeat($assignedID) {
+    function dbUpdateWraithLastHeartbeat($assignedID, $timeToSet = NULL) {
+
+        // Set $timeToSet to the current time if no value was passed
+        $timeToSet = isset($timeToSet) ? $timeToSet : time();
 
         // Update the last heartbeat time to the current time
         $SQL = "UPDATE WraithAPI_ActiveWraiths SET `lastHeartbeatTime` = ? WHERE `assignedID` = ?;";
 
         $params = [
-            time(),
+            $timeToSet,
             $assignedID
         ];
 
