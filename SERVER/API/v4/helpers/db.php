@@ -391,6 +391,8 @@ class DBManager {
 
         $this->SQLExec($SQL, $params);
 
+        return $data["assignedID"];
+
     }
 
     // Remove Wraith(s)
@@ -620,6 +622,8 @@ class DBManager {
             ]
         );
 
+        return $data["userName"];
+
     }
 
     // Delete a user
@@ -785,6 +789,8 @@ class DBManager {
                 $data["lastHeartbeatTime"]
             ]
         );
+
+        return $data["assignedID"];
 
     }
 
