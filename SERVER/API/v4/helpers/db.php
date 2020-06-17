@@ -194,7 +194,7 @@ class DBManager {
         $this->db->commit();
 
         // Close the database connection
-        $this->db = NULL;
+        $this->db = null;
 
     }
 
@@ -459,7 +459,7 @@ class DBManager {
     }
 
     // Update the Wraith last heartbeat time
-    function dbUpdateWraithLastHeartbeat($assignedID, $timeToSet = NULL) {
+    function dbUpdateWraithLastHeartbeat($assignedID, $timeToSet = null) {
 
         // Set $timeToSet to the current time if no value was passed
         $timeToSet = isset($timeToSet) ? $timeToSet : time();
@@ -852,7 +852,7 @@ class DBManager {
     }
 
     // Update the session last heartbeat time
-    function dbUpdateSessionLastHeartbeat($assignedID, $timeToSet = NULL) {
+    function dbUpdateSessionLastHeartbeat($assignedID, $timeToSet = null) {
 
         // Set $timeToSet to the current time if no value was passed
         $timeToSet = isset($timeToSet) ? $timeToSet : time();
