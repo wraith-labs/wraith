@@ -273,7 +273,7 @@ class DBManager {
     private function isDatabasePostInit() {
 
         // Check if the DB_INIT_INDICATOR table exists
-        $statement = $this->SQLExec("SELECT name FROM sqlite_master WHERE type='table' AND name='DB_INIT_INDICATOR' LIMIT 1;");
+        $statement = $this->SQLExec("SELECT name FROM sqlite_master WHERE type='table' AND name='DB_INIT_INDICATOR' LIMIT 1");
 
         // Convert the result into a boolean
         // The result will be an array of all tables named "DB_INIT_INDICATOR"
@@ -324,7 +324,7 @@ class DBManager {
 
         // The following will generate an array of SQL commands which will
         // delete every table in the database
-        $statement = $this->SQLExec("SELECT 'DROP TABLE ' || name ||';' FROM sqlite_master WHERE type = 'table';");
+        $statement = $this->SQLExec("SELECT 'DROP TABLE ' || name ||';' FROM sqlite_master WHERE type = 'table'");
 
         // Get the SQL commands
         $commands = $statement->fetchAll();
@@ -465,7 +465,7 @@ class DBManager {
         $timeToSet = isset($timeToSet) ? $timeToSet : time();
 
         // Update the last heartbeat time to the current time
-        $SQL = "UPDATE WraithAPI_ActiveWraiths SET `lastHeartbeatTime` = ? WHERE `assignedID` = ?;";
+        $SQL = "UPDATE WraithAPI_ActiveWraiths SET `lastHeartbeatTime` = ? WHERE `assignedID` = ?";
 
         $params = [
             $timeToSet,
@@ -486,7 +486,7 @@ class DBManager {
 
         $params = [
             // Get the unix timestamp for $SETTINGS["wraithMarkOfflineDelay"] seconds ago
-            $earliestValidHeartbeat = time()-$this->dbGetSettings(["key" => "wraithMarkOfflineDelay"])["wraithMarkOfflineDelay"]
+            time()-$this->dbGetSettings(["key" => "wraithMarkOfflineDelay"])["wraithMarkOfflineDelay"]
         ];
 
         $this->SQLExec($SQL, $params);
@@ -531,7 +531,7 @@ class DBManager {
     function dbSetSetting($name, $value) {
 
         // Update setting value
-        $SQL = "UPDATE WraithAPI_Settings SET `value` = ? WHERE `key` = ?;";
+        $SQL = "UPDATE WraithAPI_Settings SET `value` = ? WHERE `key` = ?";
 
         $params = [
             $value,
@@ -690,7 +690,7 @@ class DBManager {
     function dbChangeUserName($currentUsername, $newUsername) {
 
         // Update userName value
-        $SQL = "UPDATE WraithAPI_Users SET `userName` = ? WHERE `userName` = ?;";
+        $SQL = "UPDATE WraithAPI_Users SET `userName` = ? WHERE `userName` = ?";
 
         $params = [
             $newUsername,
@@ -716,7 +716,7 @@ class DBManager {
     function dbChangeUserPass($username, $newPassword) {
 
         // Update userPassword value
-        $SQL = "UPDATE WraithAPI_Users SET `userPassword` = ? WHERE `userName` = ?;";
+        $SQL = "UPDATE WraithAPI_Users SET `userPassword` = ? WHERE `userName` = ?";
 
         $params = [
             password_hash($newPassword, PASSWORD_BCRYPT),
@@ -731,7 +731,7 @@ class DBManager {
     function dbChangeUserPrivilege($username, $newPrivilegeLevel) {
 
         // Update userPassword value
-        $SQL = "UPDATE WraithAPI_Users SET `userPrivileges` = ? WHERE `userName` = ?;";
+        $SQL = "UPDATE WraithAPI_Users SET `userPrivileges` = ? WHERE `userName` = ?";
 
         $params = [
             $newPrivilegeLevel,
@@ -858,7 +858,7 @@ class DBManager {
         $timeToSet = isset($timeToSet) ? $timeToSet : time();
 
         // Update the last heartbeat time to the current time
-        $SQL = "UPDATE WraithAPI_Sessions SET `lastHeartbeatTime` = ? WHERE `assignedID` = ?;";
+        $SQL = "UPDATE WraithAPI_Sessions SET `lastHeartbeatTime` = ? WHERE `assignedID` = ?";
 
         $params = [
             $timeToSet,
@@ -872,16 +872,23 @@ class DBManager {
     // Delete sessions which have not had a heartbeat recently
     function dbExpireSessions() {
 
+        // The following cannot be easily done using dbRemoveSessions
+        // as the current implementation of filters allows only for
+        // exact matches and not greater-than / less-than. For this
+        // reason, a separate SQL query is made. This can be replaced
+        // if the filters implementation ever changes to allow comparisons
+        // other than equals.
+
         // Remove all sessions where the last heartbeat time is older than
         // the $SETTINGS["managementSessionExpiryDelay"]
-        $statement = $this->db->prepare("DELETE FROM `WraithAPI_Sessions`
-            WHERE `lastSessionHeartbeat` < :earliestValidHeartbeat");
+        $SQL = "DELETE FROM `WraithAPI_Sessions` WHERE `lastHeartbeatTime` < ?";
 
-        // Get the unix timestamp for $SETTINGS["managementSessionExpiryDelay"] seconds ago
-        $earliestValidHeartbeat = time()-$SETTINGS["managementSessionExpiryDelay"];
-        $statement->bindParam(":earliestValidHeartbeat", $earliestValidHeartbeat);
+        $params = [
+            // Unix timestamp for $SETTINGS["managementSessionExpiryDelay"] seconds ago
+            time()-$this->dbGetSettings(["key" => "managementSessionExpiryDelay"])["managementSessionExpiryDelay"]
+        ];
 
-        $statement->execute();
+        $this->SQLExec($SQL, $params);
 
     }
 
