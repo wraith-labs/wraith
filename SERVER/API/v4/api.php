@@ -171,7 +171,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                         "updateInterval" => $dbm->dbGetSetting(["key" => ["managementSessionExpiryDelay"]])["managementSessionExpiryDelay"] / 3,
                         "APIPrefix" => $dbm->dbGetSetting(["key" => ["APIPrefix"]])["APIPrefix"],
                         "firstLayerEncryptionKey" => $dbm->dbGetSetting(["key" => ["managementFirstLayerEncryptionKey"]])["managementFirstLayerEncryptionKey"],
-                        "APIVersion" => API_VERSION,
+                        "APIVersion" => constant("API_VERSION"),
                         "APIFingerprint" => $dbm->dbGetSetting(["key" => ["APIFingerprint"]])["APIFingerprint"]
                     ],
                 ];
