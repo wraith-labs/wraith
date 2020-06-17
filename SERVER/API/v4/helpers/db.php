@@ -486,7 +486,7 @@ class DBManager {
 
         $params = [
             // Get the unix timestamp for $SETTINGS["wraithMarkOfflineDelay"] seconds ago
-            time()-$this->dbGetSettings(["key" => "wraithMarkOfflineDelay"])["wraithMarkOfflineDelay"]
+            time()-$this->dbGetSettings(["key" => ["wraithMarkOfflineDelay"]])["wraithMarkOfflineDelay"]
         ];
 
         $this->SQLExec($SQL, $params);
@@ -885,7 +885,7 @@ class DBManager {
 
         $params = [
             // Unix timestamp for $SETTINGS["managementSessionExpiryDelay"] seconds ago
-            time()-$this->dbGetSettings(["key" => "managementSessionExpiryDelay"])["managementSessionExpiryDelay"]
+            time()-$this->dbGetSettings(["key" => ["managementSessionExpiryDelay"]])["managementSessionExpiryDelay"]
         ];
 
         $this->SQLExec($SQL, $params);
