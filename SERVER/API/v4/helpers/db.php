@@ -789,7 +789,7 @@ class DBManager {
                 ?,
                 ?,
                 ?,
-                '0'
+                ?
             );",
             [
                 $data["assignedID"],
