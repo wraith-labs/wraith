@@ -97,7 +97,7 @@ class Handler_proto_v_0 {
 
                 // Add an encryption key switch command to switch to a
                 // more secure, non-hard-coded encryption key
-                $this->response["switchKey"] = $dbm->dbGetSettings(["key" => ["wraithSwitchCryptKey"]])["wraithSwitchCryptKey"];
+                $this->response["switchKey"] = $this->dbm->dbGetSettings(["key" => ["wraithSwitchCryptKey"]])["wraithSwitchCryptKey"];
 
                 // Respond
                 return;
