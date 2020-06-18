@@ -151,7 +151,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
             // If the username exists and matches the password,
             // create a session for the user
-            $sessionID = $dbm->dbAddSession($credentials[0]);
+            $sessionID = $dbm->dbAddSession([
+                "username" => $credentials[0]
+            ]);
 
             // Get the information of the session
             $thisSession = $dbm->dbGetSessions([
@@ -219,7 +221,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Define a function to respond to the client
     function respond($response) {
 
-        global $crypt, $cryptKey;
+        global $dbm, $crypt, $cryptKey;
 
         // Set the text/plain content type header so proxies and browsers
         // don't try interpreting responses
