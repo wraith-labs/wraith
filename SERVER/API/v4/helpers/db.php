@@ -919,16 +919,26 @@ class DBManager {
     // MISC
 
     // Re-generate the first-layer encryption key for management sessions
-    function dbRegenMgmtCryptKeyIfNoSessions() {
+    function dbRegenMgmtCryptKey($force = false) {
 
-        // If there are no active sessions
-        $allSessions = $this->dbGetSessions();
-        if (sizeof($allSessions) == 0) {
+        if (!($force)) {
 
-            // Update the first layer encryption key
-            $this->dbSetSetting("managementFirstLayerEncryptionKey", bin2hex(random_bytes(25)));
+            // Separate if statements so the database is only read if needed
+
+            // If there are active sessions
+            $allSessions = $this->dbGetSessions();
+            if (!(sizeof($allSessions) === 0)) {
+
+                return false;
+
+            }
 
         }
+
+        // Update the first layer encryption key
+        $this->dbSetSetting("managementFirstLayerEncryptionKey", bin2hex(random_bytes(25)));
+
+        return true;
 
     }
 
