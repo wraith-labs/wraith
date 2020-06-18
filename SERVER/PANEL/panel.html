@@ -110,7 +110,9 @@
         }
 
         // Define a function to regularly update the data (every 1/3 of the
-        // session timeout set in the API settings)
+        // session timeout set in the API settings) as well as a fail counter
+        // to count how many times no data was received from the API
+        var updatePageLoopFailCounter = 0;
         async function updatePageLoop() {
 
             // This loop should never error out. Any errors should be logged
@@ -126,6 +128,18 @@
 
                     // Log the error
                     console.log("WARNING: No data in API response.");
+
+                    // Increment the counter since this is a non-urgent error
+                    updatePageLoopFailCounter += 1;
+
+                    // If the fail counter exceeded 4 fails, something is wrong
+                    // so log out
+                    if (updatePageLoopFailCounter >= 4) {
+
+                        console.log("ERROR: The response from the server did not contain any data for 4 consecutive attempts. Something is wrong. Logging out - please try again.")
+                        endSession();
+
+                    }
 
                     // Data will not be modified
 
@@ -146,6 +160,9 @@
 
                     // Update the last panel refresh info regardless
                     document.getElementById("lastRefreshTime").innerText = (new Date()).toLocaleString();
+
+                    // Reset the fail counter because everything is fine
+                    updatePageLoopFailCounter = 0;
 
                 }
 
