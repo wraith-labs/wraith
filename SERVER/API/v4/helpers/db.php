@@ -121,7 +121,7 @@ class DBManager {
             );",
             "INSERT INTO `WraithAPI_Settings` VALUES (
                 'wraithSwitchCryptKey',
-                'QWERTYUIOPASDFGHJKLZXCVBNM'
+                '" . bin2hex(random_bytes(25)) . "'
             );",
             "INSERT INTO `WraithAPI_Settings` VALUES (
                 'APIFingerprint',
