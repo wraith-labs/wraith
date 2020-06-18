@@ -489,6 +489,18 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         }
 
+        // Make sure that the request is from the same IP as the one
+        // which created the session (IP lock)
+        if (!($thisSession["creatorIP"] === "*") && !($thisSession["creatorIP"] === getClientIP())) {
+
+            $response = [
+                "status" => "ERROR",
+                "message" => "",
+            ];
+            respond($response);
+
+        }
+
         // For ease of use, move the session data one level up
         $thisSession = $thisSession[$requestSessionID];
 
