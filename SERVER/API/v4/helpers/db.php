@@ -347,21 +347,25 @@ class DBManager {
 
             $data["assignedID"] = uniqid();
 
-        } elseif (!(array_key_exists("hostProperties", $data))) {
+        }
+        if (!(array_key_exists("hostProperties", $data))) {
 
             // The hostProperties have no default value and are required
             return false;
 
-        } elseif (!(array_key_exists("wraithProperties", $data))) {
+        }
+        if (!(array_key_exists("wraithProperties", $data))) {
 
             // The wraithProperties have no default value and are required
             return false;
 
-        } elseif (!(array_key_exists("lastHeartbeatTime", $data))) {
+        }
+        if (!(array_key_exists("lastHeartbeatTime", $data))) {
 
             $data["lastHeartbeatTime"] = time();
 
-        } elseif (!(array_key_exists("issueCommands", $data))) {
+        }
+        if (!(array_key_exists("issueCommands", $data))) {
 
             $data["issuedCommands"] = [];
 
@@ -588,12 +592,14 @@ class DBManager {
             // The userName has no default value and is required
             return false;
 
-        } elseif (!(array_key_exists("userPassword", $data))) {
+        }
+        if (!(array_key_exists("userPassword", $data))) {
 
             // The userPassword has no default value and is required
             return false;
 
-        } elseif (!(array_key_exists("userPrivilegeLevel", $data))) {
+        }
+        if (!(array_key_exists("userPrivilegeLevel", $data))) {
 
             $data["userPrivilegeLevel"] = 0;
 
@@ -756,16 +762,19 @@ class DBManager {
 
             $data["assignedID"] = uniqid();
 
-        } elseif (!(array_key_exists("username", $data))) {
+        }
+        if (!(array_key_exists("username", $data))) {
 
             // The username has no default value and is required
             return false;
 
-        } elseif (!(array_key_exists("sessionToken", $data))) {
+        }
+        if (!(array_key_exists("sessionToken", $data))) {
 
             $data["sessionToken"] = bin2hex(random_bytes(25));
 
-        } elseif (!(array_key_exists("lastHeartbeatTime", $data))) {
+        }
+        if (!(array_key_exists("lastHeartbeatTime", $data))) {
 
             $data["lastHeartbeatTime"] = time();
 
