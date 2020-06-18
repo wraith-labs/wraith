@@ -502,7 +502,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
             $response = [
                 "status" => "ERROR",
-                "message" => "",
+                "message" => "your IP (" . getClientIP(true, "UNKNOWN") . ") does not match the IP this session is locked to",
             ];
             respond($response);
 
