@@ -219,6 +219,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // forgot to log out.
     $dbm->dbExpireSessions();
 
+    // Re-generate the Wraith switch key for Wraith
+    // sessions for better security (only if there are no active Wraiths)
+    $dbm->dbRegenWraithSwitchCryptKey();
+
     // Define a function to respond to the client
     function respond($response) {
 
