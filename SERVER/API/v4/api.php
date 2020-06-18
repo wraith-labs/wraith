@@ -489,6 +489,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         }
 
+        // For ease of use, move the session data one level up
+        $thisSession = $thisSession[$requestSessionID];
+
         // Make sure that the request is from the same IP as the one
         // which created the session (IP lock)
         if (!($thisSession["creatorIP"] === "*") && !($thisSession["creatorIP"] === getClientIP(true, "*"))) {
@@ -500,9 +503,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             respond($response);
 
         }
-
-        // For ease of use, move the session data one level up
-        $thisSession = $thisSession[$requestSessionID];
 
         // Get the session token associated with the session ID
         $sessionToken = $thisSession["sessionToken"];
