@@ -115,7 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     // Re-generate the first-layer encryption key for management
     // sessions for better security (only if there are no active sessions)
-    $dbm->dbRegenMgmtCryptKeyIfNoSessions();
+    $dbm->dbRegenMgmtCryptKey();
 
     // Get the request body to verify the credentials
     $reqBody = file_get_contents("php://input");

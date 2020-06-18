@@ -918,6 +918,30 @@ class DBManager {
 
     // MISC
 
+    // Re-generate the switch encryption key for Wraiths
+    function dbRegenWraithSwitchCryptKey($force = false) {
+
+        if (!($force)) {
+
+            // Separate if statements so the database is only read if needed
+
+            // If there are active sessions
+            $allWraiths = $this->dbGetWraiths();
+            if (!(sizeof($allWraiths) === 0)) {
+
+                return false;
+
+            }
+
+        }
+
+        // Update the switch encryption key
+        $this->dbSetSetting("wraithSwitchCryptKey", bin2hex(random_bytes(25)));
+
+        return true;
+
+    }
+
     // Re-generate the first-layer encryption key for management sessions
     function dbRegenMgmtCryptKey($force = false) {
 
