@@ -780,7 +780,7 @@ class DBManager {
 
         }
 
-        $this->SQLExec("INSERT INTO `WraithAPI_Users` (
+        $this->SQLExec("INSERT INTO `WraithAPI_Sessions` (
                 `assignedID`,
                 `username`,
                 `sessionToken`,
