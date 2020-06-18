@@ -1,10 +1,28 @@
 <?php
 
 // Get IP of client
-function getClientIP() {
+function getClientIP($strict = false, $fallback = null) {
 
-    $IPAddress = 'UNKNOWN';
-    $keys = array('HTTP_CLIENT_IP','HTTP_X_FORWARDED_FOR','HTTP_X_FORWARDED','HTTP_FORWARDED_FOR','HTTP_FORWARDED','REMOTE_ADDR');
+    if ($fallback) {
+
+        $IPAddress = $fallback;
+
+    } else {
+
+        $IPAddress = "UNKNOWN";
+
+    }
+
+    if ($strict) {
+
+        $keys = ['REMOTE_ADDR'];
+
+    } else {
+
+        $keys = ['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR'];
+
+    }
+
     foreach($keys as $k) {
 
         if (isset($_SERVER[$k]) && !empty($_SERVER[$k]) && filter_var($_SERVER[$k], FILTER_VALIDATE_IP)) {
