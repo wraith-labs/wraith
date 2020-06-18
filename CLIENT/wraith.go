@@ -494,7 +494,7 @@ func main() {
 		if err != nil {
 			// Display the error
 			dlog(3, "error while refreshing API URL `"+err.Error()+"`")
-			dlog(0, "eetrying API URL refresh in `"+fmt.Sprint(setDEFAULTHANDSHAKEREATTEMPTDELAY)+"` seconds")
+			dlog(0, "retrying API URL refresh in `"+fmt.Sprint(setDEFAULTHANDSHAKEREATTEMPTDELAY)+"` seconds")
 			// Wait for the handshake reattempt delay since it is similar to this event
 			time.Sleep(time.Duration(setDEFAULTHANDSHAKEREATTEMPTDELAY) * time.Second)
 		} else {
