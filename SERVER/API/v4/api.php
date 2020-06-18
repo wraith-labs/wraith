@@ -152,7 +152,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             // If the username exists and matches the password,
             // create a session for the user
             $sessionID = $dbm->dbAddSession([
-                "username" => $credentials[0]
+                "username" => $credentials[0],
+                "creatorIP" => getClientIP(),
             ]);
 
             // Get the information of the session

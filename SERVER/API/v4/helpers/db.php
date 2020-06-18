@@ -106,6 +106,7 @@ class DBManager {
             "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
                 `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
                 `username` TEXT,
+                `creatorIP` TEXT,
                 `sessionToken` TEXT,
                 `lastHeartbeatTime` TEXT
             );",
@@ -769,6 +770,11 @@ class DBManager {
             return false;
 
         }
+        if (!(array_key_exists("creatorIP", $data))) {
+
+            $data["creatorIP"] = "*";
+
+        }
         if (!(array_key_exists("sessionToken", $data))) {
 
             $data["sessionToken"] = bin2hex(random_bytes(25));
@@ -783,9 +789,11 @@ class DBManager {
         $this->SQLExec("INSERT INTO `WraithAPI_Sessions` (
                 `assignedID`,
                 `username`,
+                `creatorIP`,
                 `sessionToken`,
                 `lastHeartbeatTime`
             ) VALUES (
+                ?,
                 ?,
                 ?,
                 ?,
@@ -794,6 +802,7 @@ class DBManager {
             [
                 $data["assignedID"],
                 $data["username"],
+                $data["creatorIP"],
                 $data["sessionToken"],
                 $data["lastHeartbeatTime"]
             ]
