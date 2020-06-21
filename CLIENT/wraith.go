@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	yaegi "github.com/containous/yaegi/interp"
-	yaegi_stdlib "github.com/containous/yaegi/stdlib"
+	yaegi "./include/yaegi/interp"
+	yaegi_stdlib "./include/yaegi/stdlib"
 )
 
 var wraithVersion = "4.0.0"
