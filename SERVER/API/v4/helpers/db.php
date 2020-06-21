@@ -65,18 +65,6 @@ class DBManager {
         // Define the SQL commands used to initialise the database
         $this->dbInitCommands = [
 
-            // SETTINGS Table
-            "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
-                `key` TEXT NOT NULL UNIQUE PRIMARY KEY,
-                `value` TEXT
-            );",
-            // EVENTS Table
-            "CREATE TABLE IF NOT EXISTS `WraithAPI_EventHistory` (
-                `eventID` TEXT NOT NULL UNIQUE PRIMARY KEY,
-                `eventType` TEXT,
-                `eventTime` TEXT,
-                `eventProperties` TEXT
-            );",
             // CONNECTED WRAITHS Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
                 `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
@@ -94,6 +82,11 @@ class DBManager {
                 `commandResponses` TEXT,
                 `timeIssued` TEXT
             );",
+            // SETTINGS Table
+            "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
+                `key` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `value` TEXT
+            );",
             // USERS Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
                 `userName` TEXT NOT NULL UNIQUE PRIMARY KEY,
@@ -109,6 +102,13 @@ class DBManager {
                 `creatorIP` TEXT,
                 `sessionToken` TEXT,
                 `lastHeartbeatTime` TEXT
+            );",
+            // EVENTS Table
+            "CREATE TABLE IF NOT EXISTS `WraithAPI_EventHistory` (
+                `eventID` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `eventType` TEXT,
+                `eventTime` TEXT,
+                `eventProperties` TEXT
             );",
             // SETTINGS entries
             "INSERT INTO `WraithAPI_Settings` VALUES (
