@@ -528,7 +528,41 @@ class DBManager {
     // Get command(s)
     function dbGetCommands($filter = [], $limit = -1, $offset = -1) {
 
-        // TODO
+        $validFilterColumnNames = [
+            "commandID",
+            "commandName",
+            "commandParams",
+            "commandTargets",
+            "commandResponses",
+            "timeIssued"
+        ];
+
+        $SQL = "SELECT * FROM WraithAPI_EventHistory";
+
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
+
+        $eventsDB = $statement->fetchAll();
+
+        $events = [];
+
+        foreach ($eventsDB as $event) {
+
+            // Move the assignedID to a separate variable
+            $eventID = $event["assignedID"];
+            unset($event["assignedID"]);
+
+            $events[$eventID] = $event;
+
+        }
+
+        return $events;
 
     }
 
