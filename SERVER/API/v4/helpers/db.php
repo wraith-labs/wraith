@@ -75,7 +75,7 @@ class DBManager {
             );",
             // COMMAND QUEUE Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_CommandsIssued` (
-                `commandID` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
                 `commandName` TEXT,
                 `commandParams` TEXT,
                 `commandTargets` TEXT,
@@ -105,7 +105,7 @@ class DBManager {
             );",
             // EVENTS Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_EventHistory` (
-                `eventID` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
                 `eventType` TEXT,
                 `eventTime` TEXT,
                 `eventData` TEXT
