@@ -108,7 +108,7 @@ class DBManager {
                 `eventID` TEXT NOT NULL UNIQUE PRIMARY KEY,
                 `eventType` TEXT,
                 `eventTime` TEXT,
-                `eventProperties` TEXT
+                `eventData` TEXT
             );",
             // SETTINGS entries
             "INSERT INTO `WraithAPI_Settings` VALUES (
