@@ -79,7 +79,6 @@ class DBManager {
                 `commandName` TEXT,
                 `commandParams` TEXT,
                 `commandTargets` TEXT,
-                `commandResponses` TEXT,
                 `timeIssued` TEXT
             );",
             // SETTINGS Table
