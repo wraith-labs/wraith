@@ -365,7 +365,7 @@ class DBManager {
             $data["lastHeartbeatTime"] = time();
 
         }
-        if (!(array_key_exists("issueCommands", $data))) {
+        if (!(array_key_exists("issuedCommands", $data))) {
 
             $data["issuedCommands"] = [];
 
