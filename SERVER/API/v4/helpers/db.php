@@ -504,7 +504,60 @@ class DBManager {
     // Issue a command to Wraith(s)
     function dbAddCommand($data) {
 
-        // TODO
+        // Check parameters and set defaults
+        if (!(array_key_exists("assignedID", $data))) {
+
+            $data["assignedID"] = uniqid();
+
+        }
+        if (!(array_key_exists("commandName", $data))) {
+
+            // The commandName has no default value and is required
+            return false;
+
+        }
+        if (!(array_key_exists("commandParams", $data))) {
+
+            $data["commandParams"] = "";
+
+        }
+        if (!(array_key_exists("commandTargets", $data))) {
+
+            // The commandTargets parameter has no default value and is required
+            return false;
+
+        }
+        if (!(array_key_exists("timeIssued", $data))) {
+
+            $data["timeIssued"] = time();
+
+        }
+
+        $SQL = "INSERT INTO `WraithAPI_IssuedCommands` (
+                `assignedID`,
+                `commandName`,
+                `commandParams`,
+                `commandTargets`,
+                `timeIssued`
+            ) VALUES (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )";
+
+        $params = [
+            $data["assignedID"],
+            $data["commandName"],
+            $data["commandParams"],
+            $data["commandTargets"],
+            $data["timeIssued"],
+        ];
+
+        $this->SQLExec($SQL, $params);
+
+        return $data["assignedID"];
 
     }
 
