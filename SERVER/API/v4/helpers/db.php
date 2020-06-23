@@ -512,16 +512,24 @@ class DBManager {
     // Delete command(s) from the command table
     function dbRemoveCommands($filter = [], $limit = -1, $offset = -1) {
 
-        // TODO
-        $statement = $this->db->prepare("DELETE FROM `WraithAPI_CommandsIssued` WHERE assignedID == :IDToDelete");
+        $validFilterColumnNames = [
+            "assignedID",
+            "commandName",
+            "commandParams",
+            "commandTargets",
+            "timeIssued"
+        ];
 
-        // Remove each ID
-        foreach ($ids as $id) {
+        $SQL = "DELETE FROM `WraithAPI_IssuedCommands`";
 
-            $statement->bindParam(":IDToDelete", $id);
-            $statement->execute();
+        $params = [];
 
-        }
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
 
     }
 
