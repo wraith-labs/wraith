@@ -625,6 +625,13 @@ class DBManager {
 
     }
 
+    // Get all commands for a Wraith
+    function dbGetCommandsForWraith() {
+
+        // TODO
+
+    }
+
     // SETTINGS TABLE MANAGEMENT (public)
 
     // Edit an API setting
