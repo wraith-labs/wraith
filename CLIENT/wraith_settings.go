@@ -64,14 +64,14 @@ turn this off unless debugging as leaving it on might increase the executable
 filesize and could leak information. */
 const setDEBUG bool = true
 
-/* Which plugins from "include/src/plugins" to include in the Wraith. It is
+/* Which plugins from "include/plugins" to include in the Wraith. It is
 best to include as few plugins as possible, as any additional plugins will
 inrease executable file size, take longer to compile and possibly increase
 detectability. */
-var setPLUGINS []string = []string{
-	// "admin-request",
-	// "self-installation",
-	// "stealth",
-	// "watchdog",
-	// "worm",
-}
+import (
+	// "./include/plugins/admin-request",
+	// "./include/plugins/self-installation",
+	// "./include/plugins/stealth",
+	// "./include/plugins/watchdog",
+	// "./include/plugins/worm",
+)
