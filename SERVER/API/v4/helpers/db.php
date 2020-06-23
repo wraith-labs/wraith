@@ -1016,7 +1016,27 @@ class DBManager {
 
     }
 
-    // MISC
+    // EVENT TABLE MANAGEMENT (public)
+
+    function dbAddEvent($data) {
+
+        // TODO
+
+    }
+
+    function dbRemoveEvent($filter = [], $limit = -1, $offset = -1) {
+
+        // TODO
+
+    }
+
+    function dbGetEvents($filter = [], $limit = -1, $offset = -1) {
+
+        // TODO
+
+    }
+
+    // MISC (public)
 
     // Re-generate the switch encryption key for Wraiths
     function dbRegenWraithSwitchCryptKey($force = false) {
