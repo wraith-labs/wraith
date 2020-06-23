@@ -543,7 +543,7 @@ class DBManager {
             "timeIssued"
         ];
 
-        $SQL = "SELECT * FROM WraithAPI_EventHistory";
+        $SQL = "SELECT * FROM WraithAPI_IssuedCommands";
 
         $params = [];
 
