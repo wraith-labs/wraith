@@ -536,11 +536,10 @@ class DBManager {
     function dbGetCommands($filter = [], $limit = -1, $offset = -1) {
 
         $validFilterColumnNames = [
-            "commandID",
+            "assignedID",
             "commandName",
             "commandParams",
             "commandTargets",
-            "commandResponses",
             "timeIssued"
         ];
 
