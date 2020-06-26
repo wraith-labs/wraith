@@ -106,6 +106,7 @@ class DBManager {
             "CREATE TABLE IF NOT EXISTS `WraithAPI_EventHistory` (
                 `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
                 `eventType` TEXT,
+                `eventTargets` TEXT,
                 `eventTime` TEXT,
                 `eventData` TEXT
             );",
