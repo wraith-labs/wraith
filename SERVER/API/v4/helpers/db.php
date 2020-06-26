@@ -391,7 +391,7 @@ class DBManager {
             json_encode($data["hostProperties"]),
             json_encode($data["wraithProperties"]),
             $data["lastHeartbeatTime"],
-            json_encode($data["issuedCommands"]),
+            json_encode($data["issuedCommands"])
         ];
 
         $this->SQLExec($SQL, $params);
@@ -1019,13 +1019,77 @@ class DBManager {
 
     // EVENT TABLE MANAGEMENT (public)
 
+    // Create/log an event
     function dbAddEvent($data) {
 
-        // TODO
+        // Check parameters and set defaults
+        if (!(array_key_exists("assignedID", $data))) {
+
+            $data["assignedID"] = uniqid();
+
+        }
+        if (!(array_key_exists("eventType", $data))) {
+
+            // The eventType has no default value and is required
+            return false;
+
+        }
+        if (!(array_key_exists("eventTargets", $data))) {
+
+            // The eventTargets field is not required but has no defaults
+            $data["eventTargets"] = [];
+
+        }
+        if (!(array_key_exists("eventTime", $data))) {
+
+            $data["eventTime"] = time();
+
+        }
+        if (!(array_key_exists("eventData", $data))) {
+
+            // eventData is required and has no default
+            return false;
+
+        }
+
+        // Check that eventData is valid (has a description)
+        if (!(hasKeys($data["eventData"], [
+            "description"
+        ]))) {
+
+            return false;
+
+        }
+
+        $SQL = "INSERT INTO `WraithAPI_ActiveWraiths` (
+                `assignedID`,
+                `eventType`,
+                `eventTargets`,
+                `eventTime`,
+                `eventData`
+            ) VALUES (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )";
+
+        $params = [
+            $data["assignedID"],
+            $data["eventType"],
+            $data["eventTargets"],
+            $data["eventTime"],
+            json_encode($data["eventData"])
+        ];
+
+        $this->SQLExec($SQL, $params);
+
+        return $data["assignedID"];
 
     }
 
-    function dbRemoveEvent($filter = [], $limit = -1, $offset = -1) {
+    function dbRemoveEvents($filter = [], $limit = -1, $offset = -1) {
 
         // TODO
 
