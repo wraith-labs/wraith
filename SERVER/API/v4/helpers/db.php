@@ -47,6 +47,9 @@ class DBManager {
         // to work with the new database.
         $this->db = new PDO("sqlite:" . $this->dbLocation);
 
+        // Set database error handling policy
+        $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
         // Start a transaction (prevent modification to the database by other
         // scripts running at the same time). If a transaction is currently in
         // progress, this will error so a try/catch and a loop is needed.
@@ -60,9 +63,6 @@ class DBManager {
             } catch (PDOException $e) {}
 
         }
-
-        // Set database error handling policy
-        $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         // Define the SQL commands used to initialise the database
         $this->dbInitCommands = [
