@@ -180,6 +180,9 @@ class DBManager {
 
             // A user should be added to allow managing the API
             $this->dbAddUser([
+                // This is the only place referencing the default account
+                // SuperAdmin:SuperAdminPass so the default credentials can
+                // easily be changed if needed.
                 "userName" => "SuperAdmin",
                 "userPassword" => "SuperAdminPass",
                 "userPrivilegeLevel" => 2
