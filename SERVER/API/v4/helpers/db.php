@@ -1087,7 +1087,7 @@ class DBManager {
         $params = [
             $data["assignedID"],
             $data["eventType"],
-            $data["eventTargets"],
+            json_encode($data["eventTargets"]),
             $data["eventTime"],
             json_encode($data["eventData"])
         ];
