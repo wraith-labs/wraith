@@ -1,5 +1,7 @@
 <?php
 
+// TODO - add event management methods and thoroughly test every method
+
 // Class for Wraith database management
 
 class DBManager {
