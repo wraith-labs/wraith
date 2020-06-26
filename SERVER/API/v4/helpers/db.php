@@ -314,6 +314,15 @@ class DBManager {
 
         }
 
+        // Create a database initialisation event
+        $this->dbAddEvent([
+            "eventType" => "initOfDB",
+            "eventTargets" => ["API"],
+            "eventData" => [
+                "description" => "Database initialised"
+            ]
+        ]);
+
         // If false was not yet returned, everything was successful
         return true;
 
@@ -1061,7 +1070,7 @@ class DBManager {
 
         }
 
-        $SQL = "INSERT INTO `WraithAPI_ActiveWraiths` (
+        $SQL = "INSERT INTO `WraithAPI_EventHistory` (
                 `assignedID`,
                 `eventType`,
                 `eventTargets`,
