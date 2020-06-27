@@ -91,8 +91,7 @@ class DBManager {
                 `userName` TEXT NOT NULL UNIQUE PRIMARY KEY,
                 `userPassword` TEXT,
                 `userPrivileges` TEXT,
-                `userFailedLogins` INTEGER,
-                `userFailedLoginsTimeoutStart` TEXT
+                `userFailedLogins` TEXT
             );",
             // SESSIONS Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
@@ -647,7 +646,7 @@ class DBManager {
 
     }
 
-    // Get all commands for a Wraith
+    // Get all commands for a particular Wraith
     function dbGetCommandsForWraith() {
 
         // TODO
@@ -752,7 +751,7 @@ class DBManager {
 
     }
 
-    // Delete a user
+    // Delete user(s)
     function dbRemoveUsers($filter = [], $limit = -1, $offset = -1) {
 
         $validFilterColumnNames = [
@@ -816,7 +815,7 @@ class DBManager {
 
     }
 
-    // Change username
+    // Change user's name
     function dbChangeUserName($currentUsername, $newUsername) {
 
         // Update userName value
@@ -871,6 +870,9 @@ class DBManager {
         $this->SQLExec($SQL, $params);
 
     }
+
+    // Remove
+    // TODO
 
     // SESSIONS TABLE MANAGEMENT (public)
 
@@ -931,7 +933,7 @@ class DBManager {
 
     }
 
-    // Delete a session
+    // Delete sessions matching filters
     function dbRemoveSessions($filter = [], $limit = -1, $offset = -1) {
 
         $validFilterColumnNames = [
@@ -954,7 +956,7 @@ class DBManager {
 
     }
 
-    // Get a list of all sessions
+    // Get a list of sessions
     function dbGetSessions($filter = [], $limit = -1, $offset = -1) {
 
         $validFilterColumnNames = [
@@ -1107,6 +1109,7 @@ class DBManager {
 
     }
 
+    // Delete a set of events
     function dbRemoveEvents($filter = [], $limit = -1, $offset = -1) {
 
         $validFilterColumnNames = [
@@ -1130,6 +1133,7 @@ class DBManager {
 
     }
 
+    // Get a list of events
     function dbGetEvents($filter = [], $limit = -1, $offset = -1) {
 
         $validFilterColumnNames = [
