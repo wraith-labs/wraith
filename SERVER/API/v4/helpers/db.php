@@ -1,7 +1,5 @@
 <?php
 
-// TODO - add event management methods and thoroughly test every method
-
 // Class for Wraith database management
 
 class DBManager {
@@ -347,7 +345,15 @@ class DBManager {
 
         foreach ($commands as $command) {
 
-            $this->SQLExec($command[0]);
+            try {
+
+                $this->SQLExec($command[0]);
+
+            } catch (PDOException $e) {
+
+                return false;
+
+            }
 
         }
 
@@ -722,9 +728,6 @@ class DBManager {
 
         }
 
-        // Hash the password
-        $data["userPassword"] = password_hash($data["userPassword"], PASSWORD_BCRYPT);
-
         $this->SQLExec("INSERT INTO `WraithAPI_Users` (
                 `userName`,
                 `userPassword`,
@@ -740,7 +743,7 @@ class DBManager {
             );",
             [
                 $data["userName"],
-                $data["userPassword"],
+                password_hash($data["userPassword"], PASSWORD_BCRYPT),
                 $data["userPrivilegeLevel"]
             ]
         );
