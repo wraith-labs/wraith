@@ -871,8 +871,19 @@ class DBManager {
 
     }
 
-    // Remove
-    // TODO
+    // Check if a user can log in and manage the userFailedLogins field in the user's row
+    function dbCheckUserAntiBruteforceCanLogIn($username) {
+
+        // TODO
+
+    }
+
+    // Increment the brute-force prevention counter for a user
+    function dbIncrUserAntiBruteForceCounter($username, $time = null) {
+
+        // TODO
+
+    }
 
     // SESSIONS TABLE MANAGEMENT (public)
 
