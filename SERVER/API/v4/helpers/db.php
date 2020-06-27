@@ -1106,12 +1106,65 @@ class DBManager {
     function dbRemoveEvents($filter = [], $limit = -1, $offset = -1) {
 
         // TODO
+        $validFilterColumnNames = [
+            "assignedID",
+            "hostProperties",
+            "wraithProperties",
+            "lastHeartbeatTime",
+            "issuedCommands"
+        ];
+
+        $SQL = "DELETE FROM `WraithAPI_ActiveWraiths`";
+
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
 
     }
 
     function dbGetEvents($filter = [], $limit = -1, $offset = -1) {
 
         // TODO
+        $validFilterColumnNames = [
+            "assignedID",
+            "hostProperties",
+            "wraithProperties",
+            "lastHeartbeatTime",
+            "issuedCommands"
+        ];
+
+        $SQL = "SELECT * FROM WraithAPI_ActiveWraiths";
+
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
+
+        // Get a list of wraiths from the database
+        $wraithsDB = $statement->fetchAll();
+
+        $wraiths = [];
+
+        foreach ($wraithsDB as $wraith) {
+
+            // Move the assigned ID to a separate variable
+            $wraithID = $wraith["assignedID"];
+            unset($wraith["assignedID"]);
+
+            $wraiths[$wraithID] = $wraith;
+
+        }
+
+        return $wraiths;
 
     }
 
