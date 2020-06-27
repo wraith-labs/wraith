@@ -731,13 +731,11 @@ class DBManager {
                 `userName`,
                 `userPassword`,
                 `userPrivileges`,
-                `userFailedLogins`,
-                `userFailedLoginsTimeoutStart`
+                `userFailedLogins`
             ) VALUES (
                 ?,
                 ?,
                 ?,
-                '0',
                 '0'
             );",
             [
@@ -758,7 +756,7 @@ class DBManager {
             "userName",
             "userPassword",
             "userPrivileges",
-            "userFailedLoginsTimeoutStart"
+            "userFailedLogins"
         ];
 
         $SQL = "DELETE FROM `WraithAPI_Users`";
@@ -781,8 +779,7 @@ class DBManager {
             "userName",
             "userPassword",
             "userPrivileges",
-            "userFailedLogins",
-            "userFailedLoginsTimeoutStart"
+            "userFailedLogins"
         ];
 
         $SQL = "SELECT * FROM WraithAPI_Users";
