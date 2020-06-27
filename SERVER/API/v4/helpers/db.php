@@ -872,7 +872,7 @@ class DBManager {
     function dbCheckUserAntiBruteforceCanLogIn($username) {
 
         $user = $this->dbGetUsers([
-            "userName" => $username
+            "userName" => [$username]
         ]);
 
         // If the user array is empty, the user does not exist so
