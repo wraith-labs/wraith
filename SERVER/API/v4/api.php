@@ -88,11 +88,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     }
 
     // As autoconf is equivalent to authentication, start with a
-    // "random" time delay to mitigate brute-force attacks and
-    // make it difficult to guess whether authentication was
-    // successful based on the time taken for the response to
-    // arrive. Brute-force attacks can still be fairly effective
-    // if the attacker makes concurrent requests however.
+    // "random" time delay to make it difficult to guess whether
+    // authentication was successful based on the time taken for
+    // response.
     // Between 0.5 and 2 seconds
     usleep(rand(500000, 2000000));
 
