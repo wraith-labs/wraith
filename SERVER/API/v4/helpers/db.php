@@ -171,6 +171,7 @@ class DBManager {
         // Check if the database was initialised
         if (!($this->isDatabasePostInit())) {
 
+            $this->clearDB();
             $this->initDB();
 
         }
