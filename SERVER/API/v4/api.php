@@ -180,6 +180,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 "creatorIP" => getClientIP(),
             ]);
 
+            // Also, remove the user's IP from the blacklist in case there were
+            // some failed login attempts beforehand
+            $dbm->dbRemoveFromIPBanSetting([getClientIP(true)]);
+
             // Get the information of the session
             $thisSession = $dbm->dbGetSessions([
                 "assignedID" => [$sessionID]
