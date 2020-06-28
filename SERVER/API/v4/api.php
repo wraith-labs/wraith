@@ -20,6 +20,27 @@ define("API_VERSION", "4.0.0");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, PUT, POST");
 
+// Import the required helper scripts
+require_once("helpers/db.php");      // Database access and management
+require_once("helpers/crypto.php");  // Encryption and decryption
+require_once("helpers/misc.php");    // Miscellaneous
+
+// Create an instance of the database manager
+$dbm = new DBManager();
+
+// Check if the requesting IP is blacklisted. If so, reject the request
+$requesterIP = getClientIP();
+$IPBlacklist = json_decode($dbm->dbGetSettings(["key" => ["requestIPBlacklist"]])["requestIPBlacklist"]);
+if (in_array($requesterIP, $IPBlacklist)) {
+
+    $response = [
+        "status" => "ERROR",
+        "message" => "you have been blocked from accessing this resource",
+    ];
+    respond($response);
+
+}
+
 // The API only uses GET, POST and PUT requests. Other request methods can be
 // discarded and return an error message.
 
@@ -93,14 +114,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // response.
     // Between 0.5 and 2 seconds
     usleep(rand(500000, 2000000));
-
-    // Import the required helper scripts
-    require_once("helpers/db.php");      // Database access and management
-    require_once("helpers/crypto.php");  // Encryption and decryption
-    require_once("helpers/misc.php");    // Miscellaneous
-
-    // Create an instance of the database manager
-    $dbm = new DBManager();
 
     // To keep all stats up to-date, and avoid performing actions on disconnected
     // Wraiths, expire any that have not had a heartbeat in a while first.
@@ -220,15 +233,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // by each included protocol file.
     $SUPPORTED_PROTOCOL_VERSIONS = [];
 
-    // Import some helper scripts
-    require_once("helpers/db.php");      // Database access and management
-    require_once("helpers/crypto.php");  // Encryption and decryption
-    require_once("helpers/misc.php");    // Miscellaneous
     // Import protocol handlers
     foreach (glob("helpers/protocols/proto_v_*.php") as $protoHandler) { include($protoHandler); }
-
-    // Create an instance of the database manager
-    $dbm = new DBManager();
 
     // To keep all stats up to-date, and avoid performing actions on disconnected
     // Wraiths, expire any that have not had a heartbeat in a while first.
@@ -266,19 +272,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         // Finally, send the response and exit
         die($message);
-    }
-
-    // Check if the requesting IP is blacklisted. If so, reject the request
-    $requesterIP = getClientIP();
-    $IPBlacklist = json_decode($dbm->dbGetSettings(["key" => ["requestIPBlacklist"]])["requestIPBlacklist"]);
-    if (in_array($requesterIP, $IPBlacklist)) {
-
-        $response = [
-            "status" => "ERROR",
-            "message" => "you have been blocked from accessing this resource",
-        ];
-        respond($response);
-
     }
 
     // Get the request body
