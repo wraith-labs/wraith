@@ -33,11 +33,8 @@ $requesterIP = getClientIP();
 $IPBlacklist = json_decode($dbm->dbGetSettings(["key" => ["requestIPBlacklist"]])["requestIPBlacklist"]);
 if (in_array($requesterIP, $IPBlacklist)) {
 
-    $response = [
-        "status" => "ERROR",
-        "message" => "you have been blocked from accessing this resource",
-    ];
-    respond($response);
+    http_response_code(403);
+    die('{"status":"ERROR","message":"You have been blocked from accessing this resource. Please try again later."}');
 
 }
 
