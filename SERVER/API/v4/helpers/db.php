@@ -703,23 +703,63 @@ class DBManager {
     }
 
     // Block an IP address from using the API
-    function dbAddToIPBanSetting($IP, $autounban = 0, $message = null) {
+    function dbAddToIPBanSetting($IP, $effectiveTimeout = 0, $autounban = 0, $message = null) {
 
-        // TODO
+
 
     }
 
     // Unblock an IP address from using the API
-    function dbRemoveFromIPBanSetting($IP) {
+    function dbRemoveFromIPBanSetting($IPList) {
 
-        // TODO
+        $currentIPBanSettings = $this->dbGetIPBanSettings();
+
+        foreach ($currentIPBanSettings as $IP => $data) {
+
+            if (array_key_exists($IPList, $IP)) {
+
+                unset($currentIPBanSettings[$IP]);
+
+            }
+
+        }
+
+        $this->dbSetIPBanSettings($currentIPBanSettings);
 
     }
 
     // Clear all expired IP bans
     function dbExpireIPBanSettings() {
 
-        // TODO
+        $currentIPBanSettings = $this->dbGetIPBanSettings();
+
+        foreach ($currentIPBanSettings as $IP => $data) {
+
+            if ($data["autoUnbanAt"] < time()) {
+
+                unset($currentIPBanSettings[$IP]);
+
+            }
+
+        }
+
+        $this->dbSetIPBanSettings($currentIPBanSettings);
+
+    }
+
+    // Set a list of IP ban settings
+    function dbSetIPBanSettings($setting) {
+
+        $this->dbSetSetting("requestIPBlacklist", json_encode($setting));
+
+    }
+
+    // Get a list of IP ban settings
+    function dbGetIPBanSettings() {
+
+        return json_decode($this->dbGetSettings([
+            "key" => ["requestIPBlacklist"]
+        ])["requestIPBlacklist"]);
 
     }
 
