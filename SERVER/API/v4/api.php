@@ -28,13 +28,29 @@ require_once("helpers/misc.php");    // Miscellaneous
 // Create an instance of the database manager
 $dbm = new DBManager();
 
-// Check if the requesting IP is blacklisted. If so, reject the request
-$requesterIP = getClientIP();
-$IPBlacklist = json_decode($dbm->dbGetSettings(["key" => ["requestIPBlacklist"]])["requestIPBlacklist"]);
-if (in_array($requesterIP, $IPBlacklist)) {
+// Expire any timed IP bans
+$dbm->dbExpireIPBanSettings();
 
-    http_response_code(403);
-    die('{"status":"ERROR","message":"You have been blocked from accessing this resource. Please try again later."}');
+// Check if the requesting IP is blacklisted. If so, reject the request
+$requesterIP = getClientIP(true);
+$IPBlacklist = json_decode($dbm->dbGetSettings(["key" => ["requestIPBlacklist"]])["requestIPBlacklist"], true);
+if (array_key_exists($requesterIP, $IPBlacklist)) {
+
+    if ($IPBlacklist[$requesterIP]["effectiveTimeout"] === 0) {
+
+        $err = [
+            "status" => "ERROR",
+            "message" => "You have been blocked from accessing this resource. Please try again later."
+        ];
+
+        if (array_key_exists("message", $IPBlacklist[$requesterIP])) {
+
+            $err["message"] .= " Reason: " . $IPBlacklist[$requesterIP]["message"];
+
+        }
+        die(json_encode($err));
+
+    }
 
 }
 
@@ -109,8 +125,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // "random" time delay to make it difficult to guess whether
     // authentication was successful based on the time taken for
     // response.
-    // Between 0.5 and 2 seconds
-    usleep(rand(500000, 2000000));
+    // Between 0.5 and 1 second
+    usleep(rand(500000, 1000000));
 
     // To keep all stats up to-date, and avoid performing actions on disconnected
     // Wraiths, expire any that have not had a heartbeat in a while first.
@@ -189,14 +205,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             // ...and send it
             respond($response);
 
-        } else {
-
-            // Increment the anti-bruteforce counter for this account.
-            // This is done only if the account does actually exist which can
-            // be used for username enumeration but this is better than the
-            // alternative of storing every login attempt for any username
-            $dbm->dbIncrUserAntiBruteForceCounter($credentials[0]);
-
         }
 
     }
@@ -208,6 +216,15 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         "status" => "ERROR",
         "message" => "incorrect credentials",
     ];
+
+    // Before responding, also add the requesting IP to a "blacklist" due to the
+    // failed login attempt - the blacklist entry will only be valid after 3 failed
+    // attempts and will expire after the set time
+    $dbm->dbAddToIPBanSetting(getClientIP(true),
+    time()+$dbm->dbGetSettings(["key" => ["managementBruteForceTimeoutSeconds"]])["managementBruteForceTimeoutSeconds"],
+    $dbm->dbGetSettings(["key" => ["managementBruteForceMaxAttempts"]])["managementBruteForceMaxAttempts"],
+    "too many failed login attempts");
+
     respond($response);
 
 // POST requests are used for actual interaction with the API using the Wraith
