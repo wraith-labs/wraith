@@ -144,6 +144,18 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // If the username exists in the database
     if (array_key_exists($credentials[0], $user)) {
 
+        // Check if the account can currently log in (is not locked
+        // out due to brute-force attempts)
+        if (!($dbm->dbCheckUserAntiBruteforceCanLogIn($credentials[0]))) {
+
+            $response = [
+                "status" => "ERROR",
+                "message" => "this account is currently locked out as too many failed login attempts were made",
+            ];
+            respond($response);
+
+        }
+
         // Check whether the password matches
         if ($dbm->dbVerifyUserPass($credentials[0], $credentials[1])) {
 
@@ -179,11 +191,21 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             // ...and send it
             respond($response);
 
+        } else {
+
+            // Increment the anti-bruteforce counter for this account.
+            // This is done only if the account does actually exist which can
+            // be used for username enumeration but this is better than the
+            // alternative of storing every login attempt for any username
+            $dbm->dbIncrUserAntiBruteForceCounter($credentials[0]);
+
         }
 
     }
 
-    // If we got here, the credentials must have been incorrect
+    // If we got here, the credentials must have been incorrect. This
+    // error message is intentionally ambiguous to prevent username
+    // enumeration
     $response = [
         "status" => "ERROR",
         "message" => "incorrect credentials",
