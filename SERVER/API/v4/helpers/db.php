@@ -702,10 +702,52 @@ class DBManager {
 
     }
 
-    // Block an IP address from using the API
-    function dbAddToIPBanSetting($IP, $effectiveTimeout = 0, $autounban = 0, $message = null) {
+    // Block an IP address from using the API or update its entry if it's
+    // already blocked
+    function dbAddToIPBanSetting($IP, $autoUnbanAt = 0, $effectiveTimeout = 0, $message = null) {
 
+        $currentIPBanSettings = $this->dbGetIPBanSettings();
 
+        // Check if the IP is already on the list
+        if (array_key_exists($IP, $currentIPBanSettings)) {
+
+            // If the effective timeout is above 0, decrement it regardless
+            // of passed value
+            if ($currentIPBanSettings[$IP]["effectiveTimeout"] > 0) {
+
+                $currentIPBanSettings[$IP]["effectiveTimeout"] -= 1;
+
+            }
+
+            // If autoUnbanAt is not false, update autoUnbanAt to the passed value
+            if ($autoUnbanAt !== false) {
+
+                $currentIPBanSettings[$IP]["autoUnbanAt"] = $autoUnbanAt;
+
+            }
+
+            // If the message is not null, update the message
+            if ($message !== null) {
+
+                $currentIPBanSettings[$IP]["message"] = $message;
+
+            }
+
+        } else {
+
+            $currentIPBanSettings[$IP] = [
+                "autoUnbanAt" => $autoUnbanAt,
+                "effectiveTimeout" => $effectiveTimeout
+            ];
+            if ($message !== null) {
+
+                $currentIPBanSettings[$IP]["message"] = $message;
+
+            }
+
+        }
+
+        $this->dbSetIPBanSettings($currentIPBanSettings);
 
     }
 
@@ -716,7 +758,7 @@ class DBManager {
 
         foreach ($currentIPBanSettings as $IP => $data) {
 
-            if (array_key_exists($IPList, $IP)) {
+            if (array_key_exists($IP, $IPList)) {
 
                 unset($currentIPBanSettings[$IP]);
 
@@ -735,7 +777,7 @@ class DBManager {
 
         foreach ($currentIPBanSettings as $IP => $data) {
 
-            if ($data["autoUnbanAt"] < time()) {
+            if (($data["autoUnbanAt"] < time()) && ($data["autoUnbanAt"] !== 0)) {
 
                 unset($currentIPBanSettings[$IP]);
 
@@ -759,7 +801,7 @@ class DBManager {
 
         return json_decode($this->dbGetSettings([
             "key" => ["requestIPBlacklist"]
-        ])["requestIPBlacklist"]);
+        ])["requestIPBlacklist"], true);
 
     }
 
