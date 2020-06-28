@@ -896,7 +896,7 @@ class DBManager {
         $lastFailedLoginTime = $userAntiBruteForceArray[array_key_last($userAntiBruteForceArray)];
 
         $timeoutSecondsAgo = time() - $this->dbGetSettings([
-            "key" => "managementBruteForceTimeoutSeconds"
+            "key" => ["managementBruteForceTimeoutSeconds"]
         ])["managementBruteForceTimeoutSeconds"];
 
         // Check if the last failed login is more than
@@ -921,7 +921,23 @@ class DBManager {
     // Increment the brute-force prevention counter for a user
     function dbIncrUserAntiBruteForceCounter($username, $time = null) {
 
-        // TODO
+        // Set $time to the current time if no value was passed
+        $time = isset($time) ? $time : time();
+
+        $SQL = "UPDATE WraithAPI_Users SET `userFailedLogins` = ? WHERE `userName` = ?";
+
+        $currentAntiBruteForceCounter = json_decode($this->dbGetUsers([
+            "userName" => [$username]
+        ])[$username]["userFailedLogins"]);
+
+        array_push($currentAntiBruteForceCounter, $time);
+
+        $params = [
+            json_encode($currentAntiBruteForceCounter),
+            $username
+        ];
+
+        $this->SQLExec($SQL, $params);
 
     }
 
