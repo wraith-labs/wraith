@@ -90,8 +90,7 @@ class DBManager {
             "CREATE TABLE IF NOT EXISTS `WraithAPI_Users` (
                 `userName` TEXT NOT NULL UNIQUE PRIMARY KEY,
                 `userPassword` TEXT,
-                `userPrivileges` TEXT,
-                `userFailedLogins` TEXT
+                `userPrivileges` TEXT
             );",
             // SESSIONS Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_Sessions` (
@@ -730,13 +729,11 @@ class DBManager {
         $this->SQLExec("INSERT INTO `WraithAPI_Users` (
                 `userName`,
                 `userPassword`,
-                `userPrivileges`,
-                `userFailedLogins`
+                `userPrivileges`
             ) VALUES (
                 ?,
                 ?,
-                ?,
-                '" . json_encode([]) . "'
+                ?
             );",
             [
                 $data["userName"],
@@ -755,8 +752,7 @@ class DBManager {
         $validFilterColumnNames = [
             "userName",
             "userPassword",
-            "userPrivileges",
-            "userFailedLogins"
+            "userPrivileges"
         ];
 
         $SQL = "DELETE FROM `WraithAPI_Users`";
@@ -778,8 +774,7 @@ class DBManager {
         $validFilterColumnNames = [
             "userName",
             "userPassword",
-            "userPrivileges",
-            "userFailedLogins"
+            "userPrivileges"
         ];
 
         $SQL = "SELECT * FROM WraithAPI_Users";
@@ -865,86 +860,6 @@ class DBManager {
         ];
 
         $this->SQLExec($SQL, $params);
-
-    }
-
-    // Check if a user can log in and manage the userFailedLogins field in the user's row
-    function dbCheckUserAntiBruteforceCanLogIn($username) {
-
-        $user = $this->dbGetUsers([
-            "userName" => [$username]
-        ]);
-
-        // If the user array is empty, the user does not exist so
-        // can't log in - return false
-        if (sizeof($user) < 1) {
-
-            return false;
-
-        }
-
-        $userAntiBruteForceArray = json_decode($user[$username]["userFailedLogins"]);
-
-        // If the length of the userAntiBruteForceArray is 0, there were no failed
-        // attempts so the user can log in
-        if (sizeof($userAntiBruteForceArray) === 0) {
-
-            return true;
-
-        }
-
-        $lastFailedLoginTime = $userAntiBruteForceArray[array_key_last($userAntiBruteForceArray)];
-
-        $timeoutSecondsAgo = time() - $this->dbGetSettings([
-            "key" => ["managementBruteForceTimeoutSeconds"]
-        ])["managementBruteForceTimeoutSeconds"];
-
-        // Check if the last failed login is more than
-        // SETTINGS["managementBruteForceTimeoutSeconds"] ago
-        if ($lastFailedLoginTime < $timeoutSecondsAgo) {
-
-            // If so, remove the failed login counter to save space
-            // and processing power and return true
-            $this->dbClearUserAntiBruteForceCounter($username);
-            return true;
-
-        } else {
-
-            // If not, return false to indicate that the account should
-            // not be allowed to try logging in
-            return false;
-
-        }
-
-    }
-
-    // Increment the brute-force prevention counter for a user
-    function dbIncrUserAntiBruteForceCounter($username, $time = null) {
-
-        // Set $time to the current time if no value was passed
-        $time = isset($time) ? $time : time();
-
-        $SQL = "UPDATE WraithAPI_Users SET `userFailedLogins` = ? WHERE `userName` = ?";
-
-        $currentAntiBruteForceCounter = json_decode($this->dbGetUsers([
-            "userName" => [$username]
-        ])[$username]["userFailedLogins"]);
-
-        array_push($currentAntiBruteForceCounter, $time);
-
-        $params = [
-            json_encode($currentAntiBruteForceCounter),
-            $username
-        ];
-
-        $this->SQLExec($SQL, $params);
-
-    }
-
-    // Clear a user's anti-bruteforce counter
-    function dbClearUserAntiBruteForceCounter($username) {
-
-        // TODO
 
     }
 
