@@ -222,7 +222,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // attempts and will expire after the set time
     $dbm->dbAddToIPBanSetting(getClientIP(true),
     time()+$dbm->dbGetSettings(["key" => ["managementBruteForceTimeoutSeconds"]])["managementBruteForceTimeoutSeconds"],
-    $dbm->dbGetSettings(["key" => ["managementBruteForceMaxAttempts"]])["managementBruteForceMaxAttempts"],
+    $dbm->dbGetSettings(["key" => ["managementBruteForceMaxAttempts"]])["managementBruteForceMaxAttempts"]-1,
     "too many failed login attempts");
 
     respond($response);
