@@ -154,18 +154,6 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // If the username exists in the database
     if (array_key_exists($credentials[0], $user)) {
 
-        // Check if the account can currently log in (is not locked
-        // out due to brute-force attempts)
-        if (!($dbm->dbCheckUserAntiBruteforceCanLogIn($credentials[0]))) {
-
-            $response = [
-                "status" => "ERROR",
-                "message" => "this account is currently locked out as too many failed login attempts were made",
-            ];
-            respond($response);
-
-        }
-
         // Check whether the password matches
         if ($dbm->dbVerifyUserPass($credentials[0], $credentials[1])) {
 
