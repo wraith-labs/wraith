@@ -702,6 +702,27 @@ class DBManager {
 
     }
 
+    // Block an IP address from using the API
+    function dbAddToIPBanSetting($IP, $autounban = 0, $message = null) {
+
+        // TODO
+
+    }
+
+    // Unblock an IP address from using the API
+    function dbRemoveFromIPBanSetting($IP) {
+
+        // TODO
+
+    }
+
+    // Clear all expired IP bans
+    function dbExpireIPBanSettings() {
+
+        // TODO
+
+    }
+
     // USERS TABLE MANAGEMENT (public)
 
     // Create a new user
