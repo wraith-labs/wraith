@@ -76,10 +76,8 @@ class DBManager {
             // COMMAND QUEUE Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_IssuedCommands` (
                 `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
-                `commandName` TEXT,
-                `commandParams` TEXT,
-                `commandTargets` TEXT,
-                `timeIssued` TEXT
+                `commandTarget` TEXT,
+                `eventReference` TEXT
             );",
             // SETTINGS Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
