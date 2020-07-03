@@ -65,6 +65,14 @@ class DBManager {
         // Define the SQL commands used to initialise the database
         $this->dbInitCommands = [
 
+            // EVENTS Table
+            "CREATE TABLE IF NOT EXISTS `WraithAPI_EventHistory` (
+                `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
+                `eventType` TEXT,
+                `eventTargets` TEXT,
+                `eventTime` TEXT,
+                `eventData` TEXT
+            );",
             // CONNECTED WRAITHS Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_ActiveWraiths` (
                 `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
@@ -77,7 +85,8 @@ class DBManager {
             "CREATE TABLE IF NOT EXISTS `WraithAPI_IssuedCommands` (
                 `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
                 `commandTarget` TEXT,
-                `eventReference` TEXT
+                `eventReference` TEXT,
+                FOREIGN KEY(eventReference) REFERENCES WraithAPI_EventHistory(assignedID)
             );",
             // SETTINGS Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_Settings` (
@@ -97,14 +106,6 @@ class DBManager {
                 `creatorIP` TEXT,
                 `sessionToken` TEXT,
                 `lastHeartbeatTime` TEXT
-            );",
-            // EVENTS Table
-            "CREATE TABLE IF NOT EXISTS `WraithAPI_EventHistory` (
-                `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
-                `eventType` TEXT,
-                `eventTargets` TEXT,
-                `eventTime` TEXT,
-                `eventData` TEXT
             );",
             // SETTINGS entries
             "INSERT INTO `WraithAPI_Settings` VALUES (
@@ -355,6 +356,143 @@ class DBManager {
 
     }
 
+    // EVENT TABLE MANAGEMENT (public)
+
+    // Create/log an event
+    function dbAddEvent($data) {
+
+        // Check parameters and set defaults
+        if (!(array_key_exists("assignedID", $data))) {
+
+            $data["assignedID"] = uniqid();
+
+        }
+        if (!(array_key_exists("eventType", $data))) {
+
+            // The eventType has no default value and is required
+            return false;
+
+        }
+        if (!(array_key_exists("eventTargets", $data))) {
+
+            // The eventTargets field is not required but has no defaults
+            $data["eventTargets"] = [];
+
+        }
+        if (!(array_key_exists("eventTime", $data))) {
+
+            $data["eventTime"] = time();
+
+        }
+        if (!(array_key_exists("eventData", $data))) {
+
+            // eventData is required and has no default
+            return false;
+
+        }
+
+        // Check that eventData is valid (has a description)
+        if (!(hasKeys($data["eventData"], [
+            "description"
+        ]))) {
+
+            return false;
+
+        }
+
+        $SQL = "INSERT INTO `WraithAPI_EventHistory` (
+                `assignedID`,
+                `eventType`,
+                `eventTargets`,
+                `eventTime`,
+                `eventData`
+            ) VALUES (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )";
+
+        $params = [
+            $data["assignedID"],
+            $data["eventType"],
+            json_encode($data["eventTargets"]),
+            $data["eventTime"],
+            json_encode($data["eventData"])
+        ];
+
+        $this->SQLExec($SQL, $params);
+
+        return $data["assignedID"];
+
+    }
+
+    // Delete a set of events
+    function dbRemoveEvents($filter = [], $limit = -1, $offset = -1) {
+
+        $validFilterColumnNames = [
+            "assignedID",
+            "eventType",
+            "eventTargets",
+            "eventTime",
+            "eventData"
+        ];
+
+        $SQL = "DELETE FROM `WraithAPI_EventHistory`";
+
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
+
+    }
+
+    // Get a list of events
+    function dbGetEvents($filter = [], $limit = -1, $offset = -1) {
+
+        $validFilterColumnNames = [
+            "assignedID",
+            "eventType",
+            "eventTargets",
+            "eventTime",
+            "eventData"
+        ];
+
+        $SQL = "SELECT * FROM WraithAPI_EventHistory";
+
+        $params = [];
+
+        // Apply the filters
+        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
+        $SQL .= $filterSQL[0];
+        $params = array_merge($params, $filterSQL[1]);
+
+        $statement = $this->SQLExec($SQL, $params);
+
+        // Get a list of wraiths from the database
+        $eventsDB = $statement->fetchAll();
+
+        $events = [];
+
+        foreach ($eventsDB as $event) {
+
+            // Move the assigned ID to a separate variable
+            $eventID = $event["assignedID"];
+            unset($event["assignedID"]);
+
+            $events[$eventID] = $event;
+
+        }
+
+        return $events;
+
+    }
+
     // ACTIVE WRAITH TABLE MANAGEMENT (public)
 
     // Add a Wraith to the database
@@ -528,26 +666,15 @@ class DBManager {
             $data["assignedID"] = uniqid();
 
         }
-        if (!(array_key_exists("commandName", $data))) {
+        if (!(array_key_exists("commandTarget", $data))) {
 
             // The commandName has no default value and is required
             return false;
 
         }
-        if (!(array_key_exists("commandParams", $data))) {
+        if (!(array_key_exists("eventReference", $data))) {
 
             $data["commandParams"] = "";
-
-        }
-        if (!(array_key_exists("commandTargets", $data))) {
-
-            // The commandTargets parameter has no default value and is required
-            return false;
-
-        }
-        if (!(array_key_exists("timeIssued", $data))) {
-
-            $data["timeIssued"] = time();
 
         }
 
@@ -640,13 +767,6 @@ class DBManager {
         }
 
         return $events;
-
-    }
-
-    // Get all commands for a particular Wraith
-    function dbGetCommandsForWraith() {
-
-        // TODO
 
     }
 
@@ -1124,143 +1244,6 @@ class DBManager {
         ];
 
         $this->SQLExec($SQL, $params);
-
-    }
-
-    // EVENT TABLE MANAGEMENT (public)
-
-    // Create/log an event
-    function dbAddEvent($data) {
-
-        // Check parameters and set defaults
-        if (!(array_key_exists("assignedID", $data))) {
-
-            $data["assignedID"] = uniqid();
-
-        }
-        if (!(array_key_exists("eventType", $data))) {
-
-            // The eventType has no default value and is required
-            return false;
-
-        }
-        if (!(array_key_exists("eventTargets", $data))) {
-
-            // The eventTargets field is not required but has no defaults
-            $data["eventTargets"] = [];
-
-        }
-        if (!(array_key_exists("eventTime", $data))) {
-
-            $data["eventTime"] = time();
-
-        }
-        if (!(array_key_exists("eventData", $data))) {
-
-            // eventData is required and has no default
-            return false;
-
-        }
-
-        // Check that eventData is valid (has a description)
-        if (!(hasKeys($data["eventData"], [
-            "description"
-        ]))) {
-
-            return false;
-
-        }
-
-        $SQL = "INSERT INTO `WraithAPI_EventHistory` (
-                `assignedID`,
-                `eventType`,
-                `eventTargets`,
-                `eventTime`,
-                `eventData`
-            ) VALUES (
-                ?,
-                ?,
-                ?,
-                ?,
-                ?
-            )";
-
-        $params = [
-            $data["assignedID"],
-            $data["eventType"],
-            json_encode($data["eventTargets"]),
-            $data["eventTime"],
-            json_encode($data["eventData"])
-        ];
-
-        $this->SQLExec($SQL, $params);
-
-        return $data["assignedID"];
-
-    }
-
-    // Delete a set of events
-    function dbRemoveEvents($filter = [], $limit = -1, $offset = -1) {
-
-        $validFilterColumnNames = [
-            "assignedID",
-            "eventType",
-            "eventTargets",
-            "eventTime",
-            "eventData"
-        ];
-
-        $SQL = "DELETE FROM `WraithAPI_EventHistory`";
-
-        $params = [];
-
-        // Apply the filters
-        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
-        $SQL .= $filterSQL[0];
-        $params = array_merge($params, $filterSQL[1]);
-
-        $statement = $this->SQLExec($SQL, $params);
-
-    }
-
-    // Get a list of events
-    function dbGetEvents($filter = [], $limit = -1, $offset = -1) {
-
-        $validFilterColumnNames = [
-            "assignedID",
-            "eventType",
-            "eventTargets",
-            "eventTime",
-            "eventData"
-        ];
-
-        $SQL = "SELECT * FROM WraithAPI_EventHistory";
-
-        $params = [];
-
-        // Apply the filters
-        $filterSQL = $this->generateFilter($filter, $validFilterColumnNames, $limit, $offset);
-        $SQL .= $filterSQL[0];
-        $params = array_merge($params, $filterSQL[1]);
-
-        $statement = $this->SQLExec($SQL, $params);
-
-        // Get a list of wraiths from the database
-        $eventsDB = $statement->fetchAll();
-
-        $events = [];
-
-        foreach ($eventsDB as $event) {
-
-            // Move the assigned ID to a separate variable
-            $eventID = $event["assignedID"];
-            unset($event["assignedID"]);
-
-            $events[$eventID] = $event;
-
-        }
-
-        return $events;
 
     }
 
