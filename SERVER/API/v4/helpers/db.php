@@ -78,8 +78,7 @@ class DBManager {
                 `assignedID` TEXT NOT NULL UNIQUE PRIMARY KEY,
                 `hostProperties` TEXT,
                 `wraithProperties` TEXT,
-                `lastHeartbeatTime` TEXT,
-                `issuedCommands` TEXT
+                `lastHeartbeatTime` TEXT
             );",
             // COMMAND QUEUE Table
             "CREATE TABLE IF NOT EXISTS `WraithAPI_IssuedCommands` (
@@ -105,7 +104,8 @@ class DBManager {
                 `username` TEXT,
                 `creatorIP` TEXT,
                 `sessionToken` TEXT,
-                `lastHeartbeatTime` TEXT
+                `lastHeartbeatTime` TEXT,
+                FOREIGN KEY(username) REFERENCES WraithAPI_Users(userName)
             );",
             // SETTINGS entries
             "INSERT INTO `WraithAPI_Settings` VALUES (
