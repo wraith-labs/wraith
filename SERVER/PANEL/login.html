@@ -84,106 +84,114 @@
             const request = new XMLHttpRequest();
             request.onreadystatechange = function() {
 
-                // If the response was received successfully
-                if (this.readyState == 4 && this.status == 200) {
+                // This loop only ever runs once, and is used to ensure
+                // that the line restoring the button to "log in" always runs
+                // but the code can jump to the place where the loop ends at any
+                // time using "break".
+                for (var i = 1; i > 0; i--) {
 
-                    // Create a variable to hold the processed response
-                    var response = "";
+                    // If the response was received successfully
+                    if (this.readyState == 4 && this.status == 200) {
 
-                    // First, try decrypting the response
-                    try {
+                        // Create a variable to hold the processed response
+                        var response = "";
 
-                        var decryptedResponse = aes.decrypt(this.responseText, password);
-                        var parsedResponse = JSON.parse(decryptedResponse);
-                        response = parsedResponse;
-
-                    } catch (err) {
-
-                        // If that failed, the response is probably not
-                        // encrypted so try JSON parsing it
+                        // First, try decrypting the response
                         try {
 
-                            var parsedResponse = JSON.parse(this.responseText);
+                            var decryptedResponse = aes.decrypt(this.responseText, password);
+                            var parsedResponse = JSON.parse(decryptedResponse);
                             response = parsedResponse;
 
                         } catch (err) {
 
-                            // If that failed again, the response was most likely
-                            // not a valid API response at all
-                            alert("The response from the API was incorrectly formatted or encrypted! Could not log in.");
-                            return;
+                            // If that failed, the response is probably not
+                            // encrypted so try JSON parsing it
+                            try {
+
+                                var parsedResponse = JSON.parse(this.responseText);
+                                response = parsedResponse;
+
+                            } catch (err) {
+
+                                // If that failed again, the response was most likely
+                                // not a valid API response at all
+                                alert("The response from the API was incorrectly formatted or encrypted! Could not log in.");
+                                break;
+
+                            }
 
                         }
 
-                    }
+                        if (response["status"] != "SUCCESS") {
 
-                    if (response["status"] != "SUCCESS") {
+                            // Catch any reported errors and display them
+                            alert("Login Error\n\n" + response["message"] + "\n\n");
+                            break;
 
-                        // Catch any reported errors and display them
-                        alert("Login Error\n\n" + response["message"] + "\n\n");
-                        return;
+                        } else if ("message" in response) {
 
-                    } else if ("message" in response) {
-
-                        // If the response has a message to be displayed, display it
-                        alert(response["message"]);
-
-                    }
-
-                    // Process the API response (config)
-
-                    // Ensure that the required keys are present
-                    if (!("config" in response)) {
-
-                        alert("The response from the API did not have the required data. Are we connecting to an API unsupported by this panel version?\n\nMissing data: config\n\n");
-                        return;
-
-                    }
-
-                    const requiredConfigKeys = [
-
-                        "sessionID",
-                        "sessionToken",
-                        "updateInterval",
-                        "APIPrefix",
-                        "firstLayerEncryptionKey",
-                        "APIVersion",
-
-                    ];
-
-                    for (index = 0, len = requiredConfigKeys.length; index < len; ++index) {
-
-                        if (!(requiredConfigKeys[index] in response["config"])) {
-
-                            alert("The response from the API did not have the required data. Are we connecting to an API unsupported by this panel version?\n\nMissing data: " + requiredConfigKeys[index] + "\n\n");
-                            return;
+                            // If the response has a message to be displayed, display it
+                            alert(response["message"]);
 
                         }
 
+                        // Process the API response (config)
+
+                        // Ensure that the required keys are present
+                        if (!("config" in response)) {
+
+                            alert("The response from the API did not have the required data. Are we connecting to an API unsupported by this panel version?\n\nMissing data: config\n\n");
+                            break;
+
+                        }
+
+                        const requiredConfigKeys = [
+
+                            "sessionID",
+                            "sessionToken",
+                            "updateInterval",
+                            "APIPrefix",
+                            "firstLayerEncryptionKey",
+                            "APIVersion",
+
+                        ];
+
+                        for (index = 0, len = requiredConfigKeys.length; index < len; ++index) {
+
+                            if (!(requiredConfigKeys[index] in response["config"])) {
+
+                                alert("The response from the API did not have the required data. Are we connecting to an API unsupported by this panel version?\n\nMissing data: " + requiredConfigKeys[index] + "\n\n");
+                                break;
+
+                            }
+
+                        }
+
+                        // Add the API URL to the config
+                        response["config"]["APILocation"] = APILocation;
+
+                        // Save the config to session storage
+                        sessionStorage.setItem("wraithManagerConfig", JSON.stringify(response["config"]));
+
+                        // Finally, redirect to the panel
+                        window.location.href = "panel.html";
+
+                    } else if (this.readyState == 4 && this.status != 200) {
+
+                        alert("The authentication request failed!\n\nERR: " + this.status + "\n\n");
+
                     }
-
-                    // Add the API URL to the config
-                    response["config"]["APILocation"] = APILocation;
-
-                    // Save the config to session storage
-                    sessionStorage.setItem("wraithManagerConfig", JSON.stringify(response["config"]));
-
-                    // Finally, redirect to the panel
-                    window.location.href = "panel.html";
-
-                } else if (this.readyState == 4 && this.status != 200) {
-
-                    alert("The authentication request failed!\n\nERR: " + this.status + "\n\n");
 
                 }
 
+                document.getElementById("auth-button").innerText = "sign in";
+
             }
-            request.open("PUT", APILocation, false); // Warning: synchronous requests are deprecated
+            request.open("PUT", APILocation);
             // Let the user know that we are signing in
             document.getElementById("auth-button").innerText = "signing in...";
             request.send(authString);
-            // Return to previous text
-            document.getElementById("auth-button").innerText = "sign in";
 
         }
     </script>
