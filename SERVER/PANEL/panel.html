@@ -66,42 +66,44 @@
         // Define a function to update each UI element with the correct data
         function updateUI(data) {
 
-            // Get all elements on the page
-            var all = document.getElementsByTagName("*");
+            // A dict of functions to run for each data key. If the data key is
+            // not specified in the data dict, the function will not run. If a
+            // function for a data key does not exist, the data key will be
+            // ignored
+            var elementUpdateManagers = {
 
-            // For each element on the page
-            for (var i = 0; i < all.length; i++) {
+                // sessionUsername => updateUI-username
+                "sessionUsername": function (data) {
 
-                // If the element has no name attribute
-                if (!(all[i].hasAttribute("name"))) {
+                    updateableElements = document.getElementsByName("updateUI-username");
 
-                    // Skip it
-                    continue;
+                    for (i = 0; i < updateableElements.length; i++) {
 
-                }
+                        updateableElements[i].innerText = data;
 
-                // If the element name starts with "updateUI-updateto-"
-                if (all[i].getAttribute("name").startsWith("updateUI-updateto-")) {
-
-                    // Get the element name without the prefix
-                    var valueName = all[i].getAttribute("name").replace("updateUI-updateto-", "");
-
-                    // Check if data has a key which matches the name
-                    var value;
-                    if (!(valueName in data)) {
-
-                        // If not, use `-` to indicate no data
-                        value = "-";
-
-                    } else {
-
-                        // If yes, use the value in data
-                        value = data[valueName];
                     }
 
-                    // Update the value of the element to the value in the data
-                    // (.innerText prevents XSS)
-                    all[i].innerText = value;
+                },
+
+                "activeWraiths": function (data) {
+
+                    updateableElements = document.getElementsByName("updateUI-activeWraithCount");
+
+                    for (i = 0; i < updateableElements.length; i++) {
+
+                        updateableElements[i].innerText = data;
+
+                    }
+
+                },
+
+            }
+
+            for (key in data) {
+
+                if (key in elementUpdateManagers) {
+
+                    elementUpdateManagers[key](data[key]);
 
                 }
 
@@ -260,7 +262,7 @@
                 </div>
                 <div class="menu-sidebar2__content js-scrollbar1">
                     <div class="account2">
-                        <h4 class="name" name="updateUI-updateto-sessionUsername">-</h4>
+                        <h4 class="name" name="updateUI-username">-</h4>
                         <a href="javascript:void(0)" onclick="endSession();">sign out</a>
                     </div>
                     <nav class="navbar-sidebar2">
@@ -319,7 +321,7 @@
                     </div>
                     <div class="menu-sidebar2__content js-scrollbar2">
                         <div class="account2">
-                            <h4 class="name" name="updateUI-updateto-sessionUsername">-</h4>
+                            <h4 class="name" name="updateUI-username">-</h4>
                             <a href="javascript:void(0)" onclick="endSession();">sign out</a>
                         </div>
                         <nav class="navbar-sidebar2">
@@ -374,7 +376,7 @@
                                 <div class="row">
                                     <div class="col-md-6 col-lg-3">
                                         <div class="statistic__item">
-                                            <h2 class="number" name="updateUI-updateto-activeWraiths">-</h2>
+                                            <h2 class="number" name="updateUI-activeWraithCount">-</h2>
                                             <span class="desc">active wraiths</span>
                                             <div class="icon">
                                                 <i class="zmdi zmdi-power"></i>
