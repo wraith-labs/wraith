@@ -6,7 +6,7 @@ will automatically encrypt its replies.
 */
 
 // Convert all errors into catch-able exceptions
-set_error_handler(function($errno, $errstr, $errfile, $errline ){
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
 
     throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
 
