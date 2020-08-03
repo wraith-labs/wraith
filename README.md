@@ -1,3 +1,4 @@
+# DEVELOPMENT TEMPORARILY PAUSED AS I AM ON HOLIDAY. WILL CONTINUE SOON.
 
 # wraith
 A free and open-source, modular Remote Administration Tool (RAT) / Payload Dropper written in Golang with a PHP/HTML/JS/CSS Control panel.
