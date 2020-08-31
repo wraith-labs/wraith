@@ -1,9 +1,4 @@
 <?php
-/*
-The API returns JSON responses when requests are made to it. If it detects that
-the client is capable of encrypted communication using the Wraith/HTTP protocol it
-will automatically encrypt its replies.
-*/
 
 // Convert all errors into catch-able exceptions
 set_error_handler(function($errno, $errstr, $errfile, $errline) {
@@ -132,13 +127,15 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     // Wraiths, expire any that have not had a heartbeat in a while first.
     $dbm->dbExpireWraiths();
 
-    // Expire any manager sessions which have not had a heartbeat recently for
-    // security and to prevent sessions from sticking around because a user
-    // forgot to log out.
+    // Expire any manager sessions which have not had a heartbeat
+    // recently (last 12 seconds by default) for security and to prevent
+    // sessions from sticking around because a user forgot to log out.
     $dbm->dbExpireSessions();
 
     // Re-generate the first-layer encryption key for management
     // sessions for better security (only if there are no active sessions)
+    // It does not make sense to re-generate the Wraith key here as no actions
+    // are performed on Wraiths in this case
     $dbm->dbRegenMgmtCryptKey();
 
     // Get the request body to verify the credentials
@@ -156,12 +153,13 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     }
 
     // Create a crypt object to de-obfuscate the password (and later encrypt
-    // the response - no responses are encrypted until $cryptKey is defined).
+    // the response, but so far no responses are encrypted until $cryptKey
+    // is defined).
     $crypt = new aes();
 
     // Split the request into the username and password
     $credentials = explode("|", $reqBody, 2);
-    // Unobfuscate the password
+    // Deobfuscate the password
     $credentials[1] = $crypt->decrypt($credentials[1], $credentials[0] . "wraithCredentials");
 
     // Check whether the username is indeed a valid user account
@@ -181,7 +179,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             ]);
 
             // Also, remove the user's IP from the blacklist in case there were
-            // some failed login attempts beforehand
+            // some failed login attempts beforehand (this prevents the user from
+            // being instantly locked out after logging in successfully and logging
+            // back out then attemting to log back in unsuccessfully)
             $dbm->dbRemoveFromIPBanSetting([getClientIP(true)]);
 
             // Get the information of the session
@@ -199,6 +199,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 "config" => [
                     "sessionID" => $sessionID,
                     "sessionToken" => $thisSession["sessionToken"],
+                    // The below sets the update interval to 1/3rd of the time it takes to assume a session is dead. This ensures
+                    // that a session is not killed until 3 requests have failed. The default API manager also assumes 3 failed
+                    // requests to mean a dead session
                     "updateInterval" => $dbm->dbGetSettings(["key" => ["managementSessionExpiryDelay"]])["managementSessionExpiryDelay"] / 3,
                     "APIPrefix" => $dbm->dbGetSettings(["key" => ["APIPrefix"]])["APIPrefix"],
                     "firstLayerEncryptionKey" => $dbm->dbGetSettings(["key" => ["managementFirstLayerEncryptionKey"]])["managementFirstLayerEncryptionKey"],
@@ -222,8 +225,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     ];
 
     // Before responding, also add the requesting IP to a "blacklist" due to the
-    // failed login attempt - the blacklist entry will only be valid after 3 failed
-    // attempts and will expire after the set time
+    // failed login attempt - the blacklist entry will only be effective after
+    // a certain number (3 by default) of failed login attempts and will expire
+    // after a certain amount of time (300 seconds or 5 minutes by default)
     $dbm->dbAddToIPBanSetting(getClientIP(true),
     time()+$dbm->dbGetSettings(["key" => ["managementBruteForceTimeoutSeconds"]])["managementBruteForceTimeoutSeconds"],
     $dbm->dbGetSettings(["key" => ["managementBruteForceMaxAttempts"]])["managementBruteForceMaxAttempts"]-1,
@@ -240,19 +244,22 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $SUPPORTED_PROTOCOL_VERSIONS = [];
 
     // Import protocol handlers
-    foreach (glob("helpers/protocols/proto_v_*.php") as $protoHandler) { include($protoHandler); }
+    foreach (glob("helpers/protocols/proto_v_?.php") as $protoHandler) { include($protoHandler); }
 
     // To keep all stats up to-date, and avoid performing actions on disconnected
     // Wraiths, expire any that have not had a heartbeat in a while first.
     $dbm->dbExpireWraiths();
 
-    // Expire any manager sessions which have not had a heartbeat recently for
-    // security and to prevent sessions from sticking around because a user
-    // forgot to log out.
+    // Expire any manager sessions which have not had a heartbeat
+    // recently (last 12 seconds by default) for security and to prevent
+    // sessions from sticking around because a user forgot to log out.
     $dbm->dbExpireSessions();
 
     // Re-generate the Wraith switch key for Wraith
     // sessions for better security (only if there are no active Wraiths)
+    // It does not make sense to re-generate the management key here as
+    // this will have no impact (the key is always re-generated on login
+    // if possible anyway)
     $dbm->dbRegenWraithSwitchCryptKey();
 
     // Define a function to respond to the client
@@ -311,7 +318,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         // 0 is only returned by non-integer characters or 0 itself
         // both of which aren't valid (or multiples of 10
-        // but we're only getting a single digit/char)
+        // but we're only using a single digit/char so we can't get
+        // to those)
         $response = [
             "status" => "ERROR",
             "message" => "incorrectly formatted request",
@@ -347,7 +355,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         $response = [
             "status" => "ERROR",
-            "message" => "unsupported protocol",
+            "message" => "unsupported protocol version",
+            "supportedProtocolVersions" => json_encode($SUPPORTED_PROTOCOL_VERSIONS),
         ];
         respond($response);
 
@@ -382,6 +391,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         // Try JSON decoding the decrypted data
         $data = json_decode($data, true);
+        
         // If this failed, either the data was not JSON, was encrypted with
         // a different key, or is invalid
         if ($data === null) {
@@ -391,6 +401,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
             // Try JSON decoding the decrypted data
             $data = json_decode($data, true);
+
             // If this failed, either the data must be invalid JSON or invalid altogether
             if ($data === null) {
 
@@ -465,7 +476,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
         // Try JSON decoding the decrypted data
         $data = json_decode($data, true);
-        // If this failed, the data is invalid (encrypted with an invalid key
+
+        // If the above failed, the data is invalid (encrypted with an invalid key
         // or not encrypted)
         if ($data === null) {
 
@@ -516,7 +528,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         $thisSession = $thisSession[$requestSessionID];
 
         // Make sure that the request is from the same IP as the one
-        // which created the session (IP lock)
+        // which created the session (IP lock). This prevents an attacker
+        // from stealing session data and using it to gain access, but can
+        // be annoying if your IP changes while using the panel. However, the
+        // added security is definitely worth it. 
         if (!($thisSession["creatorIP"] === "*") && !($thisSession["creatorIP"] === getClientIP(true, "*"))) {
 
             $response = [
@@ -564,7 +579,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         // Make sure the array has the required keys
         if (!(hasKeys($data, [
             "reqType", // So we know what to do with the request
-            "sessionToken", // To catch decryption errors and key collisions
+            "sessionToken", // To catch decryption errors and unlikely key collisions
         ]))) {
 
             $response = [
@@ -645,7 +660,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     */
 
-    // Create an instance of the handler class for the specified protocol
+    // Create an instance of the handler class for the specified protocol.
+    // This will only ever error out if the protocol handler file for the
+    // protocol does not correctly define the handler class
     $handlerClassName = "Handler_proto_v_".$protocolVersion;
     $handler = new $handlerClassName($dbm, $requester, $requesterIP, $data);
 
@@ -653,7 +670,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $handler->handleRequest();
 
     // Unset (destroy) the handler so it can clean up and respond to the
-    // requester
+    // requester in its destructor
     unset($handler);
 
     // If nothing was sent until now, assume that there was some
@@ -672,11 +689,14 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     die();
 
+// If the request has a different method to the ones specified above,
+// a HTTP error code should be returned while supplying the correct
+// methods to be used.
 } else {
 
     http_response_code(405);
     header("Content-Type: text/plain");
-    header("Allow: GET, POST");
+    header("Allow: GET, PUT, POST");
     die("Unsupported method");
 
 }
