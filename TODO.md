@@ -1,0 +1,1 @@
+- Allow adding aliases for Wraiths based on fingerprints
