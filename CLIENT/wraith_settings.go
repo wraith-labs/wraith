@@ -13,7 +13,7 @@ is a good choice but any raw text hosting will do. If you are sure that the API
 URL will never change, you can simply put the API URL directly here
 but this is not recommended as changing the API URL will then result in losing
 all Wraiths with the previous URL hard-coded. */
-const setCCSERVERGETURL string = "http://localhost/API/v4/api.php"
+const setCCSERVERGETURL string = "http://localhost:8000/API/v4/api.php"
 
 /* This is a prefix added to every encrypted API request sent by the Wraith and
 expected at the start of the API response. This is to verify that the Wraith
@@ -68,10 +68,10 @@ const setDEBUG bool = true
 best to include as few plugins as possible, as any additional plugins will
 inrease executable file size, take longer to compile and possibly increase
 detectability. */
-import (
+//import (
 	// "./include/plugins/admin-request",
 	// "./include/plugins/self-installation",
 	// "./include/plugins/stealth",
 	// "./include/plugins/watchdog",
 	// "./include/plugins/worm",
-)
+//)

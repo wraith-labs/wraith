@@ -466,7 +466,7 @@ func main() {
 	mrand.Seed(time.Now().UTC().UnixNano() + WraithStartTime.UTC().UnixNano())
 
 	// Log imported plugins
-	dlog(0, "using plugins `"+fmt.Sprint(setPLUGINS)+"`")
+	//dlog(0, "using plugins `"+fmt.Sprint(setPLUGINS)+"`")
 
 	// Create an instace of Wraith
 	wraith := wraithStruct{}
@@ -481,7 +481,7 @@ func main() {
 	wraith.HeartbeatDelay = setDEFAULTHEARTBEATDELAYBASE
 	wraith.HandshakeReattemptDelay = setDEFAULTHANDSHAKEREATTEMPTDELAY
 	wraith.FailedHeartbeatTolerance = setFAILEDHEARTBEATTOLERANCE
-	wraith.Plugins = setPLUGINS
+	//wraith.Plugins = setPLUGINS
 	wraith.CommandQueue = []string{}
 	wraith.CommandQueueMutex = sync.Mutex{}
 
