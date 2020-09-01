@@ -80,7 +80,13 @@ class Handler_proto_v_0 {
                 // Add the connecting IP to the host info array
                 $this->cData["hostInfo"]["connectingIP"] = getClientIP();
                 // Add a generated fingerprint to the host info array
-                $this->cData["hostInfo"]["fingerprint"] = ""; // TODO
+                $this->cData["hostInfo"]["fingerprint"] = genWraithFingerprint([
+                    // The fingerprint is made up of host data which is unlikely to change
+                    $this->cData["hostInfo"]["arch"],
+                    $this->cData["hostInfo"]["hostname"],
+                    $this->cData["hostInfo"]["osType"],
+                    $this->cData["wraithInfo"]["runningUser"],
+                ]);
 
                 // Create a database entry for the Wraith
                 $this->dbm->dbAddWraith([

@@ -52,3 +52,19 @@ function hasKeys($array, $keys) {
     }
 
 }
+
+// Generate a fingerprint for a Wraith based on an array of data
+// likely to be unique to that Wraith
+function genWraithFingerprint($fingerprintableData) {
+
+    // Join the fingerprintable data array with a delimeter to limit overlap of fingerprints
+    // Without a delimeter, the arrays ["abc", "def"] and ["abcd", "ef"] would produce the same
+    // fingerprint
+    $fingerprintableData = join("|||", $fingerprintableData);
+
+    // Hash the resulting string to generate the fingerprint
+    $fingerprint = hash("md5", $fingerprintableData);
+
+    return $fingerprint;
+
+}
