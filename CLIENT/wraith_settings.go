@@ -35,17 +35,6 @@ used to stop accidental connections to the wrong server should something go wron
 and prevent people from impersonating the server to gain info about the Wraith. */
 const setTRUSTEDSERVERFINGERPRINT string = "ABCDEFGHIJKLMNOP"
 
-/* Delay between each heartbeat request (seconds). This should ideally be just
-under half of the mark dead time on the panel and no less than 3 seconds to
-prevent DDoSing your own server. This value can be altered by the panel during
-runtime but will reset whenever the Wraith restarts. Making this value lower
-will allow both the Wraith and the panel to have more up-to-date information but
-will make Wraith more detectable (more traffic on the wire) and put more load
-on your server. 7 seconds is a good compromise for most uses. Do note that Wraith
-will add between 0 (inclusive) and 3 (exclusive) seconds to each delay to make
-the requests seem less automated and harder to detect. */
-const setDEFAULTHEARTBEATDELAYBASE uint64 = 7
-
 /* Delay between handshake reattempts should a handshake fail (seconds). This
 should be longer than the heartbeat delay as the server might be unreachable
 for a while so the less traffic we send the better. */
