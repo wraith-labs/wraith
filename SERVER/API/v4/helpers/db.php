@@ -329,7 +329,7 @@ class DBManager {
 
     }
 
-    // Delete all Wraith API tables from the database
+    // Delete all tables from the database
     // (init will not be called automatically)
     private function clearDB() {
 
