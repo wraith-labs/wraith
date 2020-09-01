@@ -521,20 +521,13 @@ class DBManager {
             $data["lastHeartbeatTime"] = time();
 
         }
-        if (!(array_key_exists("issuedCommands", $data))) {
-
-            $data["issuedCommands"] = [];
-
-        }
 
         $SQL = "INSERT INTO `WraithAPI_ActiveWraiths` (
                 `assignedID`,
                 `hostProperties`,
                 `wraithProperties`,
-                `lastHeartbeatTime`,
-                `issuedCommands`
+                `lastHeartbeatTime`
             ) VALUES (
-                ?,
                 ?,
                 ?,
                 ?,
@@ -545,8 +538,7 @@ class DBManager {
             $data["assignedID"],
             json_encode($data["hostProperties"]),
             json_encode($data["wraithProperties"]),
-            $data["lastHeartbeatTime"],
-            json_encode($data["issuedCommands"])
+            $data["lastHeartbeatTime"]
         ];
 
         $this->SQLExec($SQL, $params);
@@ -563,7 +555,6 @@ class DBManager {
             "hostProperties",
             "wraithProperties",
             "lastHeartbeatTime",
-            "issuedCommands"
         ];
 
         $SQL = "DELETE FROM `WraithAPI_ActiveWraiths`";
@@ -587,7 +578,6 @@ class DBManager {
             "hostProperties",
             "wraithProperties",
             "lastHeartbeatTime",
-            "issuedCommands"
         ];
 
         $SQL = "SELECT * FROM WraithAPI_ActiveWraiths";
