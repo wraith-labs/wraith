@@ -66,7 +66,8 @@ class Handler_proto_v_0 {
                         "env",
                         "pid",
                         "ppid",
-                        "runningUser",
+                        "runningUserName",
+                        "runningUserID",
                     ])
                 ) {
 
@@ -85,7 +86,8 @@ class Handler_proto_v_0 {
                     $this->cData["hostInfo"]["arch"],
                     $this->cData["hostInfo"]["hostname"],
                     $this->cData["hostInfo"]["osType"],
-                    $this->cData["wraithInfo"]["runningUser"],
+                    $this->cData["wraithInfo"]["runningUserName"],
+                    $this->cData["wraithInfo"]["runningUserID"],
                 ]);
 
                 // Generate and ID for the Wraith
