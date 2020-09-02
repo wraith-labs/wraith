@@ -28,8 +28,10 @@ import (
 	yaegi_stdlib "./include/yaegi/stdlib"
 )
 
+// Useful globals
 var wraithVersion = "4.0.0"
 var protocolVersion = "0"
+var wraithStartTime time.Time
 
 // Define a global request counter which will make
 // it easier to identify individual requests when
@@ -431,7 +433,7 @@ func (wraith *wraithStruct) Handshake() error {
 		},
 		"wraithInfo": map[string]interface{}{
 			"version":     wraithVersion,
-			"startTime":   WraithStartTime,
+			"startTime":   wraithStartTime,
 			"plugins":     "",
 			"env":         env,
 			"pid":         pid,
@@ -478,15 +480,15 @@ func (wraith *wraithStruct) Exec(command string) {
 func main() {
 
 	// Get the start time of the Wraith
-	WraithStartTime := time.Now()
+	wraithStartTime = time.Now()
 
 	// Print some debugging information if debug mode is enabled
 	dlog(0, "RUNNING IN DEBUG MODE!")
 	dlog(0, "Wraith version `v"+wraithVersion+"`")
-	dlog(0, "Wraith started at `"+WraithStartTime.Format("15:04:05 02-01-2006")+"`")
+	dlog(0, "Wraith started at `"+wraithStartTime.Format("15:04:05 02-01-2006")+"`")
 
 	// Seed the random number generator with the current time plus the start time
-	mrand.Seed(time.Now().UTC().UnixNano() + WraithStartTime.UTC().UnixNano())
+	mrand.Seed(time.Now().UTC().UnixNano() + wraithStartTime.UTC().UnixNano())
 
 	// Log imported plugins
 	//dlog(0, "using plugins `"+fmt.Sprint(setPLUGINS)+"`")
@@ -495,7 +497,7 @@ func main() {
 	wraith := wraithStruct{}
 	// Set the Wraith properties to their defaults
 	wraith.WraithID = "" // To be set by the API on handshake
-	wraith.WraithStartTime = WraithStartTime
+	wraith.WraithStartTime = wraithStartTime
 	wraith.RunWraith = true
 	wraith.ControlAPIURL = "" // To be set after fetching from the hardcoded URL
 	wraith.APIRequestPrefix = setAPIREQPREFIX
