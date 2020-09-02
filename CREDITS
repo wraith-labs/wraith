@@ -7,5 +7,7 @@ the panel), HTML, CSS
 - Colorlib (https://colorlib.com - panel template)
 - mervick (https://github.com/mervick/aes-everywhere/ - AES encryption for Wraith communication)
 - tasos-py (https://github.com/tasos-py/AES-Encryption-Classes/ - AES encryption for earlier Wraith versions)
+- ccbrown (https://github.com/ccbrown/wasm-go-playground - In-panel Wraith compilation)
+- containous (https://github.com/containous/yaegi - The ability for Wraith to execute dynamic Go code)
 
 Also, thanks to me :]
