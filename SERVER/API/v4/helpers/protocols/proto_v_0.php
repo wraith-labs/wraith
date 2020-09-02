@@ -96,10 +96,9 @@ class Handler_proto_v_0 {
                 // Create a database entry for the Wraith
                 $this->dbm->dbAddWraith([
                     "assignedID" => $newWraithUniqueID,
-                    "hostProperties" => json_encode($this->cData["hostInfo"]),
-                    "wraithProperties" => json_encode($this->cData["wraithInfo"]),
+                    "hostProperties" => $this->cData["hostInfo"],
+                    "wraithProperties" => $this->cData["wraithInfo"],
                     "lastHeartbeatTime" => time(),
-                    "issuedCommands" => json_encode([]),
                 ]);
 
                 // Return a successful status and message
