@@ -12,6 +12,13 @@
         <script src="js/playground.js"></script>
 
 		<script>
+
+const download = function(data){
+var blob = new Blob([data], {type: "application/octet-stream"});
+        var objectUrl = URL.createObjectURL(blob);
+        window.open(objectUrl);
+    }
+
             $(document).ready(function() {
 
                 $('#code').linedtextarea();
@@ -99,6 +106,7 @@
 
                                 exec(cmds['compile'], ['-p', 'main', '-complete', '-dwarf=false', '-pack', '-importcfg', 'importcfg', 'main.go'])
                                     .then((code) => code || exec(cmds['link'], ['-importcfg', 'importcfg.link', '-buildmode=exe', 'main.a']))
+                                    .then((code) => code || download(readFromGoFilesystem('a.out')))
                                     .then((code) => code || exec(readFromGoFilesystem('a.out')))
                                     .then((code) => {
                                         output({
