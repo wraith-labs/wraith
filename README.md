@@ -1,3 +1,5 @@
+**This project is currently in development. Commits to this repository are more rare now as I am mostly focusing on a different component of Wraith, https://github.com/TR-SLimey/IBGC. Once that is complete, I will add it to Wraith's repo and continue work here.**
+
 # wraith
 A free and open-source, modular Remote Administration Tool (RAT) / Payload Dropper written in Golang with a PHP/HTML/JS/CSS Control panel.
 
