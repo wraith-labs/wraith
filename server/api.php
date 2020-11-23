@@ -4,7 +4,7 @@
 // have an access code defined on login
 
 // Instantly lock the database file to stop weird errors like the file contents disappearing
-$database = fopen(dirname(__FILE__)."/db.json", "r+");
+$database = fopen(dirname(__FILE__)."/assets/db.json", "r+");
 $flock_block = 1;
 flock($database, LOCK_EX, $flock_block);
 
