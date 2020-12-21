@@ -23,7 +23,7 @@ import (
 	"sync"
 	"time"
 
-	yaegi "github.com/traefik/yaegi"
+	yaegi "github.com/traefik/yaegi/interp"
 	yaegi_stdlib "github.com/traefik/yaegi/stdlib"
 )
 
