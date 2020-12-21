@@ -1,0 +1,4 @@
+# github.com/traefik/yaegi v0.9.8
+## explicit
+github.com/traefik/yaegi
+github.com/traefik/yaegi/stdlib

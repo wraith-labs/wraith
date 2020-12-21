@@ -1,0 +1,9 @@
+.*.swo
+.*.swp
+*.dot
+.idea/
+/yaegi
+internal/cmd/extract/extract
+example/inception/inception
+_test/tmp/
+/dist

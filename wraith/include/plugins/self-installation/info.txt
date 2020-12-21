@@ -1,4 +1,0 @@
-This plugin allows the Wraith to install itself in the target system
-when it is first opened. The plugin will attempt to make Wraith start
-as early in the boot process as possible and will patch system binaries
-to re-create Wraith if it is removed.
