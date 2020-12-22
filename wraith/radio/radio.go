@@ -3,13 +3,14 @@ package radio
 import (
 	"fmt"
 
+	"github.com/TR-SLimey/wraith/config"
 	"github.com/traefik/yaegi/interp"
 )
 
 func NewRadio() Radio {
 	r := Radio{
 		Transmitter: Antenna{
-
+			URLGenerator: config.Config.Radio.Transmitter.DefaultURLGenerator,
 		}
 	}
 	return r
