@@ -1,4 +1,4 @@
-package main
+package settings
 
 /*
 
@@ -58,9 +58,9 @@ best to include as few plugins as possible, as any additional plugins will
 inrease executable file size, take longer to compile and possibly increase
 detectability. */
 //import (
-	// "./include/plugins/admin-request",
-	// "./include/plugins/self-installation",
-	// "./include/plugins/stealth",
-	// "./include/plugins/watchdog",
-	// "./include/plugins/worm",
+// "./include/plugins/admin-request",
+// "./include/plugins/self-installation",
+// "./include/plugins/stealth",
+// "./include/plugins/watchdog",
+// "./include/plugins/worm",
 //)
