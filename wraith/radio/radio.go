@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/TR-SLimey/wraith/config"
+	"github.com/TR-SLimey/wraith/radio/frequencies"
 	"github.com/traefik/yaegi/interp"
 )
 
@@ -11,8 +12,26 @@ func NewRadio() Radio {
 	r := Radio{
 		Transmitter: Antenna{
 			URLGenerator: config.Config.Radio.Transmitter.DefaultURLGenerator,
+			Interval:     config.Config.Radio.Transmitter.DefaultIntervalSeconds,
 		},
+		Receiver: Antenna{
+			URLGenerator: config.Config.Radio.Receiver.DefaultURLGenerator,
+			Interval:     config.Config.Radio.Receiver.DefaultIntervalSeconds,
+		},
+		FrequencyMap: make(map[string]Frequency),
 	}
+
+	r.Transmitter.Crypto.Enabled = config.Config.Radio.Transmitter.Encryption.Enabled
+	r.Transmitter.Crypto.Type = config.Config.Radio.Transmitter.Encryption.Type
+	r.Transmitter.Crypto.Key = config.Config.Radio.Transmitter.Encryption.Key
+
+	r.Receiver.Crypto.Enabled = config.Config.Radio.Receiver.Encryption.Enabled
+	r.Receiver.Crypto.Type = config.Config.Radio.Receiver.Encryption.Type
+	r.Receiver.Crypto.Key = config.Config.Radio.Receiver.Encryption.Key
+
+	r.FrequencyMap["dns"] = frequencies.DNS{}
+	r.FrequencyMap["http"] = frequencies.HTTP{}
+	r.FrequencyMap["https"] = r.FrequencyMap["http"]
 	return r
 }
 
@@ -27,7 +46,7 @@ type Antenna struct {
 	Interval      int
 	LastTimestamp int
 	LastURL       string
-	Decrypter     struct {
+	Crypto        struct {
 		Enabled bool
 		Type    int
 		Key     string
@@ -39,8 +58,7 @@ type Antenna struct {
 	}
 }
 
-type Frequency struct {
-	ProtoName string
+type Frequency interface {
 }
 
 func (r *Radio) GenerateRadioURL(urltype int) (string, error) {
