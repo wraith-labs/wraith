@@ -11,7 +11,7 @@ func NewRadio() Radio {
 	r := Radio{
 		Transmitter: Antenna{
 			URLGenerator: config.Config.Radio.Transmitter.DefaultURLGenerator,
-		}
+		},
 	}
 	return r
 }
