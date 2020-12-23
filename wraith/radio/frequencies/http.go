@@ -8,6 +8,8 @@ import (
 
 type HTTP struct{}
 
+// TODO: Set some headers to make Wrait less detectable
+
 func (freq HTTP) Transmit(url string, data []byte) error {
 	resp, err := http.Post(url, "application/octet-stream", bytes.NewBuffer(data))
 	if err != nil {
