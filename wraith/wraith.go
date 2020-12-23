@@ -9,3 +9,7 @@ var startTime time.Time
 type wraith struct {
 	ID string
 }
+
+func main() {
+
+}
