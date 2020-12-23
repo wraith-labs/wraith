@@ -1,10 +1,12 @@
 package config
 
+import "time"
+
 type ConfigSkeleton struct {
 	Radio struct {
 		Transmitter struct {
 			DefaultURLGenerator    string
-			DefaultIntervalSeconds int
+			DefaultIntervalSeconds time.Duration
 			Encryption             struct {
 				Enabled bool
 				Type    int
@@ -13,7 +15,7 @@ type ConfigSkeleton struct {
 		}
 		Receiver struct {
 			DefaultURLGenerator    string
-			DefaultIntervalSeconds int
+			DefaultIntervalSeconds time.Duration
 			Encryption             struct {
 				Enabled bool
 				Type    int
