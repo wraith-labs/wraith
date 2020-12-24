@@ -2,7 +2,7 @@ package config
 
 var Config ConfigSkeleton
 
-func Init() {
+func init() {
 	Config.Radio.Transmitter.URLGenerator = "package gen\nfunc Gen(old string) string {\nreturn 'http://localhost:8080'\n}"
 	Config.Radio.Transmitter.Trigger = "package trigger\nfunc Trigger(curTimestamp int) bool {\nif curTimestamp % 5 == 0 {\nreturn true\n} else {\nreturn false\n}\n}"
 	Config.Radio.Transmitter.TriggerCheckInterval = 1
@@ -16,5 +16,4 @@ func Init() {
 	Config.Radio.Receiver.Encryption.Enabled = false
 	Config.Radio.Receiver.Encryption.Type = 0
 	Config.Radio.Receiver.Encryption.Key = ""
-
 }
