@@ -1,6 +1,10 @@
 package main
 
-import "time"
+import (
+	"time"
+
+	"github.com/TR-SLimey/wraith/radio"
+)
 
 // Useful globals
 var startTime time.Time
@@ -11,5 +15,7 @@ type wraith struct {
 }
 
 func main() {
-
+	r := radio.NewRadio()
+	go r.RunTransmit()
+	<-time.After(20 * time.Second)
 }
