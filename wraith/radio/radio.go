@@ -86,7 +86,6 @@ func (r *Radio) GenerateRadioURL(urltype int) (string, error) {
 	// Use yaegi to run function to generate the next URL
 	i := interp.New(interp.Options{})
 	_, err := i.Eval(r.Transmitter.URLGenerator)
-	fmt.Printf("# %v\n", config.Config)
 	if err != nil {
 		return "", err
 	}
