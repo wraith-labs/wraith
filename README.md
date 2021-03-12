@@ -1,4 +1,4 @@
-**This project is currently in development. Commits to this repository are more rare now as I am currently focusing on other work, but work will resume when I have time. If you are interested in sponsoring the project to speed up development, please get in touch (tr_slimey@protonmail.com).**
+**This project is currently in development. Commits to this repository are more rare now as I am currently focusing on other work, but work will resume when I have time. If you are interested in sponsoring or contributing to the project to speed up development, please get in touch (tr_slimey@protonmail.com).**
 
 # wraith
 A free and open-source, modular Remote Administration Tool (RAT) / Payload Dropper written in Go(lang) with a flexible command and control (C2) system*.
