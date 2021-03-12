@@ -65,7 +65,8 @@ type frame struct {
 	// Located at start of struct to ensure proper aligment.
 	id uint64
 
-	anc  *frame          // ancestor frame (global space)
+	root *frame          // global space
+	anc  *frame          // ancestor frame (caller space)
 	data []reflect.Value // values
 
 	mutex     sync.RWMutex
@@ -74,31 +75,41 @@ type frame struct {
 	done      reflect.SelectCase // for cancellation of channel operations
 }
 
-func newFrame(anc *frame, len int, id uint64) *frame {
+func newFrame(anc *frame, length int, id uint64) *frame {
 	f := &frame{
 		anc:  anc,
-		data: make([]reflect.Value, len),
+		data: make([]reflect.Value, length),
 		id:   id,
 	}
-	if anc != nil {
+	if anc == nil {
+		f.root = f
+	} else {
 		f.done = anc.done
+		f.root = anc.root
 	}
 	return f
 }
 
 func (f *frame) runid() uint64      { return atomic.LoadUint64(&f.id) }
 func (f *frame) setrunid(id uint64) { atomic.StoreUint64(&f.id, id) }
-func (f *frame) clone() *frame {
+func (f *frame) clone(fork bool) *frame {
 	f.mutex.RLock()
 	defer f.mutex.RUnlock()
-	return &frame{
+	nf := &frame{
 		anc:       f.anc,
-		data:      f.data,
+		root:      f.root,
 		deferred:  f.deferred,
 		recovered: f.recovered,
 		id:        f.runid(),
 		done:      f.done,
 	}
+	if fork {
+		nf.data = make([]reflect.Value, len(f.data))
+		copy(nf.data, f.data)
+	} else {
+		nf.data = f.data
+	}
+	return nf
 }
 
 // Exports stores the map of binary packages per package path.
@@ -203,7 +214,7 @@ type Panic struct {
 }
 
 // TODO: Capture interpreter stack frames also and remove
-// fmt.Println(n.cfgErrorf("panic")) in runCfg.
+// fmt.Fprintln(n.interp.stderr, oNode.cfgErrorf("panic")) in runCfg.
 
 func (e Panic) Error() string { return fmt.Sprint(e.Value) }
 
@@ -239,7 +250,7 @@ type Options struct {
 func New(options Options) *Interpreter {
 	i := Interpreter{
 		opt:      opt{context: build.Default},
-		frame:    &frame{data: []reflect.Value{}},
+		frame:    newFrame(nil, 0, 0),
 		fset:     token.NewFileSet(),
 		universe: initUniverse(),
 		scopes:   map[string]*scope{},

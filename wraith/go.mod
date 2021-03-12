@@ -1,5 +1,5 @@
 module github.com/TR-SLimey/wraith
 
-go 1.15
+go 1.16
 
-require github.com/traefik/yaegi v0.9.8
+require github.com/traefik/yaegi v0.9.15

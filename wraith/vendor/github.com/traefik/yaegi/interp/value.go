@@ -5,8 +5,15 @@ import (
 	"reflect"
 )
 
+const (
+	notInFrame  = -1 // value of node.findex for literal values (not in frame)
+	globalFrame = -1 // value of node.level for global symbols
+)
+
 func valueGenerator(n *node, i int) func(*frame) reflect.Value {
 	switch n.level {
+	case globalFrame:
+		return func(f *frame) reflect.Value { return valueOf(f.root.data, i) }
 	case 0:
 		return func(f *frame) reflect.Value { return valueOf(f.data, i) }
 	case 1:
@@ -38,21 +45,35 @@ func genValueBinMethodOnInterface(n *node, defaultGen func(*frame) reflect.Value
 		n.child[0].child == nil || n.child[0].child[0] == nil {
 		return defaultGen
 	}
-	if n.child[0].child[1] == nil || n.child[0].child[1].ident == "" {
+	c0 := n.child[0]
+	if c0.child[1] == nil || c0.child[1].ident == "" {
 		return defaultGen
 	}
-	value0 := genValue(n.child[0].child[0])
+	value0 := genValue(c0.child[0])
 
 	return func(f *frame) reflect.Value {
-		val, ok := value0(f).Interface().(valueInterface)
-		if !ok {
+		v := value0(f)
+		var nod *node
+
+		for v.IsValid() {
+			// Traverse interface indirections to find out concrete type.
+			vi, ok := v.Interface().(valueInterface)
+			if !ok {
+				break
+			}
+			v = vi.value
+			nod = vi.node
+		}
+
+		if nod == nil {
 			return defaultGen(f)
 		}
-		typ := val.node.typ
+
+		typ := nod.typ
 		if typ.node != nil || typ.cat != valueT {
 			return defaultGen(f)
 		}
-		meth, _ := typ.rtype.MethodByName(n.child[0].child[1].ident)
+		meth, _ := typ.rtype.MethodByName(c0.child[1].ident)
 		return meth.Func
 	}
 }
@@ -171,18 +192,16 @@ func genValue(n *node) func(*frame) reflect.Value {
 			return func(f *frame) reflect.Value { return v }
 		}
 		if n.sym != nil {
-			if n.sym.index < 0 {
+			i := n.sym.index
+			if i < 0 {
 				return genValue(n.sym.node)
 			}
-			i := n.sym.index
 			if n.sym.global {
-				return func(f *frame) reflect.Value {
-					return n.interp.frame.data[i]
-				}
+				return func(f *frame) reflect.Value { return f.root.data[i] }
 			}
 			return valueGenerator(n, i)
 		}
-		if n.findex < 0 {
+		if n.findex == notInFrame {
 			var v reflect.Value
 			if w, ok := n.val.(reflect.Value); ok {
 				v = w
@@ -216,21 +235,25 @@ func genValueRangeArray(n *node) func(*frame) reflect.Value {
 			return value(f).Elem()
 		}
 	case n.typ.val != nil && n.typ.val.cat == interfaceT:
-		return func(f *frame) reflect.Value {
-			val := value(f)
-			v := []valueInterface{}
-			for i := 0; i < val.Len(); i++ {
-				switch av := val.Index(i).Interface().(type) {
-				case []valueInterface:
-					v = append(v, av...)
-				case valueInterface:
-					v = append(v, av)
-				default:
-					panic(n.cfgErrorf("invalid type %v", val.Index(i).Type()))
+		if len(n.typ.val.field) > 0 {
+			return func(f *frame) reflect.Value {
+				val := value(f)
+				v := []valueInterface{}
+				for i := 0; i < val.Len(); i++ {
+					switch av := val.Index(i).Interface().(type) {
+					case []valueInterface:
+						v = append(v, av...)
+					case valueInterface:
+						v = append(v, av)
+					default:
+						panic(n.cfgErrorf("invalid type %v", val.Index(i).Type()))
+					}
 				}
+				return reflect.ValueOf(v)
 			}
-			return reflect.ValueOf(v)
 		}
+		// empty interface, do not wrap.
+		fallthrough
 	default:
 		return func(f *frame) reflect.Value {
 			// This is necessary to prevent changes in the returned
@@ -260,6 +283,7 @@ func genValueInterface(n *node) func(*frame) reflect.Value {
 	return func(f *frame) reflect.Value {
 		v := value(f)
 		nod := n
+
 		for v.IsValid() {
 			// traverse interface indirections to find out concrete type
 			vi, ok := v.Interface().(valueInterface)
@@ -269,6 +293,12 @@ func genValueInterface(n *node) func(*frame) reflect.Value {
 			v = vi.value
 			nod = vi.node
 		}
+
+		// empty interface, do not wrap.
+		if nod.typ.cat == interfaceT && len(nod.typ.field) == 0 {
+			return v
+		}
+
 		return reflect.ValueOf(valueInterface{nod, v})
 	}
 }
@@ -279,12 +309,26 @@ func zeroInterfaceValue() reflect.Value {
 	return reflect.ValueOf(valueInterface{n, v})
 }
 
+func wantEmptyInterface(n *node) bool {
+	return n.typ.cat == interfaceT && len(n.typ.field) == 0 ||
+		n.anc.action == aAssign && n.anc.typ.cat == interfaceT && len(n.anc.typ.field) == 0 ||
+		n.anc.kind == returnStmt && n.anc.val.(*node).typ.ret[0].cat == interfaceT && len(n.anc.val.(*node).typ.ret[0].field) == 0
+}
+
 func genValueOutput(n *node, t reflect.Type) func(*frame) reflect.Value {
 	value := genValue(n)
 	switch {
 	case n.anc.action == aAssign && n.anc.typ.cat == interfaceT:
+		if len(n.anc.typ.field) == 0 {
+			// empty interface, do not wrap
+			return value
+		}
 		fallthrough
 	case n.anc.kind == returnStmt && n.anc.val.(*node).typ.ret[0].cat == interfaceT:
+		if len(n.anc.val.(*node).typ.ret[0].field) == 0 {
+			// empty interface, do not wrap
+			return value
+		}
 		// The result of the builtin has to be returned as an interface type.
 		// Wrap it in a valueInterface and return the dereferenced value.
 		return func(f *frame) reflect.Value {
@@ -297,6 +341,17 @@ func genValueOutput(n *node, t reflect.Type) func(*frame) reflect.Value {
 	return value
 }
 
+func valueInterfaceValue(v reflect.Value) reflect.Value {
+	for {
+		vv, ok := v.Interface().(valueInterface)
+		if !ok {
+			break
+		}
+		v = vv.value
+	}
+	return v
+}
+
 func genValueInterfaceValue(n *node) func(*frame) reflect.Value {
 	value := genValue(n)
 
@@ -307,7 +362,7 @@ func genValueInterfaceValue(n *node) func(*frame) reflect.Value {
 			v.Set(zeroInterfaceValue())
 			v = value(f)
 		}
-		return v.Interface().(valueInterface).value
+		return valueInterfaceValue(v)
 	}
 }
 

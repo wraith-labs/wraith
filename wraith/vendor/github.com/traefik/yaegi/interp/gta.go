@@ -27,6 +27,7 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 			// values which may be used in further declarations.
 			if _, err = interp.cfg(n, importPath); err != nil {
 				// No error processing here, to allow recovery in subtree nodes.
+				// TODO(marc): check for a non recoverable error and return it for better diagnostic.
 				err = nil
 			}
 
@@ -115,6 +116,7 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 					sc.sym[c.ident] = &symbol{index: sc.add(n.typ), kind: varSym, global: true, typ: n.typ, node: n}
 					continue
 				}
+				c.level = globalFrame
 
 				// redeclaration error
 				if sym.typ.node != nil && sym.typ.node.anc != nil {
@@ -318,7 +320,50 @@ func (interp *Interpreter) gtaRetry(nodes []*node, importPath string) error {
 	}
 
 	if len(revisit) > 0 {
-		return revisit[0].cfgErrorf("constant definition loop")
+		n := revisit[0]
+		if n.kind == typeSpec {
+			if err := definedType(n.typ); err != nil {
+				return err
+			}
+		}
+		return n.cfgErrorf("constant definition loop")
+	}
+	return nil
+}
+
+func definedType(typ *itype) error {
+	if !typ.incomplete {
+		return nil
+	}
+	switch typ.cat {
+	case interfaceT, structT:
+		for _, f := range typ.field {
+			if err := definedType(f.typ); err != nil {
+				return err
+			}
+		}
+	case funcT:
+		for _, t := range typ.arg {
+			if err := definedType(t); err != nil {
+				return err
+			}
+		}
+		for _, t := range typ.ret {
+			if err := definedType(t); err != nil {
+				return err
+			}
+		}
+	case mapT:
+		if err := definedType(typ.key); err != nil {
+			return err
+		}
+		fallthrough
+	case aliasT, arrayT, chanT, chanSendT, chanRecvT, ptrT, variadicT:
+		if err := definedType(typ.val); err != nil {
+			return err
+		}
+	case nilT:
+		return typ.node.cfgErrorf("undefined: %s", typ.node.ident)
 	}
 	return nil
 }
