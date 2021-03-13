@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
+	"github.com/TR-SLimey/wraith/comms"
 	"github.com/TR-SLimey/wraith/hooks"
-	"github.com/TR-SLimey/wraith/radio"
 )
 
 // Useful globals
@@ -19,7 +19,7 @@ func main() {
 	// Run OnStart hooks
 	hooks.RunOnStart()
 
-	r := radio.NewRadio()
+	r := comms.NewRadio()
 	go r.RunTransmit()
 	<-time.After(20 * time.Second)
 }

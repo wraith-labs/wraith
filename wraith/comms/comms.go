@@ -1,11 +1,10 @@
-package radio
+package comms
 
 import (
 	"fmt"
 	"net/url"
 
 	"github.com/TR-SLimey/wraith/config"
-	"github.com/TR-SLimey/wraith/radio/frequencies"
 	"github.com/traefik/yaegi/interp"
 )
 
