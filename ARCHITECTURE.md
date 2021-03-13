@@ -17,3 +17,18 @@ The Wraith C2 protocol accomodates these requirements, by building on top of JSO
 ## Protocol
 
 ## Codebase Layout
+Due to the Wraith's modular architecture, each component of the Wraith is a separate submodule. These are then used in `wraith.go` which is the main module.
+
+The submodules are laid out like so:
+- **config**:
+  - **`skeleton.go`** - *A structure defining the layout of the Wraith's config*
+  - **`config.go`** - *The actual configuration file where options should be set before compiling*
+- **constants**:
+  - **`constants.go`** - *Various constants used by the Wraith, such as its current version*
+- **comms**:
+  - **channels**:
+    - **`transmitters`** - *Modules (one per file) for sending data to C2*
+    - **`receivers`** - *Modules (one per file) for receiving data and commands from C2*
+  - **`comms.go`** - *The module responsible for managing transmitter and receiver modules*
+- **`vendor`** - *Dependencies*
+- **`main.go`** - *Main Wraith file*
