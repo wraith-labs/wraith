@@ -30,5 +30,7 @@ The submodules are laid out like so:
     - **`transmitters`** - *Modules (one per file) for sending data to C2*
     - **`receivers`** - *Modules (one per file) for receiving data and commands from C2*
   - **`comms.go`** - *The module responsible for managing transmitter and receiver modules*
+- **hooks**:
+  - **`hooks.go`** - *Hook implementation allowing for registering functions to run at specific times in a modular way*
 - **`vendor`** - *Dependencies*
 - **`main.go`** - *Main Wraith file*
