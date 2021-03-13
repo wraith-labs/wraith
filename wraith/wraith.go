@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/TR-SLimey/wraith/hooks"
 	"github.com/TR-SLimey/wraith/radio"
 )
 
@@ -15,6 +16,9 @@ type wraith struct {
 }
 
 func main() {
+	// Run OnStart hooks
+	hooks.RunOnStart()
+
 	r := radio.NewRadio()
 	go r.RunTransmit()
 	<-time.After(20 * time.Second)
