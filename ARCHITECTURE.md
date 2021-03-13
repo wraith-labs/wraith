@@ -2,10 +2,10 @@
 This document outlines how Wraith works in theory, and how it communicates with its C2, as well as how the codebase is structured.
 
 ## Index
-- [Overview](#) - High-level outline of Wraith's design and design considerations
-- [Functionality](#) - Overview of Wraith's features and how they are implemented
-- [Protocol](#) - Detailed description of how Wraith communicates
-- [Codebase Layout](#) - The layout of this repository
+- [Overview](#overview) - High-level outline of Wraith's design and design considerations
+- [Functionality](#functionality) - Overview of Wraith's features and how they are implemented
+- [Protocol](#protocol) - Detailed description of how Wraith communicates
+- [Codebase Layout](#codebase-layout) - The layout of this repository
 
 ## Overview
 Wraith is designed with flexibility and resilience in mind. This means that it should never need updating once deployed and should be able to deal with C2 outages, or the server being taken down altogether. Furthermore, Wraith is also designed to be modular, to allow for effortless expansion of its functionality, without familiarity with the entire codebase.
