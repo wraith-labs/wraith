@@ -2,6 +2,7 @@ package comms
 
 import (
 	"net/url"
+	"sync"
 )
 
 // Structures for transmitters and receivers
@@ -53,7 +54,12 @@ func RegRx(scheme string, rx *Rx) {
 }
 
 // Infinite loop managing transmission and receiving of data
-func Manage(txQueue TxQueue, rxQueue RxQueue) {
+func Manage(txQueue TxQueue, rxQueue RxQueue, wg *sync.WaitGroup) {
+	// Make sure the waitgroup is always decremented when this function exits
+	defer func() {
+		wg.Done()
+	}()
+
 	for {
 		select {
 		case <-managerExitTrigger:
