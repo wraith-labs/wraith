@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/0x1a8510f2/wraith/comms"
@@ -19,9 +21,23 @@ func main() {
 	// Run OnStart hooks
 	hooks.RunOnStart()
 
-	rcvchan := make(chan map[string]interface{})
-	comms.Manage(&rcvchan)
+	// Run OnExit hooks always on exit
+	defer hooks.RunOnExit()
 
-	// Run OnExit hooks
-	hooks.RunOnExit()
+	// Keep track of active goroutines
+	var wg sync.WaitGroup
+
+	txQueue := make(comms.TxQueue)
+	rxQueue := make(comms.RxQueue)
+	wg.Add(1)
+	go comms.Manage(txQueue, rxQueue, &wg)
+
+	// Mainloop: Transmit, receive and process stuff
+	for {
+		select {
+		case data := <-rxQueue:
+			fmt.Printf("%v", data)
+		}
+	}
+
 }
