@@ -3,7 +3,6 @@ package main
 import (
 	"time"
 
-	"github.com/0x1a8510f2/wraith/comms"
 	"github.com/0x1a8510f2/wraith/hooks"
 )
 
@@ -19,7 +18,6 @@ func main() {
 	// Run OnStart hooks
 	hooks.RunOnStart()
 
-	r := comms.NewRadio()
-	go r.RunTransmit()
-	<-time.After(20 * time.Second)
+	// Run OnExit hooks
+	hooks.RunOnExit()
 }
