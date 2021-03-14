@@ -1,4 +1,4 @@
-module github.com/TR-SLimey/wraith
+module github.com/0x1a8510f2/wraith
 
 go 1.16
 

@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
-	"github.com/TR-SLimey/wraith/comms"
-	"github.com/TR-SLimey/wraith/hooks"
+	"github.com/0x1a8510f2/wraith/comms"
+	"github.com/0x1a8510f2/wraith/hooks"
 )
 
 // Useful globals

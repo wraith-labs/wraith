@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/TR-SLimey/wraith/config"
+	"github.com/0x1a8510f2/wraith/config"
 	"github.com/traefik/yaegi/interp"
 )
 
