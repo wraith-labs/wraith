@@ -2,19 +2,44 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/0x1a8510f2/wraith/comms"
+	"github.com/0x1a8510f2/wraith/config"
 	"github.com/0x1a8510f2/wraith/hooks"
 )
 
 // Useful globals
 var startTime time.Time
 
-// Main wraith struct
-type wraith struct {
-	ID string
+// Exit handling
+var exitTrigger chan struct{}
+
+func setupCloseHandler() {
+	c := make(chan os.Signal)
+	signal.Notify(
+		c,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGQUIT,
+		syscall.SIGTERM,
+	)
+	go func() {
+		<-c
+		if config.Config.Process.RespectExitSignals {
+			exitTrigger <- struct{}{}
+		}
+	}()
+}
+
+func init() {
+	startTime = time.Now()
+	exitTrigger = make(chan struct{})
+	setupCloseHandler()
 }
 
 func main() {
@@ -36,7 +61,9 @@ func main() {
 	for {
 		select {
 		case data := <-rxQueue:
-			fmt.Printf("%v", data)
+			fmt.Printf("%v", data) // Debug
+		case <-exitTrigger:
+			return
 		}
 	}
 

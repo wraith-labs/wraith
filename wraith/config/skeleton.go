@@ -1,7 +1,13 @@
 package config
 
 type ConfigSkeleton struct {
-	Radio struct {
+	Process struct {
+		RespectExitSignals bool
+	}
+	Comms struct {
+		JWT struct {
+			PublicKey string
+		}
 		Transmitter struct {
 			URLGenerator         string
 			Trigger              string
