@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -49,18 +48,10 @@ func main() {
 	// Run OnExit hooks always on exit
 	defer hooks.RunOnExit()
 
-	// Keep track of active goroutines
-	var wg sync.WaitGroup
-
-	txQueue := make(comms.TxQueue)
-	rxQueue := make(comms.RxQueue)
-	wg.Add(1)
-	go comms.Manage(txQueue, rxQueue, &wg)
-
 	// Mainloop: Transmit, receive and process stuff
 	for {
 		select {
-		case data := <-rxQueue:
+		case data := <-comms.UnifiedRxQueue:
 			fmt.Printf("%v", data) // Debug
 		case <-exitTrigger:
 			return

@@ -2,23 +2,22 @@ package comms
 
 import (
 	"net/url"
-	"sync"
+
+	"github.com/0x1a8510f2/wraith/hooks"
 )
 
-// Structures for transmitters and receivers
+// Structures (templates) for transmitters and receivers
 type Tx struct {
-	Start   func()
-	Stop    func()
-	Main    func()
-	Trigger func()
-	Queue   TxQueue
+	Start func()
+	Stop  func()
+	Main  func()
+	Data  map[interface{}]interface{}
 }
 type Rx struct {
-	Start   func()
-	Stop    func()
-	Main    func()
-	Trigger func()
-	Queue   RxQueue
+	Start func()
+	Stop  func()
+	Main  func()
+	Data  map[interface{}]interface{}
 }
 
 // The queue types, which store inbound and outbound data
@@ -36,8 +35,9 @@ type RxQueueElement struct {
 var transmitters map[string]*Tx
 var receivers map[string]*Rx
 
-// A unified rx channel to collect data from all receivers in one place
-var unifiedRxQueue RxQueue
+// Unified queues to hold incoming and outgoing data
+var UnifiedTxQueue TxQueue
+var UnifiedRxQueue RxQueue
 
 // Channel used to make the comms manager exit cleanly
 var managerExitTrigger chan struct{}
@@ -49,22 +49,21 @@ func RegTx(scheme string, tx *Tx) {
 
 // Register a receiver to make it useable by the Wraith (and inject the unifiedRxQueue)
 func RegRx(scheme string, rx *Rx) {
-	rx.Queue = unifiedRxQueue
+	rx.Queue = UnifiedRxQueue
 	receivers[scheme] = rx
 }
 
-// Infinite loop managing transmission and receiving of data
-func Manage(txQueue TxQueue, rxQueue RxQueue, wg *sync.WaitGroup) {
-	// Make sure the waitgroup is always decremented when this function exits
-	defer func() {
-		wg.Done()
-	}()
+// Infinite loop managing data transmission
+func Manage() {
+	// Initialise unified queues
+	UnifiedTxQueue = make(TxQueue)
+	UnifiedRxQueue = make(RxQueue)
 
 	for {
 		select {
 		case <-managerExitTrigger:
 			return
-		case tx := <-txQueue:
+		case tx := <-UnifiedTxQueue:
 			txaddr, err := url.Parse(tx.Addr)
 			// If there was an error parsing the URL, the whole txdata should be dropped as there's nothing more we can do
 			if err == nil {
@@ -73,7 +72,6 @@ func Manage(txQueue TxQueue, rxQueue RxQueue, wg *sync.WaitGroup) {
 					transmitter.Queue <- tx
 				}
 			}
-		case rxQueue <- (<-unifiedRxQueue):
 		}
 	}
 }
@@ -82,4 +80,8 @@ func init() {
 	// Initialise channel lists
 	transmitters = make(map[string]*Tx)
 	receivers = make(map[string]*Rx)
+	// Hook the comms manager into the on start and on exit events
+	hooks.OnStart.Add(func() {
+		go Manage()
+	})
 }
