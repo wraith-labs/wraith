@@ -84,11 +84,16 @@ func Manage() {
 }
 
 func init() {
-	// Initialise channel lists
+	// Initialise variables
+	managerExitTrigger = make(chan struct{})
 	transmitters = make(map[string]*Tx)
 	receivers = make(map[string]*Rx)
+
 	// Hook the comms manager into the on start and on exit events
 	hooks.OnStart.Add(func() {
 		go Manage()
+	})
+	hooks.OnExit.Add(func() {
+		managerExitTrigger <- struct{}{}
 	})
 }
