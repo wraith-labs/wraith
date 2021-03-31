@@ -48,11 +48,15 @@ func main() {
 	// Run OnExit hooks always on exit
 	defer hooks.RunOnExit()
 
+	// Hook a temporary command handler into the OnRx event
+	hooks.OnRx.Add(func(data map[string]interface{}) string { fmt.Printf("%v\n", data); return "" })
+
 	// Mainloop: Transmit, receive and process stuff
 	for {
 		select {
 		case data := <-comms.UnifiedRxQueue:
-			fmt.Printf("%v", data) // Debug
+			// When data is received, run the OnRx handlers
+			hooks.RunOnRx(data.Data)
 		case <-exitTrigger:
 			return
 		}
