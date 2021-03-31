@@ -10,6 +10,9 @@ import (
 	"github.com/0x1a8510f2/wraith/comms"
 	"github.com/0x1a8510f2/wraith/config"
 	"github.com/0x1a8510f2/wraith/hooks"
+
+	_ "github.com/0x1a8510f2/wraith/comms/channels/rx"
+	_ "github.com/0x1a8510f2/wraith/comms/channels/tx"
 )
 
 // Useful globals
