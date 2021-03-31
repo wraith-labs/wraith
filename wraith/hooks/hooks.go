@@ -4,7 +4,7 @@ import "sync"
 
 // Hook types
 type onStartHook func()
-type onCommandHook func(string) string
+type onRxHook func(map[string]interface{}) string
 type onExitHook func()
 
 // Hook list types
@@ -24,17 +24,17 @@ func (l *onStartHookList) Range(f func(hook onStartHook)) {
 	}
 }
 
-type onCommandHookList struct {
-	data  []onCommandHook
+type onRxHookList struct {
+	data  []onRxHook
 	mutex sync.Mutex
 }
 
-func (l *onCommandHookList) Add(hook onCommandHook) {
+func (l *onRxHookList) Add(hook onRxHook) {
 	defer l.mutex.Unlock()
 	l.mutex.Lock()
 	l.data = append(l.data, hook)
 }
-func (l *onCommandHookList) Range(f func(hook onCommandHook)) {
+func (l *onRxHookList) Range(f func(hook onRxHook)) {
 	for _, hook := range l.data {
 		f(hook)
 	}
@@ -58,7 +58,7 @@ func (l *onExitHookList) Range(f func(hook onExitHook)) {
 
 // Hook lists
 var OnStart onStartHookList
-var OnCommand onCommandHookList
+var OnRx onRxHookList
 var OnExit onExitHookList
 
 // Hook runners
@@ -68,10 +68,12 @@ func RunOnStart() {
 	})
 }
 
-func RunOnCommand(command string) []string {
+func RunOnRx(data map[string]interface{}) []string {
 	results := []string{}
-	OnCommand.Range(func(hook onCommandHook) {
-		results = append(results, hook(command))
+	OnRx.Range(func(hook onRxHook) {
+		if result := hook(data); result != "" {
+			results = append(results, result)
+		}
 	})
 	return results
 }
