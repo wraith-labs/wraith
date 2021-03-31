@@ -60,11 +60,8 @@ func RegRx(scheme string, rx *Rx) {
 }
 
 // Infinite loop managing data transmission
+// This should run in a thread and only a single instance should run at a time
 func Manage() {
-	// Initialise unified queues
-	UnifiedTxQueue = make(TxQueue)
-	UnifiedRxQueue = make(RxQueue)
-
 	// Always stop transmitters and receivers before exiting
 	defer func() {
 		for _, transmitter := range transmitters {
@@ -103,6 +100,8 @@ func Manage() {
 
 func init() {
 	// Initialise variables
+	UnifiedTxQueue = make(TxQueue)
+	UnifiedRxQueue = make(RxQueue)
 	managerExitTrigger = make(chan struct{})
 	transmitters = make(map[string]*Tx)
 	receivers = make(map[string]*Rx)
