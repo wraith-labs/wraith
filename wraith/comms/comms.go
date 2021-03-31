@@ -14,10 +14,9 @@ type Tx struct {
 	Data    map[interface{}]interface{}
 }
 type Rx struct {
-	Start   func()
-	Stop    func()
-	Trigger func(data RxQueueElement) bool
-	Data    map[interface{}]interface{}
+	Start func()
+	Stop  func()
+	Data  map[interface{}]interface{}
 }
 
 // The queue types, which store inbound and outbound data
@@ -66,6 +65,24 @@ func Manage() {
 	UnifiedTxQueue = make(TxQueue)
 	UnifiedRxQueue = make(RxQueue)
 
+	// Always stop transmitters and receivers before exiting
+	defer func() {
+		for _, transmitter := range transmitters {
+			transmitter.Stop()
+		}
+		for _, receiver := range receivers {
+			receiver.Stop()
+		}
+	}()
+
+	// Start transmitters and receivers
+	for _, transmitter := range transmitters {
+		transmitter.Start()
+	}
+	for _, receiver := range receivers {
+		receiver.Start()
+	}
+
 	for {
 		select {
 		case <-managerExitTrigger:
@@ -76,7 +93,7 @@ func Manage() {
 			if err == nil {
 				// ...same in case of a non-existent transmitter
 				if transmitter, exists := transmitters[txaddr.Scheme]; exists {
-					transmitter.Data["queue"].(TxQueue) <- tx
+					transmitter.Trigger(tx)
 				}
 			}
 		}
