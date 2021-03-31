@@ -8,16 +8,16 @@ import (
 
 // Structures (templates) for transmitters and receivers
 type Tx struct {
-	Start func()
-	Stop  func()
-	Main  func()
-	Data  map[interface{}]interface{}
+	Start   func()
+	Stop    func()
+	Trigger func(data TxQueueElement) bool
+	Data    map[interface{}]interface{}
 }
 type Rx struct {
-	Start func()
-	Stop  func()
-	Main  func()
-	Data  map[interface{}]interface{}
+	Start   func()
+	Stop    func()
+	Trigger func(data RxQueueElement) bool
+	Data    map[interface{}]interface{}
 }
 
 // The queue types, which store inbound and outbound data
@@ -44,12 +44,19 @@ var managerExitTrigger chan struct{}
 
 // Register a transmitter to make it useable by the Wraith
 func RegTx(scheme string, tx *Tx) {
+	// Initialise the data map
+	tx.Data = make(map[interface{}]interface{})
+
 	transmitters[scheme] = tx
 }
 
 // Register a receiver to make it useable by the Wraith (and inject the unifiedRxQueue)
 func RegRx(scheme string, rx *Rx) {
-	rx.Queue = UnifiedRxQueue
+	// Initialise the data map
+	rx.Data = make(map[interface{}]interface{})
+	// Inject the unified queue
+	rx.Data["queue"] = UnifiedRxQueue
+
 	receivers[scheme] = rx
 }
 
@@ -69,7 +76,7 @@ func Manage() {
 			if err == nil {
 				// ...same in case of a non-existent transmitter
 				if transmitter, exists := transmitters[txaddr.Scheme]; exists {
-					transmitter.Queue <- tx
+					transmitter.Data["queue"].(TxQueue) <- tx
 				}
 			}
 		}
