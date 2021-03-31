@@ -29,7 +29,9 @@ func init() {
 				case <-Debug.Data["exitTrigger"].(chan struct{}):
 					return
 				case <-time.After(2 * time.Second):
-					Debug.Data["queue"].(comms.RxQueue) <- comms.RxQueueElement{Data: map[string]interface{}{}}
+					Debug.Data["queue"].(comms.RxQueue) <- comms.RxQueueElement{Data: map[string]interface{}{
+						"debug": "message from debug receiver",
+					}}
 				}
 			}
 		}()
