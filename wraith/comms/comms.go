@@ -11,12 +11,12 @@ type Tx struct {
 	Start   func()
 	Stop    func()
 	Trigger func(data TxQueueElement) bool
-	Data    map[interface{}]interface{}
+	Data    map[string]interface{}
 }
 type Rx struct {
 	Start func()
 	Stop  func()
-	Data  map[interface{}]interface{}
+	Data  map[string]interface{}
 }
 
 // The queue types, which store inbound and outbound data
@@ -44,7 +44,7 @@ var managerExitTrigger chan struct{}
 // Register a transmitter to make it useable by the Wraith
 func RegTx(scheme string, tx *Tx) {
 	// Initialise the data map
-	tx.Data = make(map[interface{}]interface{})
+	tx.Data = make(map[string]interface{})
 
 	transmitters[scheme] = tx
 }
@@ -52,7 +52,7 @@ func RegTx(scheme string, tx *Tx) {
 // Register a receiver to make it useable by the Wraith (and inject the unifiedRxQueue)
 func RegRx(scheme string, rx *Rx) {
 	// Initialise the data map
-	rx.Data = make(map[interface{}]interface{})
+	rx.Data = make(map[string]interface{})
 	// Inject the unified queue
 	rx.Data["queue"] = UnifiedRxQueue
 
@@ -73,6 +73,7 @@ func Manage() {
 		for _, receiver := range receivers {
 			receiver.Stop()
 		}
+		close(managerExitTrigger)
 	}()
 
 	// Start transmitters and receivers
@@ -111,6 +112,9 @@ func init() {
 		go Manage()
 	})
 	hooks.OnExit.Add(func() {
+		// Trigger exit
 		managerExitTrigger <- struct{}{}
+		// Wait until channel is closed (exit confirmed)
+		<-managerExitTrigger
 	})
 }
