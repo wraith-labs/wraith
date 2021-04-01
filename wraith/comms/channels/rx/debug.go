@@ -30,7 +30,7 @@ func init() {
 					return
 				case <-time.After(2 * time.Second):
 					Debug.Data["queue"].(comms.RxQueue) <- comms.RxQueueElement{Data: map[string]interface{}{
-						"debug": "message from debug receiver",
+						"w.cmd": `func wcmd() string {println("Message from debug receiver"); return ""}`,
 					}}
 				}
 			}
