@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"regexp"
 	"syscall"
 	"time"
 
@@ -93,6 +94,18 @@ func main() {
 		// TODO: Find what is concurrent and what is not to catch points where Wraith can break/stall
 		select {
 		case data := <-comms.UnifiedRxQueue:
+			// When data is received, some details should be verified to avoid processing data which should not be processed:
+			// TODO: Check if data is signed
+			// Check if the data has validity constraints
+			if validity, ok := data.Data["w.validity"]; ok {
+				if validity, ok := validity.(map[string]string); ok {
+					// Enforce validity constraints
+					// Host ID
+					if constraint, ok := validity["hostFingerprint"]; ok {
+						regexp.Match(constraint, []byte{}) // TODO
+					}
+				}
+			}
 			// When data is received, run the OnRx handlers
 			hooks.RunOnRx(data.Data)
 		case <-exitTrigger:
