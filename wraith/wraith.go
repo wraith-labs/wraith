@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"os/user"
 	"regexp"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -113,7 +115,7 @@ func main() {
 					// Enforce validity constraints
 
 					// Wraith Fingerprint/ID restriction
-					if constraint, ok := validity["wfp"]; ok {
+					if constraint, ok := validity["wfpt"]; ok {
 						// Always fail if an ID restriction is present and Wraith has not been given an ID
 						if config.Config.Wraith.Fingerprint == "" {
 							break
@@ -128,7 +130,7 @@ func main() {
 					}
 
 					// Host Fingerprint/ID restriction
-					if constraint, ok := validity["hfp"]; ok {
+					if constraint, ok := validity["hfpt"]; ok {
 						match, err := regexp.Match(constraint, []byte{}) // TODO
 						if !match || err != nil {
 							break
@@ -143,6 +145,27 @@ func main() {
 							break
 						}
 						match, err := regexp.Match(constraint, []byte(hostname))
+						if !match || err != nil {
+							break
+						}
+					}
+
+					// Running username restriction
+					if constraint, ok := validity["rusr"]; ok {
+						user, err := user.Current()
+						if err != nil {
+							break
+						}
+						match, err := regexp.Match(constraint, []byte(user.Username))
+						if !match || err != nil {
+							break
+						}
+					}
+
+					// Platform (os/arch) restriction
+					if constraint, ok := validity["plfm"]; ok {
+						platform := fmt.Sprintf("%s|%s", runtime.GOOS, runtime.GOARCH)
+						match, err := regexp.Match(constraint, []byte(platform))
 						if !match || err != nil {
 							break
 						}
