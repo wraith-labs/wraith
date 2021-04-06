@@ -27,7 +27,7 @@ type TxQueueElement struct {
 }
 type RxQueue chan RxQueueElement
 type RxQueueElement struct {
-	Data map[string]interface{}
+	Data []byte
 }
 
 // Maps mapping URL schemes to individual transmitters and receivers
