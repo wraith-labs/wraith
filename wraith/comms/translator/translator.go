@@ -6,8 +6,8 @@ import (
 )
 
 type Format struct {
-	Encode func(map[string]interface{}) string
-	Decode func(string) (map[string]interface{}, error)
+	Encode func(map[string]interface{}) []byte
+	Decode func([]byte) (map[string]interface{}, error)
 }
 
 var formats map[string]*Format
@@ -23,29 +23,29 @@ func GetFormats() map[string]*Format {
 }
 
 // Encode data to a specific format
-func Encode(data map[string]interface{}, formatSummary string) (string, error) {
+func Encode(data map[string]interface{}, formatSummary string) ([]byte, error) {
 	if format, exists := formats[formatSummary]; exists {
 		return format.Encode(data), nil
 	} else {
-		return "", errors.New("No such format: " + formatSummary)
+		return []byte{}, errors.New("no such format: " + formatSummary)
 	}
 }
 
 // Decode data from specific format
-func Decode(data string, formatSummary string) (map[string]interface{}, error) {
+func Decode(data []byte, formatSummary string) (map[string]interface{}, error) {
 	if format, exists := formats[formatSummary]; exists {
 		return format.Decode(data)
 	} else {
-		return make(map[string]interface{}), errors.New("No such format: " + formatSummary)
+		return make(map[string]interface{}), errors.New("no such format: " + formatSummary)
 	}
 }
 
 // Decode data but guess the format
-func DecodeGuess(data string) (map[string]interface{}, error) {
+func DecodeGuess(data []byte) (map[string]interface{}, error) {
 	for formatSummary, format := range formats {
 		if matched, err := regexp.Match(formatSummary, []byte(data)); matched && err == nil {
 			return format.Decode(data)
 		}
 	}
-	return make(map[string]interface{}), errors.New("Format could not be guessed")
+	return make(map[string]interface{}), errors.New("format could not be guessed")
 }
