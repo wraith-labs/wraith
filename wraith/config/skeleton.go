@@ -1,6 +1,9 @@
 package config
 
 type ConfigSkeleton struct {
+	Wraith struct {
+		Fingerprint string
+	}
 	Process struct {
 		RespectExitSignals bool
 	}
