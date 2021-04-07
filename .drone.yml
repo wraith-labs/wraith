@@ -8,6 +8,12 @@ steps:
     commands:
       - cd wraith
       - golangci-lint run -v
+  - name: test
+    image: docker.io/golang:1.16-alpine
+    depends_on: [ clone ]
+    commands:
+      - cd wraith
+      - go test
   - name: build
     image: docker.io/golang:1.16-alpine
     depends_on: [ clone ]
