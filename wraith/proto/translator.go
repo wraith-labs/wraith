@@ -1,4 +1,4 @@
-package translator
+package proto
 
 import (
 	"errors"
