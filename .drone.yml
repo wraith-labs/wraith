@@ -6,10 +6,12 @@ steps:
     image: golangci/golangci-lint
     depends_on: [ clone ]
     commands:
-      - golangci-lint run -v ./wraith/...
+      - cd wraith
+      - golangci-lint run -v
   - name: build
     image: docker.io/golang:1.16-alpine
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base
-      - go build -v -trimpath ./wraith/
+      - cd wraith
+      - go build -v -trimpath .
