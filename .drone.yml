@@ -12,6 +12,7 @@ steps:
     image: docker.io/golang:1.16-alpine
     depends_on: [ clone ]
     commands:
+      - apk add --no-cache build-base
       - cd wraith
       - go test
   - name: build
