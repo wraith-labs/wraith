@@ -1,13 +1,7 @@
 kind: pipeline
 type: docker
-name: code quality and build
+name: test and build
 steps:
-  - name: lint
-    image: golangci/golangci-lint
-    depends_on: [ clone ]
-    commands:
-      - cd wraith
-      - golangci-lint run --modules-download-mode vendor
   - name: test
     image: docker.io/golang:1.16-alpine
     depends_on: [ clone ]
