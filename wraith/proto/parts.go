@@ -12,6 +12,15 @@ func (hkvs *HandlerKeyValueStore) Init() {
 	}
 }
 
+func (hkvs *HandlerKeyValueStore) Set(key string, value interface{}) {
+	hkvs.data[key] = value
+}
+
+func (hkvs *HandlerKeyValueStore) Get(key string) (interface{}, bool) {
+	data, ok := hkvs.data[key]
+	return data, ok
+}
+
 type ProtoPartsMap struct {
 	data map[string]func(HandlerKeyValueStore, interface{})
 	hkvs HandlerKeyValueStore
