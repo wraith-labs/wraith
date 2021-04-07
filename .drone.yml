@@ -4,11 +4,12 @@ name: code quality and build
 steps:
   - name: lint
     image: golangci/golangci-lint
+    depends_on: [ clone ]
     commands:
       - golangci-lint run -v ./wraith
-
   - name: build
     image: docker.io/golang:1.16-alpine
+    depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base
-      - go build -v -trimpath ./wraith
+      - go build -v -trimpath ./wraith/...
