@@ -7,7 +7,7 @@ steps:
     depends_on: [ clone ]
     commands:
       - cd wraith
-      - golangci-lint run -v
+      - golangci-lint run --modules-download-mode vendor
   - name: test
     image: docker.io/golang:1.16-alpine
     depends_on: [ clone ]
