@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	proto.PartMap.Add("w.validity", func(hkvs proto.HandlerKeyValueStore, data interface{}) {
+	proto.PartMap.Add("w.validity", func(hkvs *proto.HandlerKeyValueStore, data interface{}) {
 		isValid := false
 
 		defer func() {

