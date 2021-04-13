@@ -18,7 +18,7 @@ import (
 )
 
 // Useful globals
-var startTime time.Time
+var StartTime time.Time
 
 // Exit handling
 var exitTrigger chan struct{}
@@ -41,7 +41,7 @@ func setupCloseHandler() {
 }
 
 func init() {
-	startTime = time.Now()
+	StartTime = time.Now()
 	exitTrigger = make(chan struct{})
 	setupCloseHandler()
 }
@@ -59,7 +59,7 @@ func main() {
 		select {
 		case rx := <-comms.UnifiedRxQueue:
 			// When data is received, run the OnRx handlers
-			hooks.RunOnRx(rx.Data)
+			_ = hooks.RunOnRx(rx.Data) // TODO: Handle the returned value
 		case <-exitTrigger:
 			return
 		}
