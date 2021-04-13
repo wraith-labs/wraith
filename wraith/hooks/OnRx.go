@@ -3,7 +3,7 @@ package hooks
 import "sync"
 
 // OnRx hook structure
-type onRxHook func([]byte) string
+type onRxHook func([]byte) []string
 
 // List of OnRx hooks structure
 type onRxHookList struct {
@@ -29,8 +29,8 @@ var OnRx onRxHookList
 func RunOnRx(data []byte) []string {
 	results := []string{}
 	OnRx.Range(func(hook onRxHook) {
-		if result := hook(data); result != "" {
-			results = append(results, result)
+		if result := hook(data); len(result) > 0 {
+			results = append(results, result...)
 		}
 	})
 	return results
