@@ -13,6 +13,7 @@ import (
 	_ "github.com/0x1a8510f2/wraith/comms/channels/rx"
 	_ "github.com/0x1a8510f2/wraith/comms/channels/tx"
 
+	_ "github.com/0x1a8510f2/wraith/proto"
 	_ "github.com/0x1a8510f2/wraith/proto/parts"
 )
 
