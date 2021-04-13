@@ -1,11 +1,13 @@
-**This project is currently in development. Commits to this repository are more rare now as I am currently focusing on other work, but work will resume when I have time. If you are interested in sponsoring or contributing to the project to speed up development, please get in touch (tr_slimey@protonmail.com).**
+| :exclamation::exclamation::exclamation:  **WARNING**  :exclamation::exclamation::exclamation: |
+|-----------------------------------------|
+This project is currently heavily in development and hence is pretty unusable. Commits to this repository can be rare while I focus on other work, but the project is not abandoned. If you are interested in sponsoring or contributing to the project to speed up development, or even offering some suggestions, please get in touch via the discussions feature on GitHub, or via Matrix at [@tr_slimey:an-atom-in.space](https://matrix.to/#/@tr_slimey:an-atom-in.space).
 
 # wraith
 [![Build Status](https://ci.0x1a8510f2.space/api/badges/0x1a8510f2/wraith/status.svg?ref=refs/heads/indev)](https://ci.0x1a8510f2.space/0x1a8510f2/wraith)
 
 A free and open-source, modular Remote Administration Tool (RAT) / Payload Dropper written in Go(lang) with a flexible command and control (C2) system*.
 
-`*` - The C2 system can consist of static files on a HTTP server, static DNS records on a DNS server, or can be automated with a control panel (though this is not part of this project and while I may make a panel eventually, you are encouraged to make your own by all means).
+<sub>\* The C2 system can consist of static files on a HTTP server, static DNS records on a DNS server, or can be automated with a control panel (though this is not part of this project and while I may make a panel eventually, you are encouraged to make your own by all means).</sub>
 
 # WARNING!
 This is the In-Development branch **which has become the default branch as of 21/06/2020**. Any code found here is most likely **not tested, unstable and subject to change** as the project develops. To use the stable version please see the *releases* tab or the [master](https://github.com/0x1a8510f2/wraith/tree/master) branch.
