@@ -7,17 +7,13 @@ When included, it "receives" a print command every 2 seconds.
 
 package rx
 
-import (
-	"time"
+import "time"
 
-	"github.com/0x1a8510f2/wraith/comms"
-)
-
-var Debug comms.Rx
+var Debug Rx
 
 func init() {
 	// Register handler for the debug:// URL scheme (which is never really used)
-	comms.RegRx("debug", &Debug)
+	RxList.Add("debug", &Debug)
 	// Create a channel to trigger exit via the `Stop` method
 	Debug.Data["exitTrigger"] = make(chan struct{})
 	// On start, run a thread pushing a debug message every 2 seconds
@@ -29,7 +25,7 @@ func init() {
 				case <-Debug.Data["exitTrigger"].(chan struct{}):
 					return
 				case <-time.After(2 * time.Second):
-					Debug.Data["queue"].(comms.RxQueue) <- comms.RxQueueElement{Data: []byte{}} /*comms.RxQueueElement{Data: map[string]interface{}{
+					Debug.Data["queue"].(RxQueue) <- RxQueueElement{Data: []byte{}} /*RxQueueElement{Data: map[string]interface{}{
 						"w.cmd": `func wcmd() string {println("Message from debug receiver"); return ""}`,
 					}}*/
 				}

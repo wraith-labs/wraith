@@ -10,9 +10,6 @@ import (
 	"github.com/0x1a8510f2/wraith/config"
 	"github.com/0x1a8510f2/wraith/hooks"
 
-	_ "github.com/0x1a8510f2/wraith/comms/channels/rx"
-	_ "github.com/0x1a8510f2/wraith/comms/channels/tx"
-
 	_ "github.com/0x1a8510f2/wraith/proto"
 	_ "github.com/0x1a8510f2/wraith/proto/parts"
 )
@@ -57,7 +54,7 @@ func main() {
 	for {
 		// TODO: Find what is concurrent and what is not to catch points where Wraith can break/stall
 		select {
-		case rx := <-comms.UnifiedRxQueue:
+		case rx := <-*comms.UnifiedRxQueue:
 			// When data is received, run the OnRx handlers
 			_ = hooks.RunOnRx(rx.Data) // TODO: Handle the returned value
 		case <-exitTrigger:
