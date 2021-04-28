@@ -12,6 +12,9 @@ import (
 
 	// Registers a hook to handle incoming transmissions
 	_ "github.com/0x1a8510f2/wraith/proto"
+
+	// Imports all modular code and keeps track of it
+	_ "github.com/0x1a8510f2/wraith/modtracker"
 )
 
 // Useful globals
