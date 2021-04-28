@@ -1,6 +1,9 @@
 package proto
 
-import "github.com/0x1a8510f2/wraith/hooks"
+import (
+	"github.com/0x1a8510f2/wraith/hooks"
+	"github.com/0x1a8510f2/wraith/proto/parts"
+)
 
 func HandleData(data []byte) []string {
 	// TODO: Check if data is signed
@@ -13,22 +16,29 @@ func HandleData(data []byte) []string {
 	}
 
 	// Set up HandlerKeyValueStore with special data
-	PartMap.GetHKVS().data["w.msg.results"] = []string{} // Array of all "output" from handlers
-	PartMap.GetHKVS().data["w.validity.isValid"] = true  // Initially should be valid in case `w.validity` not specified
+	parts.PartMap.GetHKVS().Set("w.msg.results", []string{}) // Array of all "output" from handlers
+	parts.PartMap.GetHKVS().Set("w.validity.isValid", true)  // Initially should be valid in case `w.validity` not specified
 
 	// The w.validity data key is special - it decides whether the rest of the keys are evaluated
 	// If it's present, always handle it first so other handlers don't have to wait
 	if validity, ok := dataMap["w.validity"]; ok {
-		PartMap.Handle("w.validity", validity)
+		parts.PartMap.Handle("w.validity", validity)
 		delete(dataMap, "w.validity")
 	}
 
 	// Handle all else
 	for key, value := range dataMap {
-		PartMap.Handle(key, value)
+		parts.PartMap.Handle(key, value)
 	}
 
-	return PartMap.GetHKVS().data["w.msg.results"].([]string)
+	// Return the results (we set the key above so it'll definitely exist)
+	results, _ := parts.PartMap.GetHKVS().Get("w.msg.results")
+	// It's best to make sure that it's a []string though
+	if resultsStrArr, ok := results.([]string); ok {
+		return resultsStrArr
+	} else {
+		return []string{"HandleData was unable to fetch the results array - a handler module is likely broken"}
+	}
 }
 
 func init() {

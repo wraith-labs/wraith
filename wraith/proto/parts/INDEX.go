@@ -1,4 +1,4 @@
-package proto
+package parts
 
 var PartMap ProtoPartsMap
 

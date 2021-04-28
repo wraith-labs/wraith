@@ -8,11 +8,10 @@ import (
 	"runtime"
 
 	"github.com/0x1a8510f2/wraith/config"
-	"github.com/0x1a8510f2/wraith/proto"
 )
 
 func init() {
-	proto.PartMap.Add("w.validity", func(hkvs *proto.HandlerKeyValueStore, data interface{}) {
+	PartMap.Add("w.validity", func(hkvs *HandlerKeyValueStore, data interface{}) {
 		isValid := false
 
 		defer func() {

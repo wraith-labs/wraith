@@ -10,8 +10,8 @@ import (
 	"github.com/0x1a8510f2/wraith/config"
 	"github.com/0x1a8510f2/wraith/hooks"
 
+	// Registers a hook to handle incoming transmissions
 	_ "github.com/0x1a8510f2/wraith/proto"
-	_ "github.com/0x1a8510f2/wraith/proto/parts"
 )
 
 // Useful globals

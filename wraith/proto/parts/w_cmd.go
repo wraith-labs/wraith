@@ -3,14 +3,12 @@ package parts
 import (
 	"fmt"
 
-	"github.com/0x1a8510f2/wraith/proto"
-
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
 )
 
 func init() {
-	proto.PartMap.Add("w.cmd", func(hkvs *proto.HandlerKeyValueStore, data interface{}) {
+	PartMap.Add("w.cmd", func(hkvs *HandlerKeyValueStore, data interface{}) {
 		// Store results of command
 		result := ""
 
