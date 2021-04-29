@@ -1,15 +1,15 @@
-// This package imports and keeps track of all modular parts of Wraith. They must register
-// with this module in order to be used. They can also be de-registered and re-registered
-// dynamically.
+// This package keeps track of all modular parts of Wraith. They must register
+// with this module in order to be used. They can also be de-registered and
+// re-registered dynamically.
 
 package modtracker
 
 // "Enum" of the available module types
 const (
-	ModProtoLang = iota
+	ModCommsChanRx = iota
+	ModCommsChanTx
+	ModProtoLang
 	ModProtoPart
-	ModCommsTx
-	ModCommsRx
 
 	// As long as this is last, it will equal the number of entries above because
 	// iotas start at 0 so (last entry)+1 == total
@@ -52,6 +52,7 @@ func DisableModule(modtype int, modname string) {
 }
 
 // Get all enabled modules of a certain type as an array (nameless)
+// This is less CPU-efficient than GetEnabledNamed but more memory-efficient
 func GetEnabledNameless(modtype int) []interface{} {
 	mods := []interface{}{}
 	for _, mod := range moduleTreeEnabled[modtype] {
@@ -61,6 +62,7 @@ func GetEnabledNameless(modtype int) []interface{} {
 }
 
 // Get the names of all enabled modules of a certain type as an array
+// This is less CPU-efficient than GetEnabledNamed but more memory-efficient
 func GetEnabledNameOnly(modtype int) []string {
 	modNames := []string{}
 	for modName := range moduleTreeEnabled[modtype] {
@@ -80,6 +82,7 @@ func GetAllEnabled() [TotalModTypes]map[string]interface{} {
 }
 
 // Get all disabled modules of a certain type as an array (nameless)
+// This is less CPU-efficient than GetDisabledNamed but more memory-efficient
 func GetDisabledNameless(modtype int) []interface{} {
 	mods := []interface{}{}
 	for _, mod := range moduleTreeDisabled {
@@ -89,6 +92,7 @@ func GetDisabledNameless(modtype int) []interface{} {
 }
 
 // Get the names of all disabled modules of a certain type as an array
+// This is less CPU-efficient than GetDisabledNamed but more memory-efficient
 func GetDisabledNameOnly(modtype int) []string {
 	modNames := []string{}
 	for modName := range moduleTreeDisabled[modtype] {
