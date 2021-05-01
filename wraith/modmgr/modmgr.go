@@ -2,7 +2,7 @@
 // with this module in order to be used. They can also be de-registered and
 // re-registered dynamically.
 
-package modtracker
+package modmgr
 
 // "Enum" of the available module types
 const (
