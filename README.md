@@ -1,6 +1,6 @@
 | :exclamation::exclamation::exclamation:  **WARNING**  :exclamation::exclamation::exclamation: |
 |-----------------------------------------|
-This project is currently heavily in development and hence is pretty unusable. Commits to this repository can be rare while I focus on other work, but the project is not abandoned. If you are interested in sponsoring or contributing to the project to speed up development, or even offering some suggestions, please get in touch via the discussions feature on GitHub, or via Matrix at [@tr_slimey:an-atom-in.space](https://matrix.to/#/@tr_slimey:an-atom-in.space).
+This project is currently heavily in development and hence is pretty unusable. Commits to this repository can be rare while I focus on other work, but the project is not abandoned. If you are interested in sponsoring or contributing to the project to speed up development, or even offering some suggestions, please get in touch via the discussions feature on GitHub, or via Matrix at [@0x1a8510f2:0x1a8510f2.space](https://matrix.to/#/@0x1a8510f2:0x1a8510f2.space).
 
 # wraith
 [![Build Status](https://ci.0x1a8510f2.space/api/badges/0x1a8510f2/wraith/status.svg?ref=refs/heads/indev)](https://ci.0x1a8510f2.space/0x1a8510f2/wraith)
