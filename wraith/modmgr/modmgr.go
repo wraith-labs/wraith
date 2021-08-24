@@ -2,60 +2,226 @@
 // with this module in order to be used. They can also be de-registered and
 // re-registered dynamically.
 
+// TODO: This could really benefit from generics once they land
+
 package modmgr
 
-// "Enum" of the available module types
-const (
-	ModCommsChanRx = iota
-	ModCommsChanTx
-	ModProtoLang
-	ModProtoPart
+import "sync"
 
-	// As long as this is last, it will equal the number of entries above because
-	// iotas start at 0 so (last entry)+1 == total
-	TotalModTypes
-)
+//
+type ModuleTree struct {
+	lock           sync.Mutex
+	modCommsChanTx [2]map[string]*CommsChanTxModule
+	modCommsChanRx [2]map[string]*CommsChanRxModule
+	modProtoLang   [2]map[string]*ProtoLangModule
+	modProtoPart   [2]map[string]*ProtoPartModule
+}
 
-// Arrays of maps of the modules which are currently enabled or disabled
-var moduleTreeEnabled [TotalModTypes]map[string]interface{}
-var moduleTreeDisabled [TotalModTypes]map[string]interface{}
+// Automatically lock and unlock the tree mutex
+func (mt *ModuleTree) mutex() func() {
+	mt.lock.Lock()
+	return func() {
+		mt.lock.Unlock()
+	}
+}
 
-// Register and enable a module so that it can be used by Wraith
-func RegisterModule(modtype int, modname string, mod interface{}) {
-	moduleTreeEnabled[modtype][modname] = mod
+// Register a module so that it can be used by Wraith
+
+func (mt *ModuleTree) Register_CommsChanTxModule(modname string, mod *CommsChanTxModule, enabled bool) {
+	defer mt.mutex()()
+
+	index := 0
+	if !enabled {
+		index = 1
+	}
+	mt.modCommsChanTx[index][modname] = mod
+}
+
+func (mt *ModuleTree) Register_CommsChanRxModule(modname string, mod *CommsChanRxModule, enabled bool) {
+	defer mt.mutex()()
+
+	index := 0
+	if !enabled {
+		index = 1
+	}
+	mt.modCommsChanRx[index][modname] = mod
+}
+
+func (mt *ModuleTree) Register_ProtoLangModule(modname string, mod *ProtoLangModule, enabled bool) {
+	defer mt.mutex()()
+
+	index := 0
+	if !enabled {
+		index = 1
+	}
+	mt.modProtoLang[index][modname] = mod
+}
+
+func (mt *ModuleTree) Register_ProtoPartModule(modname string, mod *ProtoPartModule, enabled bool) {
+	defer mt.mutex()()
+
+	index := 0
+	if !enabled {
+		index = 1
+	}
+	mt.modProtoPart[index][modname] = mod
 }
 
 // Semi-permanently (does not survive Wraith re-starts) remove a module
 // This can save memory if a module is guaranteed to not be needed anymore, but is
 // very risky because the module can never be re-added without re-starting Wraith
-func DeregisterModule(modtype int, modname string) {
+// (if the module is built-in) or re-sending the module (if it's not)
+
+func (mt *ModuleTree) Deregister_CommsChanTxModule(modname string) {
+	defer mt.mutex()()
+
 	// Make sure to delete both if enabled and disabled
 	// delete() is a no-op when the key does not exist so it's safe not to check
-	delete(moduleTreeEnabled[modtype], modname)
-	delete(moduleTreeDisabled[modtype], modname)
+	delete(mt.modCommsChanTx[0], modname)
+	delete(mt.modCommsChanTx[1], modname)
+}
+
+func (mt *ModuleTree) Deregister_CommsChanRxModule(modname string) {
+	defer mt.mutex()()
+
+	// Make sure to delete both if enabled and disabled
+	// delete() is a no-op when the key does not exist so it's safe not to check
+	delete(mt.modCommsChanRx[0], modname)
+	delete(mt.modCommsChanRx[1], modname)
+}
+
+func (mt *ModuleTree) Deregister_ProtoLangModule(modname string) {
+	defer mt.mutex()()
+
+	// Make sure to delete both if enabled and disabled
+	// delete() is a no-op when the key does not exist so it's safe not to check
+	delete(mt.modProtoLang[0], modname)
+	delete(mt.modProtoLang[1], modname)
+}
+
+func (mt *ModuleTree) Deregister_ProtoPartModule(modname string) {
+	defer mt.mutex()()
+
+	// Make sure to delete both if enabled and disabled
+	// delete() is a no-op when the key does not exist so it's safe not to check
+	delete(mt.modProtoPart[0], modname)
+	delete(mt.modProtoPart[1], modname)
 }
 
 // If a module is currently registered but disabled, enable it
-func EnableModule(modtype int, modname string) {
-	if mod, exists := moduleTreeDisabled[modtype][modname]; exists {
-		moduleTreeEnabled[modtype][modname] = mod
-		delete(moduleTreeDisabled[modtype], modname)
+
+func (mt *ModuleTree) Enable_CommsChanTxModule(modname string) {
+	defer mt.mutex()()
+
+	if mod, exists := mt.modCommsChanTx[1][modname]; exists {
+		mt.modCommsChanTx[0][modname] = mod
+		delete(mt.modCommsChanTx[1], modname)
+	}
+}
+
+func (mt *ModuleTree) Enable_CommsChanRxModule(modname string) {
+	defer mt.mutex()()
+
+	if mod, exists := mt.modCommsChanRx[1][modname]; exists {
+		mt.modCommsChanRx[0][modname] = mod
+		delete(mt.modCommsChanRx[1], modname)
+	}
+}
+
+func (mt *ModuleTree) Enable_ProtoLangModule(modname string) {
+	defer mt.mutex()()
+
+	if mod, exists := mt.modProtoLang[1][modname]; exists {
+		mt.modProtoLang[0][modname] = mod
+		delete(mt.modProtoLang[1], modname)
+	}
+}
+
+func (mt *ModuleTree) Enable_ProtoPartModule(modname string) {
+	defer mt.mutex()()
+
+	if mod, exists := mt.modProtoPart[1][modname]; exists {
+		mt.modProtoPart[0][modname] = mod
+		delete(mt.modProtoPart[1], modname)
 	}
 }
 
 // If a module is currently registered and enabled, disable it
-func DisableModule(modtype int, modname string) {
-	if mod, exists := moduleTreeEnabled[modtype][modname]; exists {
-		moduleTreeDisabled[modtype][modname] = mod
-		delete(moduleTreeEnabled[modtype], modname)
+
+func (mt *ModuleTree) Disable_CommsChanTxModule(modname string) {
+	defer mt.mutex()()
+
+	if mod, exists := mt.modCommsChanTx[0][modname]; exists {
+		mt.modCommsChanTx[1][modname] = mod
+		delete(mt.modCommsChanTx[0], modname)
+	}
+}
+
+func (mt *ModuleTree) Disable_CommsChanRxModule(modname string) {
+	defer mt.mutex()()
+
+	if mod, exists := mt.modCommsChanRx[0][modname]; exists {
+		mt.modCommsChanRx[1][modname] = mod
+		delete(mt.modCommsChanRx[0], modname)
+	}
+}
+
+func (mt *ModuleTree) Disable_ProtoLangModule(modname string) {
+	defer mt.mutex()()
+
+	if mod, exists := mt.modProtoLang[0][modname]; exists {
+		mt.modProtoLang[1][modname] = mod
+		delete(mt.modProtoLang[0], modname)
+	}
+}
+
+func (mt *ModuleTree) Disable_ProtoPartModule(modname string) {
+	defer mt.mutex()()
+
+	if mod, exists := mt.modProtoPart[0][modname]; exists {
+		mt.modProtoPart[1][modname] = mod
+		delete(mt.modProtoPart[0], modname)
 	}
 }
 
 // Get all enabled modules of a certain type as an array (nameless)
 // This is less CPU-efficient than GetEnabledNamed but more memory-efficient
-func GetEnabledNameless(modtype int) []interface{} {
-	mods := []interface{}{}
-	for _, mod := range moduleTreeEnabled[modtype] {
+
+func (mt *ModuleTree) GetEnabledNameless_CommsChanTxModule() []*CommsChanTxModule {
+	defer mt.mutex()()
+
+	mods := []*CommsChanTxModule{}
+	for _, mod := range mt.modCommsChanTx[0] {
+		mods = append(mods, mod)
+	}
+	return mods
+}
+
+func (mt *ModuleTree) GetEnabledNameless_CommsChanRxModule() []*CommsChanRxModule {
+	defer mt.mutex()()
+
+	mods := []*CommsChanRxModule{}
+	for _, mod := range mt.modCommsChanRx[0] {
+		mods = append(mods, mod)
+	}
+	return mods
+}
+
+func (mt *ModuleTree) GetEnabledNameless_ProtoLangModule() []*ProtoLangModule {
+	defer mt.mutex()()
+
+	mods := []*ProtoLangModule{}
+	for _, mod := range mt.modProtoLang[0] {
+		mods = append(mods, mod)
+	}
+	return mods
+}
+
+func (mt *ModuleTree) GetEnabledNameless_ProtoPartModule() []*ProtoPartModule {
+	defer mt.mutex()()
+
+	mods := []*ProtoPartModule{}
+	for _, mod := range mt.modProtoPart[0] {
 		mods = append(mods, mod)
 	}
 	return mods
@@ -63,29 +229,111 @@ func GetEnabledNameless(modtype int) []interface{} {
 
 // Get the names of all enabled modules of a certain type as an array
 // This is less CPU-efficient than GetEnabledNamed but more memory-efficient
-func GetEnabledNameOnly(modtype int) []string {
+
+func (mt *ModuleTree) GetEnabledNames_CommsChanTxModule() []string {
+	defer mt.mutex()()
+
 	modNames := []string{}
-	for modName := range moduleTreeEnabled[modtype] {
+	for modName := range mt.modCommsChanTx[0] {
+		modNames = append(modNames, modName)
+	}
+	return modNames
+}
+
+func (mt *ModuleTree) GetEnabledNames_CommsChanRxModule() []string {
+	defer mt.mutex()()
+
+	modNames := []string{}
+	for modName := range mt.modCommsChanRx[0] {
+		modNames = append(modNames, modName)
+	}
+	return modNames
+}
+
+func (mt *ModuleTree) GetEnabledNames_ProtoLangModule() []string {
+	defer mt.mutex()()
+
+	modNames := []string{}
+	for modName := range mt.modProtoLang[0] {
+		modNames = append(modNames, modName)
+	}
+	return modNames
+}
+
+func (mt *ModuleTree) GetEnabledNames_ProtoPartModule() []string {
+	defer mt.mutex()()
+
+	modNames := []string{}
+	for modName := range mt.modProtoPart[0] {
 		modNames = append(modNames, modName)
 	}
 	return modNames
 }
 
 // Get all enabled modules of a certain type as a map (named)
-func GetEnabledNamed(modtype int) map[string]interface{} {
-	return moduleTreeEnabled[modtype]
+
+func (mt *ModuleTree) GetEnabledNamed_CommsChanTxModule() map[string]*CommsChanTxModule {
+	defer mt.mutex()()
+
+	return mt.modCommsChanTx[0]
 }
 
-// Get all enabled modules of all types
-func GetAllEnabled() [TotalModTypes]map[string]interface{} {
-	return moduleTreeEnabled
+func (mt *ModuleTree) GetEnabledNamed_CommsChanRxModule() map[string]*CommsChanRxModule {
+	defer mt.mutex()()
+
+	return mt.modCommsChanRx[0]
+}
+
+func (mt *ModuleTree) GetEnabledNamed_ProtoLangModule() map[string]*ProtoLangModule {
+	defer mt.mutex()()
+
+	return mt.modProtoLang[0]
+}
+
+func (mt *ModuleTree) GetEnabledNamed_ProtoPartModule() map[string]*ProtoPartModule {
+	defer mt.mutex()()
+
+	return mt.modProtoPart[0]
 }
 
 // Get all disabled modules of a certain type as an array (nameless)
 // This is less CPU-efficient than GetDisabledNamed but more memory-efficient
-func GetDisabledNameless(modtype int) []interface{} {
-	mods := []interface{}{}
-	for _, mod := range moduleTreeDisabled {
+
+func (mt *ModuleTree) GetDisabledNameless_CommsChanTxModule() []*CommsChanTxModule {
+	defer mt.mutex()()
+
+	mods := []*CommsChanTxModule{}
+	for _, mod := range mt.modCommsChanTx[1] {
+		mods = append(mods, mod)
+	}
+	return mods
+}
+
+func (mt *ModuleTree) GetDisabledNameless_CommsChanRxModule() []*CommsChanRxModule {
+	defer mt.mutex()()
+
+	mods := []*CommsChanRxModule{}
+	for _, mod := range mt.modCommsChanRx[1] {
+		mods = append(mods, mod)
+	}
+	return mods
+}
+
+func (mt *ModuleTree) GetDisabledNameless_ProtoLangModule() []*ProtoLangModule {
+	defer mt.mutex()()
+
+	mods := []*ProtoLangModule{}
+	for _, mod := range mt.modProtoLang[1] {
+		mods = append(mods, mod)
+	}
+	return mods
+}
+
+func (mt *ModuleTree) GetDisabledNameless_ProtoPartModule() []*ProtoPartModule {
+	defer mt.mutex()()
+
+	mods := []*ProtoPartModule{}
+	for _, mod := range mt.modProtoPart[1] {
 		mods = append(mods, mod)
 	}
 	return mods
@@ -93,29 +341,82 @@ func GetDisabledNameless(modtype int) []interface{} {
 
 // Get the names of all disabled modules of a certain type as an array
 // This is less CPU-efficient than GetDisabledNamed but more memory-efficient
-func GetDisabledNameOnly(modtype int) []string {
+
+func (mt *ModuleTree) GetDisabledNames_CommsChanTxModule() []string {
+	defer mt.mutex()()
+
 	modNames := []string{}
-	for modName := range moduleTreeDisabled[modtype] {
+	for modName := range mt.modCommsChanTx[1] {
+		modNames = append(modNames, modName)
+	}
+	return modNames
+}
+
+func (mt *ModuleTree) GetDisabledNames_CommsChanRxModule() []string {
+	defer mt.mutex()()
+
+	modNames := []string{}
+	for modName := range mt.modCommsChanRx[1] {
+		modNames = append(modNames, modName)
+	}
+	return modNames
+}
+
+func (mt *ModuleTree) GetDisabledNames_ProtoLangModule() []string {
+	defer mt.mutex()()
+
+	modNames := []string{}
+	for modName := range mt.modProtoLang[1] {
+		modNames = append(modNames, modName)
+	}
+	return modNames
+}
+
+func (mt *ModuleTree) GetDisabledNames_ProtoPartModule() []string {
+	defer mt.mutex()()
+
+	modNames := []string{}
+	for modName := range mt.modProtoPart[1] {
 		modNames = append(modNames, modName)
 	}
 	return modNames
 }
 
 // Get all disabled modules of a certain type as a map (named)
-func GetDisabledNamed(modtype int) map[string]interface{} {
-	return moduleTreeDisabled[modtype]
+
+func (mt *ModuleTree) GetDisabledNamed_CommsChanTxModule(modtype int) map[string]*CommsChanTxModule {
+	defer mt.mutex()()
+
+	return mt.modCommsChanTx[1]
 }
 
-// Get all disabled modules of all types
-func GetAllDisabled() [TotalModTypes]map[string]interface{} {
-	return moduleTreeDisabled
+func (mt *ModuleTree) GetDisabledNamed_CommsChanRxModule(modtype int) map[string]*CommsChanRxModule {
+	defer mt.mutex()()
+
+	return mt.modCommsChanRx[1]
 }
 
-// Prepare all module stuff
-func init() {
+func (mt *ModuleTree) GetDisabledNamed_ProtoLangModule(modtype int) map[string]*ProtoLangModule {
+	defer mt.mutex()()
+
+	return mt.modProtoLang[1]
+}
+
+func (mt *ModuleTree) GetDisabledNamed_ProtoPartModule(modtype int) map[string]*ProtoPartModule {
+	defer mt.mutex()()
+
+	return mt.modProtoPart[1]
+}
+
+// Prepare ModuleTree stuff
+func (mt *ModuleTree) Init() {
+	defer mt.mutex()()
+
 	// Init storages
-	for i := TotalModTypes - 1; i >= 0; i-- {
-		moduleTreeEnabled[i] = make(map[string]interface{})
-		moduleTreeDisabled[i] = make(map[string]interface{})
-	}
+	mt.modCommsChanTx = [2]map[string]*CommsChanTxModule{}
+	mt.modCommsChanRx = [2]map[string]*CommsChanRxModule{}
+	mt.modProtoLang = [2]map[string]*ProtoLangModule{}
 }
+
+// Global module tree
+var Modules ModuleTree

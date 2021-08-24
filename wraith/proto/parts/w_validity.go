@@ -7,11 +7,14 @@ import (
 	"regexp"
 	"runtime"
 
-	"github.com/0x1a8510f2/wraith/config"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/config"
+	mm "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
 )
 
 func init() {
-	PartMap.Add("w.validity", func(hkvs *HandlerKeyValueStore, data interface{}) {
+	var w_validity mm.ProtoPartModule
+
+	w_validity.Process = func(hkvs *mm.HandlerKeyValueStore, data interface{}) {
 		isValid := false
 
 		defer func() {
@@ -90,5 +93,7 @@ func init() {
 		} else {
 			return
 		}
-	})
+	}
+
+	mm.Modules.Register_ProtoPartModule("w.validity", &w_validity, true)
 }

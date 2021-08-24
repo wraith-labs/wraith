@@ -3,10 +3,11 @@ package comms
 import (
 	"net/url"
 
-	"github.com/0x1a8510f2/wraith/hooks"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/hooks"
+	mm "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
 
-	"github.com/0x1a8510f2/wraith/comms/channels/rx"
-	"github.com/0x1a8510f2/wraith/comms/channels/tx"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/comms/channels/rx"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/comms/channels/tx"
 )
 
 // Channel used to make the comms manager exit cleanly
@@ -21,20 +22,20 @@ var UnifiedRxQueue *rx.RxQueue
 func Manage() {
 	// Always stop transmitters and receivers before exiting
 	defer func() {
-		for _, transmitter := range tx.TxList.GetList() {
+		for _, transmitter := range mm.Modules.GetEnabledNamed_CommsChanTxModule() {
 			transmitter.Stop()
 		}
-		for _, receiver := range rx.RxList.GetList() {
+		for _, receiver := range mm.Modules.GetEnabledNamed_CommsChanRxModule() {
 			receiver.Stop()
 		}
 		close(managerExitTrigger)
 	}()
 
 	// Start transmitters and receivers
-	for _, transmitter := range tx.TxList.GetList() {
+	for _, transmitter := range mm.Modules.GetEnabledNamed_CommsChanTxModule() {
 		transmitter.Start()
 	}
-	for _, receiver := range rx.RxList.GetList() {
+	for _, receiver := range mm.Modules.GetEnabledNamed_CommsChanRxModule() {
 		receiver.Start()
 	}
 

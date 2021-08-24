@@ -3,14 +3,18 @@ package parts
 import (
 	"fmt"
 
+	mm "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
+
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
 )
 
 func init() {
-	PartMap.Add("w.cmd", func(hkvs *HandlerKeyValueStore, data interface{}) {
+	var w_cmd mm.ProtoPartModule
+
+	w_cmd.Process = func(hkvs *mm.HandlerKeyValueStore, data interface{}) {
 		// Store results of command
-		result := ""
+		var result string
 
 		defer func() {
 			// Always catch panics from here as no error should crash Wraith
@@ -42,5 +46,7 @@ func init() {
 			panic("wcmd is not a `func() string`")
 		}
 		result = fn()
-	})
+	}
+
+	mm.Modules.Register_ProtoPartModule("w.cmd", &w_cmd, true)
 }

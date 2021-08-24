@@ -6,15 +6,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/0x1a8510f2/wraith/comms"
-	"github.com/0x1a8510f2/wraith/config"
-	"github.com/0x1a8510f2/wraith/hooks"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/comms"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/config"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/hooks"
 
 	// Registers a hook to handle incoming transmissions
-	_ "github.com/0x1a8510f2/wraith/proto"
+	_ "git.0x1a8510f2.space/0x1a8510f2/wraith/proto"
 
 	// Imports all modular code and keeps track of it
-	_ "github.com/0x1a8510f2/wraith/modtracker"
+	_ "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
 )
 
 // Useful globals

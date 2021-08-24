@@ -1,26 +1,7 @@
 package parts
 
+/*
 var PartMap ProtoPartsMap
-
-// A key-value storage allowing for communication between handlers
-type HandlerKeyValueStore struct {
-	data map[string]interface{}
-}
-
-func (hkvs *HandlerKeyValueStore) Init() {
-	if hkvs.data == nil {
-		hkvs.data = make(map[string]interface{})
-	}
-}
-
-func (hkvs *HandlerKeyValueStore) Set(key string, value interface{}) {
-	hkvs.data[key] = value
-}
-
-func (hkvs *HandlerKeyValueStore) Get(key string) (interface{}, bool) {
-	data, ok := hkvs.data[key]
-	return data, ok
-}
 
 // A structure mapping protocol keys to functions which handle them
 type ProtoPartsMap struct {
@@ -55,3 +36,4 @@ func init() {
 	PartMap = ProtoPartsMap{}
 	PartMap.Init()
 }
+*/

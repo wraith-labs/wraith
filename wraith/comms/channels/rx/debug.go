@@ -7,25 +7,27 @@ When included, it "receives" a print command every 2 seconds.
 
 package rx
 
-import "time"
+import (
+	"time"
 
-var Debug Rx
+	mm "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
+)
 
 func init() {
-	// Register handler for the debug:// URL scheme (which is never really used)
-	RxList.Add("debug", &Debug)
+	var debug mm.CommsChanRxModule
+
 	// Create a channel to trigger exit via the `Stop` method
-	Debug.Data["exitTrigger"] = make(chan struct{})
+	debug.Data["exitTrigger"] = make(chan struct{})
 	// On start, run a thread pushing a debug message every 2 seconds
-	Debug.Start = func() {
+	debug.Start = func() {
 		go func() {
-			defer close(Debug.Data["exitTrigger"].(chan struct{}))
+			defer close(debug.Data["exitTrigger"].(chan struct{}))
 			for {
 				select {
-				case <-Debug.Data["exitTrigger"].(chan struct{}):
+				case <-debug.Data["exitTrigger"].(chan struct{}):
 					return
 				case <-time.After(2 * time.Second):
-					Debug.Data["queue"].(RxQueue) <- RxQueueElement{Data: []byte{}} /*RxQueueElement{Data: map[string]interface{}{
+					debug.Data["queue"].(RxQueue) <- RxQueueElement{Data: []byte{}} /*RxQueueElement{Data: map[string]interface{}{
 						"w.cmd": `func wcmd() string {println("Message from debug receiver"); return ""}`,
 					}}*/
 				}
@@ -33,10 +35,12 @@ func init() {
 		}()
 	}
 	// On stop
-	Debug.Stop = func() {
+	debug.Stop = func() {
 		// Trigger exit
-		Debug.Data["exitTrigger"].(chan struct{}) <- struct{}{}
+		debug.Data["exitTrigger"].(chan struct{}) <- struct{}{}
 		// Wait until channel closed (exit confirmed)
-		<-Debug.Data["exitTrigger"].(chan struct{})
+		<-debug.Data["exitTrigger"].(chan struct{})
 	}
+	// Register handler for the debug:// URL scheme (which is never really used)
+	mm.Modules.Register_CommsChanRxModule("debug", &debug, true)
 }

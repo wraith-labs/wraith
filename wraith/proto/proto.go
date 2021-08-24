@@ -1,8 +1,8 @@
 package proto
 
 import (
-	"github.com/0x1a8510f2/wraith/hooks"
-	"github.com/0x1a8510f2/wraith/proto/parts"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/hooks"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/proto/parts"
 )
 
 func HandleData(data []byte) []string {
