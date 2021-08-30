@@ -5,6 +5,7 @@ import (
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/hooks"
 	mm "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/types"
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/comms/channels/rx"
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/comms/channels/tx"
@@ -14,8 +15,8 @@ import (
 var managerExitTrigger chan struct{}
 
 // Passthrough from tx and rx modules
-var UnifiedTxQueue *tx.TxQueue
-var UnifiedRxQueue *rx.RxQueue
+var UnifiedTxQueue *types.TxQueue
+var UnifiedRxQueue *types.RxQueue
 
 // Infinite loop managing data transmission
 // This should run in a thread and only a single instance should run at a time

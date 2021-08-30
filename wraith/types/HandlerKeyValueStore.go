@@ -1,6 +1,5 @@
-package modmgr
+package types
 
-// A key-value storage allowing for communication between handlers
 type HandlerKeyValueStore struct {
 	data map[string]interface{}
 }

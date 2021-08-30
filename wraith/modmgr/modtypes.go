@@ -1,29 +1,21 @@
 package modmgr
 
-type CommsChanRxModule struct {
-	Start func()
-	Stop  func()
-	Data  map[string]interface{}
+import "git.0x1a8510f2.space/0x1a8510f2/wraith/types"
+
+type CommsChanTxModule interface {
+	Start()
+	Stop()
+	Trigger(data types.TxQueueElement) bool
 }
 
-func (CommsChanRxModule) isWraithModule()
-
-type CommsChanTxModule struct {
-	Start   func()
-	Stop    func()
-	Trigger func(data TxQueueElement) bool
-	Data    map[string]interface{}
+type CommsChanRxModule interface {
+	Start()
+	Stop()
 }
 
-func (CommsChanTxModule) isWraithModule()
-
-type ProtoLangModule struct {
+type ProtoLangModule interface {
 }
 
-func (ProtoLangModule) isWraithModule()
-
-type ProtoPartModule struct {
-	Process func(hkvs *HandlerKeyValueStore, data interface{})
+type ProtoPartModule interface {
+	Process(hkvs *types.HandlerKeyValueStore, data interface{})
 }
-
-func (ProtoPartModule) isWraithModule()
