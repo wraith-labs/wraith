@@ -23,21 +23,29 @@ var UnifiedRxQueue *types.RxQueue
 func Manage() {
 	// Always stop transmitters and receivers before exiting
 	defer func() {
-		for _, transmitter := range mm.Modules.GetEnabledNamed_CommsChanTxModule() {
-			transmitter.Stop()
+		if transmitters, ok := mm.Modules.GetEnabled(mm.ModCommsChanTx).(map[string]mm.CommsChanTxModule); ok {
+			for _, transmitter := range transmitters {
+				transmitter.StopTx()
+			}
 		}
-		for _, receiver := range mm.Modules.GetEnabledNamed_CommsChanRxModule() {
-			receiver.Stop()
+		if receivers, ok := mm.Modules.GetEnabled(mm.ModCommsChanRx).(map[string]mm.CommsChanRxModule); ok {
+			for _, receiver := range receivers {
+				receiver.StopRx()
+			}
 		}
 		close(managerExitTrigger)
 	}()
 
 	// Start transmitters and receivers
-	for _, transmitter := range mm.Modules.GetEnabledNamed_CommsChanTxModule() {
-		transmitter.Start()
+	if transmitters, ok := mm.Modules.GetEnabled(mm.ModCommsChanTx).(map[string]mm.CommsChanTxModule); ok {
+		for _, transmitter := range transmitters {
+			transmitter.StartTx()
+		}
 	}
-	for _, receiver := range mm.Modules.GetEnabledNamed_CommsChanRxModule() {
-		receiver.Start()
+	if receivers, ok := mm.Modules.GetEnabled(mm.ModCommsChanRx).(map[string]mm.CommsChanRxModule); ok {
+		for _, receiver := range receivers {
+			receiver.StartRx()
+		}
 	}
 
 	for {
@@ -49,8 +57,10 @@ func Manage() {
 			// If there was an error parsing the URL, the whole txdata should be dropped as there's nothing more we can do
 			if err == nil {
 				// ...same in case of a non-existent transmitter
-				if transmitter, exists := tx.TxList.Get(txaddr.Scheme); exists {
-					transmitter.Trigger(transmission)
+				if transmitters, ok := mm.Modules.GetEnabled(mm.ModCommsChanTx).(map[string]mm.CommsChanTxModule); ok {
+					if transmitter, exists := transmitters[txaddr.Scheme]; exists {
+						transmitter.TriggerTx(transmission)
+					}
 				}
 			}
 		}
