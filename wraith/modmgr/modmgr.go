@@ -16,8 +16,37 @@ type ModuleTree struct {
 }
 
 // Automatically lock and unlock the tree mutex
-func (mt *ModuleTree) mutex() func() {
+func (mt *ModuleTree) wrapper() func() {
+	// Lock struct to make it thread-safe
 	mt.lock.Lock()
+
+	// Make sure all maps are initialised
+	if mt.modCommsChanTx[0] == nil {
+		mt.modCommsChanTx[0] = map[string]CommsChanTxModule{}
+	}
+	if mt.modCommsChanTx[1] == nil {
+		mt.modCommsChanTx[1] = map[string]CommsChanTxModule{}
+	}
+	if mt.modCommsChanRx[0] == nil {
+		mt.modCommsChanRx[0] = map[string]CommsChanRxModule{}
+	}
+	if mt.modCommsChanRx[1] == nil {
+		mt.modCommsChanRx[1] = map[string]CommsChanRxModule{}
+	}
+	if mt.modProtoLang[0] == nil {
+		mt.modProtoLang[0] = map[string]ProtoLangModule{}
+	}
+	if mt.modProtoLang[1] == nil {
+		mt.modProtoLang[1] = map[string]ProtoLangModule{}
+	}
+	if mt.modProtoPart[0] == nil {
+		mt.modProtoPart[0] = map[string]ProtoPartModule{}
+	}
+	if mt.modProtoPart[1] == nil {
+		mt.modProtoPart[1] = map[string]ProtoPartModule{}
+	}
+
+	// Make sure to unlock the struct at the end
 	return func() {
 		mt.lock.Unlock()
 	}
@@ -25,7 +54,7 @@ func (mt *ModuleTree) mutex() func() {
 
 // Register a module so that it can be used by Wraith
 func (mt *ModuleTree) Register(mname string, mtype modtype, mod GenericModule, enabled bool) {
-	defer mt.mutex()()
+	defer mt.wrapper()()
 
 	index := 0
 	if !enabled {
@@ -57,7 +86,7 @@ func (mt *ModuleTree) Register(mname string, mtype modtype, mod GenericModule, e
 // very risky because the module can never be re-added without re-starting Wraith
 // (if the module is built-in) or re-sending the module (if it's not)
 func (mt *ModuleTree) Deregister(mname string, mtype modtype) {
-	defer mt.mutex()()
+	defer mt.wrapper()()
 
 	// Make sure to delete both if enabled and disabled
 	// delete() is a no-op when the key does not exist so it's safe not to check
@@ -79,7 +108,7 @@ func (mt *ModuleTree) Deregister(mname string, mtype modtype) {
 
 // If a module is currently registered but disabled, enable it
 func (mt *ModuleTree) Enable(mname string, mtype modtype) {
-	defer mt.mutex()()
+	defer mt.wrapper()()
 
 	switch mtype {
 	case ModCommsChanTx:
@@ -107,7 +136,7 @@ func (mt *ModuleTree) Enable(mname string, mtype modtype) {
 
 // If a module is currently registered and enabled, disable it
 func (mt *ModuleTree) Disable(mname string, mtype modtype) {
-	defer mt.mutex()()
+	defer mt.wrapper()()
 
 	switch mtype {
 	case ModCommsChanTx:
@@ -135,7 +164,7 @@ func (mt *ModuleTree) Disable(mname string, mtype modtype) {
 
 // Get all enabled modules of a certain type as a map (named)
 func (mt *ModuleTree) GetEnabled(mtype modtype) interface{} {
-	defer mt.mutex()()
+	defer mt.wrapper()()
 
 	switch mtype {
 	case ModCommsChanTx:
@@ -153,7 +182,7 @@ func (mt *ModuleTree) GetEnabled(mtype modtype) interface{} {
 
 // Get all disabled modules of a certain type as a map (named)
 func (mt *ModuleTree) GetDisabled(mtype modtype) interface{} {
-	defer mt.mutex()()
+	defer mt.wrapper()()
 
 	switch mtype {
 	case ModCommsChanTx:
@@ -167,17 +196,6 @@ func (mt *ModuleTree) GetDisabled(mtype modtype) interface{} {
 	default:
 		return map[string]GenericModule{}
 	}
-}
-
-// Prepare ModuleTree stuff
-func (mt *ModuleTree) Init() {
-	defer mt.mutex()()
-
-	// Init storages
-	mt.modCommsChanTx = [2]map[string]CommsChanTxModule{}
-	mt.modCommsChanRx = [2]map[string]CommsChanRxModule{}
-	mt.modProtoLang = [2]map[string]ProtoLangModule{}
-	mt.modProtoPart = [2]map[string]ProtoPartModule{}
 }
 
 // Global module tree

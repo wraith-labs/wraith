@@ -6,17 +6,14 @@ import (
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/hooks"
 	mm "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/types"
-
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/comms/channels/rx"
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/comms/channels/tx"
 )
 
 // Channel used to make the comms manager exit cleanly
 var managerExitTrigger chan struct{}
 
-// Passthrough from tx and rx modules
-var UnifiedTxQueue *types.TxQueue
-var UnifiedRxQueue *types.RxQueue
+// Inbound and outbound queues
+var UnifiedTxQueue types.TxQueue
+var UnifiedRxQueue types.RxQueue
 
 // Infinite loop managing data transmission
 // This should run in a thread and only a single instance should run at a time
@@ -52,7 +49,7 @@ func Manage() {
 		select {
 		case <-managerExitTrigger:
 			return
-		case transmission := <-tx.UnifiedTxQueue:
+		case transmission := <-UnifiedTxQueue:
 			txaddr, err := url.Parse(transmission.Addr)
 			// If there was an error parsing the URL, the whole txdata should be dropped as there's nothing more we can do
 			if err == nil {
@@ -70,8 +67,8 @@ func Manage() {
 func init() {
 	// Initialise variables
 	managerExitTrigger = make(chan struct{})
-	UnifiedTxQueue = &tx.UnifiedTxQueue
-	UnifiedRxQueue = &rx.UnifiedRxQueue
+	UnifiedTxQueue = make(types.TxQueue)
+	UnifiedRxQueue = make(types.RxQueue)
 
 	// Hook the comms manager into the on start and on exit events
 	hooks.OnStart.Add(func() {

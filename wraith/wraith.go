@@ -57,7 +57,7 @@ func main() {
 	for {
 		// TODO: Find what is concurrent and what is not to catch points where Wraith can break/stall
 		select {
-		case rx := <-*comms.UnifiedRxQueue:
+		case rx := <-comms.UnifiedRxQueue:
 			// When data is received, run the OnRx handlers
 			_ = hooks.RunOnRx(rx.Data) // TODO: Handle the returned value
 		case <-exitTrigger:

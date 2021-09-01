@@ -35,6 +35,9 @@ type CommsChanRxModule interface {
 
 type ProtoLangModule interface {
 	GenericModule
+	Encode(map[string]interface{}) ([]byte, error)
+	Decode([]byte) (map[string]interface{}, error)
+	Identify([]byte) bool
 	ProtoLangModule()
 }
 
