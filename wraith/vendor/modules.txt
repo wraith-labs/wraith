@@ -1,4 +1,4 @@
-# github.com/traefik/yaegi v0.9.15
+# github.com/traefik/yaegi v0.9.23
 ## explicit
 github.com/traefik/yaegi/interp
 github.com/traefik/yaegi/stdlib

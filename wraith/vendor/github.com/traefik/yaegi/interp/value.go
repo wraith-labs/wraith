@@ -157,14 +157,27 @@ func genValueAsFunctionWrapper(n *node) func(*frame) reflect.Value {
 		if v.IsNil() {
 			return reflect.New(typ).Elem()
 		}
-		return genFunctionWrapper(v.Interface().(*node))(f)
+		vn, ok := v.Interface().(*node)
+		if ok && vn.rval.IsValid() && vn.rval.Type().Kind() == reflect.Func {
+			// The node value is already a callable func, no need to wrap it.
+			return vn.rval
+		}
+		return genFunctionWrapper(vn)(f)
 	}
 }
 
 func genValueAs(n *node, t reflect.Type) func(*frame) reflect.Value {
-	v := genValue(n)
+	value := genValue(n)
+
 	return func(f *frame) reflect.Value {
-		return v(f).Convert(t)
+		v := value(f)
+		switch v.Type().Kind() {
+		case reflect.Chan, reflect.Func, reflect.Interface, reflect.Ptr, reflect.Map, reflect.Slice, reflect.UnsafePointer:
+			if v.IsNil() {
+				return reflect.New(t).Elem()
+			}
+		}
+		return v.Convert(t)
 	}
 }
 
@@ -212,6 +225,31 @@ func genValue(n *node) func(*frame) reflect.Value {
 		}
 		return valueGenerator(n, n.findex)
 	}
+}
+
+func genDestValue(typ *itype, n *node) func(*frame) reflect.Value {
+	convertLiteralValue(n, typ.TypeOf())
+	switch {
+	case isInterfaceSrc(typ) && !isEmptyInterface(typ):
+		return genValueInterface(n)
+	case isFuncSrc(typ) && n.typ.cat == valueT:
+		return genValueNode(n)
+	case typ.cat == valueT && isFuncSrc(n.typ):
+		return genFunctionWrapper(n)
+	case isInterfaceBin(typ):
+		return genInterfaceWrapper(n, typ.rtype)
+	case n.kind == basicLit && n.val == nil:
+		return func(*frame) reflect.Value { return reflect.New(typ.rtype).Elem() }
+	case isRecursiveType(typ, typ.rtype):
+		return genValueRecursiveInterface(n, typ.rtype)
+	case isRecursiveType(n.typ, n.typ.rtype):
+		return genValueRecursiveInterfacePtrValue(n)
+	case n.typ.untyped && isComplex(typ.TypeOf()):
+		return genValueComplex(n)
+	case n.typ.untyped && !typ.untyped:
+		return genValueAs(n, typ.TypeOf())
+	}
+	return genValue(n)
 }
 
 func genValueArray(n *node) func(*frame) reflect.Value {
@@ -303,6 +341,34 @@ func genValueInterface(n *node) func(*frame) reflect.Value {
 	}
 }
 
+func getConcreteValue(val reflect.Value) reflect.Value {
+	v := val
+	for {
+		vi, ok := v.Interface().(valueInterface)
+		if !ok {
+			break
+		}
+		v = vi.value
+	}
+	if v.NumMethod() > 0 {
+		return v
+	}
+	if v.Type().Kind() != reflect.Struct {
+		return v
+	}
+	// Search a concrete value in fields of an emulated interface.
+	for i := v.NumField() - 1; i >= 0; i-- {
+		vv := v.Field(i)
+		if vv.Type().Kind() == reflect.Interface {
+			vv = vv.Elem()
+		}
+		if vv.IsValid() {
+			return vv
+		}
+	}
+	return v
+}
+
 func zeroInterfaceValue() reflect.Value {
 	n := &node{kind: basicLit, typ: &itype{cat: nilT, untyped: true}}
 	v := reflect.New(interf).Elem()
@@ -310,7 +376,7 @@ func zeroInterfaceValue() reflect.Value {
 }
 
 func wantEmptyInterface(n *node) bool {
-	return n.typ.cat == interfaceT && len(n.typ.field) == 0 ||
+	return isEmptyInterface(n.typ) ||
 		n.anc.action == aAssign && n.anc.typ.cat == interfaceT && len(n.anc.typ.field) == 0 ||
 		n.anc.kind == returnStmt && n.anc.val.(*node).typ.ret[0].cat == interfaceT && len(n.anc.val.(*node).typ.ret[0].field) == 0
 }
@@ -325,7 +391,7 @@ func genValueOutput(n *node, t reflect.Type) func(*frame) reflect.Value {
 		}
 		fallthrough
 	case n.anc.kind == returnStmt && n.anc.val.(*node).typ.ret[0].cat == interfaceT:
-		if len(n.anc.val.(*node).typ.ret[0].field) == 0 {
+		if nod, ok := n.anc.val.(*node); !ok || len(nod.typ.ret[0].field) == 0 {
 			// empty interface, do not wrap
 			return value
 		}
