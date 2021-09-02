@@ -1,8 +1,4 @@
-// This package keeps track of all modular parts of Wraith. They must register
-// with this module in order to be used. They can also be de-registered and
-// re-registered dynamically.
-
-package modmgr
+package libwraith
 
 import "sync"
 
@@ -197,6 +193,3 @@ func (mt *ModuleTree) GetDisabled(mtype modtype) interface{} {
 		return map[string]GenericModule{}
 	}
 }
-
-// Global module tree
-var Modules ModuleTree

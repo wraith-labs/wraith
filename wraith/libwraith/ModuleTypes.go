@@ -1,6 +1,4 @@
-package modmgr
-
-import "git.0x1a8510f2.space/0x1a8510f2/wraith/types"
+package libwraith
 
 // Constants for describing module types to the module tree
 const (
@@ -15,14 +13,14 @@ type modtype int
 // Every module must implement this interface to make sure
 // it's meant to be used as a Wraith module
 type GenericModule interface {
-	WraithModule()
+	WraithModule(*Wraith)
 }
 
 type CommsChanTxModule interface {
 	GenericModule
 	StartTx()
 	StopTx()
-	TriggerTx(data types.TxQueueElement) bool
+	TriggerTx(TxQueueElement) bool
 	CommsChanTxModule()
 }
 
@@ -43,6 +41,6 @@ type ProtoLangModule interface {
 
 type ProtoPartModule interface {
 	GenericModule
-	ProcessProtoPart(hkvs *types.HandlerKeyValueStore, data interface{})
+	ProcessProtoPart(*HandlerKeyValueStore, interface{})
 	ProtoPartModule()
 }

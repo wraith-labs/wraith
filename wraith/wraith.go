@@ -4,26 +4,16 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/comms"
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/config"
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/hooks"
-
-	// Registers a hook to handle incoming transmissions
-	_ "git.0x1a8510f2.space/0x1a8510f2/wraith/proto"
-
-	// Imports all modular code and keeps track of it
-	_ "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod/mod_part"
 )
 
-// Useful globals
-var StartTime time.Time
+const RESPECT_EXIT_SIGNALS = true
 
-// Exit handling
 var exitTrigger chan struct{}
 
-func setupCloseHandler() {
+func setupCloseHandler(triggerChannel chan struct{}) {
 	c := make(chan os.Signal)
 	signal.Notify(
 		c,
@@ -34,35 +24,32 @@ func setupCloseHandler() {
 	)
 	go func() {
 		<-c
-		if config.Config.Process.RespectExitSignals {
-			exitTrigger <- struct{}{}
+		if RESPECT_EXIT_SIGNALS {
+			triggerChannel <- struct{}{}
 		}
 	}()
 }
 
 func init() {
-	StartTime = time.Now()
 	exitTrigger = make(chan struct{})
-	setupCloseHandler()
+	setupCloseHandler(exitTrigger)
 }
 
 func main() {
-	// Run OnStart hooks
-	hooks.RunOnStart()
-
-	// Run OnExit hooks always on exit
-	defer hooks.RunOnExit()
-
-	// Mainloop: Transmit, receive and process stuff
-	for {
-		// TODO: Find what is concurrent and what is not to catch points where Wraith can break/stall
-		select {
-		case rx := <-comms.UnifiedRxQueue:
-			// When data is received, run the OnRx handlers
-			_ = hooks.RunOnRx(rx.Data) // TODO: Handle the returned value
-		case <-exitTrigger:
-			return
-		}
+	// Set up Wraith
+	w := libwraith.Wraith{
+		Conf: libwraith.WraithConf{
+			Fingerprint: "a",
+		},
 	}
+	w.Init()
 
+	// Set up modules
+	w.Modules.Register("w.cmd", libwraith.ModProtoPart, mod_part.CmdHandler{}, true)
+	w.Modules.Register("w.validity", libwraith.ModProtoPart, mod_part.ValidityHandler{}, true)
+
+	// Run Wraith
+	go w.Start()
+	<-exitTrigger
+	w.Stop()
 }

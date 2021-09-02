@@ -1,3 +1,3 @@
-package types
+package libwraith
 
 type RxQueue chan RxQueueElement

@@ -1,4 +1,4 @@
-package types
+package libwraith
 
 type TxQueueElement struct {
 	Addr string

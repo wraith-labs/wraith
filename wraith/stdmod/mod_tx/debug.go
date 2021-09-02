@@ -1,3 +1,3 @@
 // +build debug
 
-package tx
+package mod_tx

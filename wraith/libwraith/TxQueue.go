@@ -1,3 +1,3 @@
-package types
+package libwraith
 
 type TxQueue chan TxQueueElement

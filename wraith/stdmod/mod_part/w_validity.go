@@ -1,4 +1,4 @@
-package parts
+package mod_part
 
 import (
 	"fmt"
@@ -7,17 +7,19 @@ import (
 	"regexp"
 	"runtime"
 
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/config"
-	mm "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/types"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 )
 
-type validityHandler struct{}
+type ValidityHandler struct {
+	wraith *libwraith.Wraith
+}
 
-func (h validityHandler) WraithModule()
-func (h validityHandler) ProtoPartModule()
+func (h ValidityHandler) WraithModule(wraith *libwraith.Wraith) {
+	h.wraith = wraith
+}
+func (h ValidityHandler) ProtoPartModule() {}
 
-func (h validityHandler) ProcessProtoPart(hkvs *types.HandlerKeyValueStore, data interface{}) {
+func (h ValidityHandler) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data interface{}) {
 	isValid := false
 
 	defer func() {
@@ -36,10 +38,10 @@ func (h validityHandler) ProcessProtoPart(hkvs *types.HandlerKeyValueStore, data
 		// Wraith Fingerprint/ID restriction
 		if constraint, ok := validity["wfpt"]; ok {
 			// Always fail if an ID restriction is present and Wraith has not been given an ID
-			if config.Config.Wraith.Fingerprint == "" {
+			if h.wraith.Conf.Fingerprint == "" {
 				return
 			}
-			match, err := regexp.Match(constraint, []byte(config.Config.Wraith.Fingerprint))
+			match, err := regexp.Match(constraint, []byte(h.wraith.Conf.Fingerprint))
 			if !match || err != nil {
 				// If the constraint was not satisfied, the data should be dropped
 				// If there was an error in checking the match, Wraith will fallback to fail
@@ -96,8 +98,4 @@ func (h validityHandler) ProcessProtoPart(hkvs *types.HandlerKeyValueStore, data
 	} else {
 		return
 	}
-}
-
-func init() {
-	mm.Modules.Register("w.validity", mm.ModProtoPart, validityHandler{}, true)
 }

@@ -3,7 +3,7 @@ This is a debug receiver for testing purposes. It only gets included in debug bu
 When included, it "receives" a print command every 2 seconds.
 */
 
-package rx
+package mod_rx
 
 import (
 	"encoding/json"

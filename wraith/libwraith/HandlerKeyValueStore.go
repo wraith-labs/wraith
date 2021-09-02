@@ -1,4 +1,4 @@
-package types
+package libwraith
 
 type HandlerKeyValueStore struct {
 	data map[string]interface{}
