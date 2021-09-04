@@ -49,7 +49,7 @@ func main() {
 	w.Modules.Register("w.validity", libwraith.ModProtoPart, mod_part.ValidityHandler{}, true)
 
 	// Run Wraith
-	go w.Start()
+	go w.Run()
 	<-exitTrigger
-	w.Stop()
+	w.Shutdown()
 }

@@ -6,6 +6,10 @@ type Translator struct {
 	wraith *Wraith
 }
 
+func (t *Translator) Init(wraith *Wraith) {
+	t.wraith = wraith
+}
+
 // Encode data to a specific format
 func (t *Translator) Encode(data map[string]interface{}, formatName string) ([]byte, error) {
 	if formats, ok := t.wraith.Modules.GetEnabled(ModProtoLang).(map[string]ProtoLangModule); ok {
@@ -36,8 +40,4 @@ func (t *Translator) DecodeGuess(data []byte) (map[string]interface{}, error) {
 		}
 	}
 	return nil, fmt.Errorf("format could not be guessed")
-}
-
-func (t *Translator) Init(wraith *Wraith) {
-	t.wraith = wraith
 }

@@ -9,8 +9,7 @@ import (
 	"encoding/json"
 	"time"
 
-	mm "git.0x1a8510f2.space/0x1a8510f2/wraith/modmgr"
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/types"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 )
 
 type debugReceiveChannel struct {
@@ -44,7 +43,7 @@ func (c debugReceiveChannel) StartRx() {
 			case <-c.data["exitTrigger"].(chan struct{}):
 				return
 			case <-time.After(2 * time.Second):
-				c.data["queue"].(types.RxQueue) <- types.RxQueueElement{Data: debugDataJson}
+				c.data["queue"].(libwraith.RxQueue) <- libwraith.RxQueueElement{Data: debugDataJson}
 			}
 		}
 	}()
@@ -55,9 +54,4 @@ func (c debugReceiveChannel) StopRx() {
 	c.data["exitTrigger"].(chan struct{}) <- struct{}{}
 	// Wait until channel closed (exit confirmed)
 	<-c.data["exitTrigger"].(chan struct{})
-}
-
-func init() {
-	// Register handler for the debug:// URL scheme (which is never really used)
-	mm.Modules.Register("debug", mm.ModCommsChanRx, &debugReceiveChannel{}, true)
 }

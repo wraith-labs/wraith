@@ -18,15 +18,15 @@ type GenericModule interface {
 
 type CommsChanTxModule interface {
 	GenericModule
-	StartTx()
+	StartTx(*Wraith)
 	StopTx()
-	TriggerTx(TxQueueElement) bool
+	TriggerTx(addr string, data []byte) bool
 	CommsChanTxModule()
 }
 
 type CommsChanRxModule interface {
 	GenericModule
-	StartRx()
+	StartRx(*Wraith)
 	StopRx()
 	CommsChanRxModule()
 }

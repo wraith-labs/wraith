@@ -1,8 +1,20 @@
 package libwraith
 
 type RxHandler struct {
-	wraith *Wraith
-	hkvs   HandlerKeyValueStore
+	wraith     *Wraith
+	hkvs       HandlerKeyValueStore
+	translator Translator
+}
+
+func (h *RxHandler) Init(wraith *Wraith) {
+	// Save our pointer to the Wraith
+	h.wraith = wraith
+
+	// Init HKVS
+	h.hkvs.Init()
+
+	// Init translator
+	h.translator.Init(wraith)
 }
 
 func (h *RxHandler) handlePart(name string, data interface{}) {
@@ -13,11 +25,13 @@ func (h *RxHandler) handlePart(name string, data interface{}) {
 	}
 }
 
-func (h *RxHandler) HandleData(data []byte) []string {
+func (h *RxHandler) Handle(inbound RxQueueElement) []string {
 	// TODO: Check if data is signed
 
+	data := inbound.Data
+
 	// Attempt to translate data from any known format to a map[string]interface{}
-	dataMap, err := h.wraith.translator.DecodeGuess(data)
+	dataMap, err := h.translator.DecodeGuess(data)
 	if err != nil {
 		// The data failed to decode (most likely didn't match any known format or the signature was invalid) so it should be discarded
 		return []string{}
@@ -47,12 +61,4 @@ func (h *RxHandler) HandleData(data []byte) []string {
 	} else {
 		return []string{"HandleData was unable to fetch the results array - a handler module is likely broken"}
 	}
-}
-
-func (h *RxHandler) Init(wraith *Wraith) {
-	// Save our pointer to the Wraith
-	h.wraith = wraith
-
-	// Init HKVS
-	h.hkvs.Init()
 }
