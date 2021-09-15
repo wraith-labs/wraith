@@ -10,11 +10,13 @@ import (
 )
 
 type CmdHandler struct {
-	Wraith *libwraith.Wraith
+	w *libwraith.Wraith
 }
 
-func (h CmdHandler) WraithModule(wraith *libwraith.Wraith) {}
-func (h CmdHandler) ProtoPartModule()                      {}
+func (h CmdHandler) WraithModuleInit(wraith *libwraith.Wraith) {
+	h.w = wraith
+}
+func (h CmdHandler) ProtoPartModule() {}
 
 func (h *CmdHandler) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data interface{}) {
 	// Store results of command

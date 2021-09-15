@@ -26,6 +26,28 @@ func (w *Wraith) Init() {
 	w.exitTrigger = make(chan struct{})
 	w.unifiedTxQueue = make(TxQueue, 5)
 	w.unifiedRxQueue = make(RxQueue, 5)
+
+	// Init modules
+	if transmitters, ok := w.Modules.GetEnabled(ModCommsChanTx).(map[string]CommsChanTxModule); ok {
+		for _, transmitter := range transmitters {
+			transmitter.WraithModuleInit(w)
+		}
+	}
+	if receivers, ok := w.Modules.GetEnabled(ModCommsChanRx).(map[string]CommsChanRxModule); ok {
+		for _, receiver := range receivers {
+			receiver.WraithModuleInit(w)
+		}
+	}
+	if langs, ok := w.Modules.GetEnabled(ModProtoLang).(map[string]ProtoLangModule); ok {
+		for _, lang := range langs {
+			lang.WraithModuleInit(w)
+		}
+	}
+	if parts, ok := w.Modules.GetEnabled(ModProtoPart).(map[string]ProtoPartModule); ok {
+		for _, part := range parts {
+			part.WraithModuleInit(w)
+		}
+	}
 }
 
 func (w *Wraith) PushTx(tx TxQueueElement) {
@@ -54,12 +76,12 @@ func (w *Wraith) Run() {
 	// Start transmitters and receivers
 	if transmitters, ok := w.Modules.GetEnabled(ModCommsChanTx).(map[string]CommsChanTxModule); ok {
 		for _, transmitter := range transmitters {
-			transmitter.StartTx(w)
+			transmitter.StartTx()
 		}
 	}
 	if receivers, ok := w.Modules.GetEnabled(ModCommsChanRx).(map[string]CommsChanRxModule); ok {
 		for _, receiver := range receivers {
-			receiver.StartRx(w)
+			receiver.StartRx()
 		}
 	}
 

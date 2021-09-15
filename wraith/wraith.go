@@ -7,6 +7,7 @@ import (
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod/mod_part"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod/mod_rx"
 )
 
 const RESPECT_EXIT_SIGNALS = true
@@ -47,6 +48,7 @@ func main() {
 	// Set up modules
 	w.Modules.Register("w.cmd", libwraith.ModProtoPart, mod_part.CmdHandler{}, true)
 	w.Modules.Register("w.validity", libwraith.ModProtoPart, mod_part.ValidityHandler{}, true)
+	w.Modules.Register("w.debug", libwraith.ModCommsChanRx, mod_rx.DebugRx{}, true)
 
 	// Run Wraith
 	go w.Run()

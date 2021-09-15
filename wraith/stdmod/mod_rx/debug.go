@@ -1,8 +1,3 @@
-/*
-This is a debug receiver for testing purposes. It only gets included in debug builds.
-When included, it "receives" a print command every 2 seconds.
-*/
-
 package mod_rx
 
 import (
@@ -12,15 +7,18 @@ import (
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 )
 
-type debugReceiveChannel struct {
+type DebugRx struct {
+	w    *libwraith.Wraith
 	data map[string]interface{}
 }
 
-func (c debugReceiveChannel) WraithModule()      {}
-func (c debugReceiveChannel) CommsChanRxModule() {}
+func (c DebugRx) WraithModuleInit(wraith *libwraith.Wraith) {
+	c.w = wraith
+}
+func (c DebugRx) CommsChanRxModule() {}
 
 // On start, run a thread pushing a debug message every 2 seconds
-func (c debugReceiveChannel) StartRx() {
+func (c DebugRx) StartRx() {
 	// Init data map
 	c.data = make(map[string]interface{})
 
@@ -49,7 +47,7 @@ func (c debugReceiveChannel) StartRx() {
 	}()
 }
 
-func (c debugReceiveChannel) StopRx() {
+func (c DebugRx) StopRx() {
 	// Trigger exit
 	c.data["exitTrigger"].(chan struct{}) <- struct{}{}
 	// Wait until channel closed (exit confirmed)

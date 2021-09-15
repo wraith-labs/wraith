@@ -14,7 +14,7 @@ type ValidityHandler struct {
 	wraith *libwraith.Wraith
 }
 
-func (h ValidityHandler) WraithModule(wraith *libwraith.Wraith) {
+func (h ValidityHandler) WraithModuleInit(wraith *libwraith.Wraith) {
 	h.wraith = wraith
 }
 func (h ValidityHandler) ProtoPartModule() {}

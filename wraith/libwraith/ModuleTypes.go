@@ -13,12 +13,12 @@ type modtype int
 // Every module must implement this interface to make sure
 // it's meant to be used as a Wraith module
 type GenericModule interface {
-	WraithModule(*Wraith)
+	WraithModuleInit(*Wraith)
 }
 
 type CommsChanTxModule interface {
 	GenericModule
-	StartTx(*Wraith)
+	StartTx()
 	StopTx()
 	TriggerTx(addr string, data []byte) bool
 	CommsChanTxModule()
@@ -26,7 +26,7 @@ type CommsChanTxModule interface {
 
 type CommsChanRxModule interface {
 	GenericModule
-	StartRx(*Wraith)
+	StartRx()
 	StopRx()
 	CommsChanRxModule()
 }
