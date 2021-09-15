@@ -20,45 +20,63 @@ func (h *RxHandler) Init(wraith *Wraith) {
 func (h *RxHandler) handlePart(name string, data interface{}) {
 	if handlers, ok := h.wraith.Modules.GetEnabled(ModCommsChanRx).(map[string]ProtoPartModule); ok {
 		if handler, ok := handlers[name]; ok {
-			handler.ProcessProtoPart(&h.hkvs, data)
+			handler.ProcessProtoPart(h.wraith, &h.hkvs, data)
 		}
 	}
 }
 
-func (h *RxHandler) Handle(inbound RxQueueElement) []string {
-	// TODO: Check if data is signed
+func (h *RxHandler) ConstValidityModule() string {
+	return "w.validity"
+}
 
+func (h *RxHandler) ConstValidityKey() string {
+	return "w.validity.isValid"
+}
+
+func (h *RxHandler) ConstReturnModule() string {
+	return "w.return"
+}
+
+func (h *RxHandler) ConstReturnAddrKey() string {
+	return "w.return.addr"
+}
+
+func (h *RxHandler) ConstReturnEncodeKey() string {
+	return "w.return.encode"
+}
+
+func (h *RxHandler) Handle(inbound RxQueueElement) {
 	data := inbound.Data
 
 	// Attempt to translate data from any known format to a map[string]interface{}
 	dataMap, err := h.translator.DecodeGuess(data)
 	if err != nil {
-		// The data failed to decode (most likely didn't match any known format or the signature was invalid) so it should be discarded
-		return []string{}
+		// The data failed to decode (most likely didn't match any known format or
+		// the signature was invalid) so it should be discarded
+		return
 	}
 
 	// Set up HandlerKeyValueStore with special data
-	h.hkvs.Set("w.msg.results", []string{}) // Array of all "output" from handlers
-	h.hkvs.Set("w.validity.isValid", true)  // Initially should be valid in case `w.validity` not specified
+	h.hkvs.Set(h.ConstValidityKey(), true)                                    // Initially should be valid in case `w.validity` not specified
+	h.hkvs.Set(h.ConstReturnAddrKey(), h.wraith.Conf.DefaultReturnAddr)       // Initially should be the default return addr
+	h.hkvs.Set(h.ConstReturnEncodeKey(), h.wraith.Conf.DefaultReturnEncoding) // Initially should be the default return encoding
 
 	// The w.validity data key is special - it decides whether the rest of the keys are evaluated
 	// If it's present, always handle it first so other handlers don't have to wait
-	if validity, ok := dataMap["w.validity"]; ok {
-		h.handlePart("w.validity", validity)
-		delete(dataMap, "w.validity")
+	if validity, ok := dataMap[h.ConstValidityModule()]; ok {
+		h.handlePart(h.ConstValidityModule(), validity)
+		delete(dataMap, h.ConstValidityModule())
+	}
+
+	// The w.return data key is also special - it decides how data is returned
+	// If it's present, always handle it second so other handlers don't have to wait
+	if returnMethod, ok := dataMap[h.ConstReturnModule()]; ok {
+		h.handlePart(h.ConstReturnModule(), returnMethod)
+		delete(dataMap, h.ConstReturnModule())
 	}
 
 	// Handle all else
 	for key, value := range dataMap {
 		h.handlePart(key, value)
-	}
-
-	// Return the results (we set the key above so it'll definitely exist)
-	results, _ := h.hkvs.Get("w.msg.results")
-	// It's best to make sure that it's a []string though
-	if resultsStrArr, ok := results.([]string); ok {
-		return resultsStrArr
-	} else {
-		return []string{"HandleData was unable to fetch the results array - a handler module is likely broken"}
 	}
 }

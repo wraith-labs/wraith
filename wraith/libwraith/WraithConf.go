@@ -1,6 +1,8 @@
 package libwraith
 
 type WraithConf struct {
-	Fingerprint string
-	Custom      map[string]interface{}
+	Fingerprint           string
+	DefaultReturnAddr     string
+	DefaultReturnEncoding string
+	Custom                map[string]interface{}
 }

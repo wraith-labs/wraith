@@ -41,6 +41,6 @@ type ProtoLangModule interface {
 
 type ProtoPartModule interface {
 	GenericModule
-	ProcessProtoPart(*HandlerKeyValueStore, interface{})
+	ProcessProtoPart(*Wraith, *HandlerKeyValueStore, interface{}) (string, map[string]interface{}, string)
 	ProtoPartModule()
 }
