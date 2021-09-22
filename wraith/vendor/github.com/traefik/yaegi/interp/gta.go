@@ -3,7 +3,6 @@ package interp
 import (
 	"path"
 	"path/filepath"
-	"reflect"
 )
 
 // gta performs a global types analysis on the AST, registering types,
@@ -11,8 +10,8 @@ import (
 // All function bodies are skipped. GTA is necessary to handle out of
 // order declarations and multiple source files packages.
 // rpath is the relative path to the directory containing the source for the package.
-func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, error) {
-	sc := interp.initScopePkg(importPath)
+func (interp *Interpreter) gta(root *node, rpath, importPath, pkgName string) ([]*node, error) {
+	sc := interp.initScopePkg(importPath, pkgName)
 	var err error
 	var revisit []*node
 
@@ -26,7 +25,7 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 		case constDecl:
 			// Early parse of constDecl subtree, to compute all constant
 			// values which may be used in further declarations.
-			if _, err = interp.cfg(n, importPath); err != nil {
+			if _, err = interp.cfg(n, importPath, pkgName); err != nil {
 				// No error processing here, to allow recovery in subtree nodes.
 				// TODO(marc): check for a non recoverable error and return it for better diagnostic.
 				err = nil
@@ -53,9 +52,9 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 
 			for i := 0; i < n.nleft; i++ {
 				dest, src := n.child[i], n.child[sbase+i]
-				val := reflect.ValueOf(sc.iota)
+				val := src.rval
 				if n.anc.kind == constDecl {
-					if _, err2 := interp.cfg(n, importPath); err2 != nil {
+					if _, err2 := interp.cfg(n, importPath, pkgName); err2 != nil {
 						// Constant value can not be computed yet.
 						// Come back when child dependencies are known.
 						revisit = append(revisit, n)
@@ -64,7 +63,7 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 				}
 				typ := atyp
 				if typ == nil {
-					if typ, err = nodeType(interp, sc, src); err != nil {
+					if typ, err = nodeType(interp, sc, src); err != nil || typ == nil {
 						return false
 					}
 					val = src.rval
@@ -79,7 +78,7 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 					return false
 				}
 				if typ.isBinMethod {
-					typ = &itype{cat: valueT, rtype: typ.methodCallType(), isBinMethod: true, scope: sc}
+					typ = valueTOf(typ.methodCallType(), isBinMethod(), withScope(sc))
 				}
 				sc.sym[dest.ident] = &symbol{kind: varSym, global: true, index: sc.add(typ), typ: typ, rval: val, node: n}
 				if n.anc.kind == constDecl {
@@ -146,20 +145,21 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 					elementType := sc.getType(typeName)
 					if elementType == nil {
 						// Add type if necessary, so method can be registered
-						sc.sym[typeName] = &symbol{kind: typeSym, typ: &itype{name: typeName, path: importPath, incomplete: true, node: rtn.child[0], scope: sc}}
+						sc.sym[typeName] = &symbol{kind: typeSym, typ: &itype{name: typeName, path: pkgName, incomplete: true, node: rtn.child[0], scope: sc}}
 						elementType = sc.sym[typeName].typ
 					}
-					rcvrtype = &itype{cat: ptrT, val: elementType, incomplete: elementType.incomplete, node: rtn, scope: sc}
-					elementType.method = append(elementType.method, n)
+					rcvrtype = ptrOf(elementType, withNode(rtn), withScope(sc))
+					rcvrtype.incomplete = elementType.incomplete
+					elementType.addMethod(n)
 				} else {
 					rcvrtype = sc.getType(typeName)
 					if rcvrtype == nil {
 						// Add type if necessary, so method can be registered
-						sc.sym[typeName] = &symbol{kind: typeSym, typ: &itype{name: typeName, path: importPath, incomplete: true, node: rtn, scope: sc}}
+						sc.sym[typeName] = &symbol{kind: typeSym, typ: &itype{name: typeName, path: pkgName, incomplete: true, node: rtn, scope: sc}}
 						rcvrtype = sc.sym[typeName].typ
 					}
 				}
-				rcvrtype.method = append(rcvrtype.method, n)
+				rcvrtype.addMethod(n)
 				n.child[0].child[0].lastChild().typ = rcvrtype
 			case ident == "init":
 				// init functions do not get declared as per the Go spec.
@@ -200,7 +200,7 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 						if isBinType(v) {
 							typ = typ.Elem()
 						}
-						sc.sym[n] = &symbol{kind: binSym, typ: &itype{cat: valueT, rtype: typ, scope: sc}, rval: v}
+						sc.sym[n] = &symbol{kind: binSym, typ: valueTOf(typ, withScope(sc)), rval: v}
 					}
 				default: // import symbols in package namespace
 					if name == "" {
@@ -265,13 +265,16 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 
 			switch n.child[1].kind {
 			case identExpr, selectorExpr:
-				n.typ = &itype{cat: aliasT, val: typ, name: typeName, path: importPath, field: typ.field, incomplete: typ.incomplete, scope: sc, node: n.child[0]}
+				n.typ = namedOf(typ, pkgName, typeName, withNode(n.child[0]), withScope(sc))
+				n.typ.incomplete = typ.incomplete
+				n.typ.field = typ.field
 				copy(n.typ.method, typ.method)
 			default:
 				n.typ = typ
 				n.typ.name = typeName
-				n.typ.path = importPath
+				n.typ.path = pkgName
 			}
+			n.typ.str = n.typ.path + "." + n.typ.name
 
 			asImportName := filepath.Join(typeName, baseName)
 			if _, exists := sc.sym[asImportName]; exists {
@@ -285,7 +288,9 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 			} else {
 				if sym.typ != nil && (len(sym.typ.method) > 0) {
 					// Type has already been seen as a receiver in a method function
-					n.typ.method = append(n.typ.method, sym.typ.method...)
+					for _, m := range sym.typ.method {
+						n.typ.addMethod(m)
+					}
 				} else {
 					// TODO(mpl): figure out how to detect redeclarations without breaking type aliases.
 					// Allow redeclarations for now.
@@ -308,11 +313,11 @@ func (interp *Interpreter) gta(root *node, rpath, importPath string) ([]*node, e
 }
 
 // gtaRetry (re)applies gta until all global constants and types are defined.
-func (interp *Interpreter) gtaRetry(nodes []*node, importPath string) error {
+func (interp *Interpreter) gtaRetry(nodes []*node, importPath, pkgName string) error {
 	revisit := []*node{}
 	for {
 		for _, n := range nodes {
-			list, err := interp.gta(n, importPath, importPath)
+			list, err := interp.gta(n, importPath, importPath, pkgName)
 			if err != nil {
 				return err
 			}
