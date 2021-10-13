@@ -9,16 +9,16 @@ import (
 	"github.com/traefik/yaegi/stdlib"
 )
 
-type CmdHandler struct {
+type CmdModule struct {
 	w *libwraith.Wraith
 }
 
-func (h CmdHandler) WraithModuleInit(wraith *libwraith.Wraith) {
-	h.w = wraith
+func (m CmdModule) WraithModuleInit(wraith *libwraith.Wraith) {
+	m.w = wraith
 }
-func (h CmdHandler) ProtoPartModule() {}
+func (m CmdModule) ProtoPartModule() {}
 
-func (h *CmdHandler) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data interface{}) {
+func (m CmdModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data interface{}) {
 	// Store results of command
 	var result string
 

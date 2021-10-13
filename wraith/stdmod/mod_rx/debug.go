@@ -7,23 +7,23 @@ import (
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 )
 
-type DebugRx struct {
+type DebugModule struct {
 	w    *libwraith.Wraith
 	data map[string]interface{}
 }
 
-func (c DebugRx) WraithModuleInit(wraith *libwraith.Wraith) {
-	c.w = wraith
+func (m DebugModule) WraithModuleInit(wraith *libwraith.Wraith) {
+	m.w = wraith
 }
-func (c DebugRx) CommsChanRxModule() {}
+func (m DebugModule) CommsChanRxModule() {}
 
 // On start, run a thread pushing a debug message every 2 seconds
-func (c DebugRx) StartRx() {
+func (m DebugModule) StartRx() {
 	// Init data map
-	c.data = make(map[string]interface{})
+	m.data = make(map[string]interface{})
 
 	// Create a channel to trigger exit via the `StopRx` method
-	c.data["exitTrigger"] = make(chan struct{})
+	m.data["exitTrigger"] = make(chan struct{})
 
 	// The data to send over debug
 	debugData := map[string]interface{}{
@@ -35,21 +35,21 @@ func (c DebugRx) StartRx() {
 	}
 
 	go func() {
-		defer close(c.data["exitTrigger"].(chan struct{}))
+		defer close(m.data["exitTrigger"].(chan struct{}))
 		for {
 			select {
-			case <-c.data["exitTrigger"].(chan struct{}):
+			case <-m.data["exitTrigger"].(chan struct{}):
 				return
 			case <-time.After(2 * time.Second):
-				c.data["queue"].(libwraith.RxQueue) <- libwraith.RxQueueElement{Data: debugDataJson}
+				m.data["queue"].(libwraith.RxQueue) <- libwraith.RxQueueElement{Data: debugDataJson}
 			}
 		}
 	}()
 }
 
-func (c DebugRx) StopRx() {
+func (m DebugModule) StopRx() {
 	// Trigger exit
-	c.data["exitTrigger"].(chan struct{}) <- struct{}{}
+	m.data["exitTrigger"].(chan struct{}) <- struct{}{}
 	// Wait until channel closed (exit confirmed)
-	<-c.data["exitTrigger"].(chan struct{})
+	<-m.data["exitTrigger"].(chan struct{})
 }

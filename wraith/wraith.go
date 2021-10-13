@@ -6,6 +6,7 @@ import (
 	"syscall"
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod/mod_lang"
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod/mod_part"
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod/mod_rx"
 )
@@ -46,9 +47,10 @@ func main() {
 	w.Init()
 
 	// Set up modules
-	w.Modules.Register("w.cmd", libwraith.ModProtoPart, mod_part.CmdHandler{}, true)
-	w.Modules.Register("w.validity", libwraith.ModProtoPart, mod_part.ValidityHandler{}, true)
-	w.Modules.Register("w.debug", libwraith.ModCommsChanRx, mod_rx.DebugRx{}, true)
+	w.Modules.Register("w.jwt", libwraith.ModProtoLang, mod_lang.JWTModule{}, true)
+	w.Modules.Register("w.cmd", libwraith.ModProtoPart, mod_part.CmdModule{}, true)
+	w.Modules.Register("w.validity", libwraith.ModProtoPart, mod_part.ValidityModule{}, true)
+	w.Modules.Register("w.debug", libwraith.ModCommsChanRx, mod_rx.DebugModule{}, true)
 
 	// Run Wraith
 	go w.Run()
