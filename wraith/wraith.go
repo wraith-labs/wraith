@@ -17,7 +17,7 @@ const RESPECT_EXIT_SIGNALS = true
 var exitTrigger chan struct{}
 
 func setupCloseHandler(triggerChannel chan struct{}) {
-	c := make(chan os.Signal)
+	c := make(chan os.Signal, 1)
 	signal.Notify(
 		c,
 		syscall.SIGHUP,
