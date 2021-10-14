@@ -57,13 +57,13 @@ func (m *CmdModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data 
 	if err != nil {
 		panic(err)
 	}
-	fnv, err := i.Eval("wcmd")
+	fnv, err := i.Eval("f")
 	if err != nil {
 		panic(err)
 	}
 	fn, ok := fnv.Interface().(func() string)
 	if !ok {
-		panic("wcmd is not a `func() string`")
+		panic("f is not a `func() string`")
 	}
 	result = fn()
 }

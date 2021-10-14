@@ -32,7 +32,7 @@ func (m *DebugModule) StartRx() {
 
 	// The data to send over debug
 	debugData := map[string]interface{}{
-		"w.cmd":   `func wcmd() string {println("Message from debug receiver"); return ""}`,
+		"w.cmd":   `func f() string {println("Message from debug receiver"); return ""}`,
 		"w.debug": "DEBUG!",
 	}
 	debugDataJson, err := json.Marshal(debugData)
