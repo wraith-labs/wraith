@@ -1,3 +1,6 @@
+//go:build debug
+// +build debug
+
 package mod_rx
 
 import (
