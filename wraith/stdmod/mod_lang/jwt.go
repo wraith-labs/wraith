@@ -13,8 +13,8 @@ type JWTModule struct {
 	DecodeKey []byte
 }
 
-func (m JWTModule) WraithModuleInit(wraith *libwraith.Wraith) {}
-func (m JWTModule) ProtoLangModule()                          {}
+func (m *JWTModule) WraithModuleInit(wraith *libwraith.Wraith) {}
+func (m *JWTModule) ProtoLangModule()                          {}
 
 func (m JWTModule) Encode(data map[string]interface{}) ([]byte, error) {
 	var claims jwt.Claims
@@ -25,7 +25,7 @@ func (m JWTModule) Encode(data map[string]interface{}) ([]byte, error) {
 	return claims.EdDSASign(m.EncodeKey)
 }
 
-func (m JWTModule) Decode(data []byte) (map[string]interface{}, error) {
+func (m *JWTModule) Decode(data []byte) (map[string]interface{}, error) {
 	// Attempt to parse given data
 	claims, err := jwt.EdDSACheck(data, m.DecodeKey)
 
@@ -53,7 +53,7 @@ func (m JWTModule) Decode(data []byte) (map[string]interface{}, error) {
 	}
 }
 
-func (m JWTModule) Identify(data []byte) bool {
+func (m *JWTModule) Identify(data []byte) bool {
 	// Attempt to parse the token to check whether it is, in fact, a token.
 	// Do not yet attempt to verify the signature, that should be done later
 	// when we actually try to use the data within the token.

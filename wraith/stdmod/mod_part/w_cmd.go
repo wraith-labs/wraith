@@ -13,12 +13,12 @@ type CmdModule struct {
 	w *libwraith.Wraith
 }
 
-func (m CmdModule) WraithModuleInit(wraith *libwraith.Wraith) {
+func (m *CmdModule) WraithModuleInit(wraith *libwraith.Wraith) {
 	m.w = wraith
 }
-func (m CmdModule) ProtoPartModule() {}
+func (m *CmdModule) ProtoPartModule() {}
 
-func (m CmdModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data interface{}) {
+func (m *CmdModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data interface{}) {
 	// Store results of command
 	var result string
 
