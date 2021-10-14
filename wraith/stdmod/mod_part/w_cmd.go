@@ -27,9 +27,23 @@ func (m *CmdModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data 
 		if r := recover(); r != nil {
 			result = fmt.Sprintf("command execution panicked with message: %s", r)
 		}
-		// Record results (this should never error as w.msg.results is a special key)
-		currentResults, _ := hkvs.Get("w.msg.results")
-		hkvs.Set("w.msg.results", append(currentResults.([]string), result))
+
+		// Send off results if address and encoding is set
+		if addrIface, exists := hkvs.Get("w.return.addr"); exists {
+			if addr, ok := addrIface.(string); ok {
+				if encodeIface, exists := hkvs.Get("w.return.encode"); exists {
+					if encode, ok := encodeIface.(string); ok {
+						m.w.PushTx(libwraith.TxQueueElement{
+							Addr:     addr,
+							Encoding: encode,
+							Data: map[string]interface{}{
+								"w.cmd.result": result,
+							},
+						})
+					}
+				}
+			}
+		}
 	}()
 
 	// Initialise yaegi to handle commands

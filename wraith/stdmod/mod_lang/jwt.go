@@ -16,7 +16,7 @@ type JWTModule struct {
 func (m *JWTModule) WraithModuleInit(wraith *libwraith.Wraith) {}
 func (m *JWTModule) ProtoLangModule()                          {}
 
-func (m JWTModule) Encode(data map[string]interface{}) ([]byte, error) {
+func (m *JWTModule) Encode(data map[string]interface{}) ([]byte, error) {
 	var claims jwt.Claims
 
 	// Put all data under "w" key

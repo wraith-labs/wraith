@@ -18,9 +18,9 @@ func (h *RxHandler) Init(wraith *Wraith) {
 }
 
 func (h *RxHandler) handlePart(name string, data interface{}) {
-	if handlers, ok := h.wraith.Modules.GetEnabled(ModCommsChanRx).(map[string]ProtoPartModule); ok {
+	if handlers, ok := h.wraith.Modules.GetEnabled(ModProtoPart).(map[string]ProtoPartModule); ok {
 		if handler, ok := handlers[name]; ok {
-			handler.ProcessProtoPart(h.wraith, &h.hkvs, data)
+			handler.ProcessProtoPart(&h.hkvs, data)
 		}
 	}
 }
@@ -30,7 +30,7 @@ func (h *RxHandler) ConstValidityModule() string {
 }
 
 func (h *RxHandler) ConstValidityKey() string {
-	return "w.validity.isValid"
+	return "w.validity.valid"
 }
 
 func (h *RxHandler) ConstReturnModule() string {
