@@ -85,25 +85,22 @@ func (w *Wraith) Run() {
 		}
 	}
 
+	// Spawn and init Tx and Rx handlers
+	txh := TxHandler{}
+	txh.Init(w)
+
+	rxh := RxHandler{}
+	rxh.Init(w)
+
 	// Mainloop: transmit, receive and process stuff
 	for {
 		select {
 		case <-w.exitTrigger:
 			return
 		case outbound := <-w.unifiedTxQueue:
-			// Spawn a handler
-			handler := TxHandler{}
-			handler.Init(w)
-
-			// Handle tx
-			handler.Handle(outbound)
+			go txh.Handle(outbound)
 		case inbound := <-w.unifiedRxQueue:
-			// Spawn a handler
-			handler := RxHandler{}
-			handler.Init(w)
-
-			// Handle rx
-			handler.Handle(inbound)
+			go rxh.Handle(inbound)
 		}
 	}
 }
