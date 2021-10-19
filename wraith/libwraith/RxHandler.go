@@ -26,23 +26,23 @@ func (h *RxHandler) handlePart(name string, data interface{}) {
 }
 
 func (h *RxHandler) ConstValidityModule() string {
-	return "w.validity"
+	return "validity"
 }
 
 func (h *RxHandler) ConstValidityKey() string {
-	return "w.validity.valid"
+	return "validity.valid"
 }
 
 func (h *RxHandler) ConstReturnModule() string {
-	return "w.return"
+	return "return"
 }
 
 func (h *RxHandler) ConstReturnAddrKey() string {
-	return "w.return.addr"
+	return "return.addr"
 }
 
 func (h *RxHandler) ConstReturnEncodeKey() string {
-	return "w.return.encode"
+	return "return.encode"
 }
 
 func (h *RxHandler) Handle(inbound RxQueueElement) {

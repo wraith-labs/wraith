@@ -24,9 +24,9 @@ func (m *ValidityModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, 
 
 	defer func() {
 		if isValid {
-			hkvs.Set("w.validity.valid", true)
+			hkvs.Set("validity.valid", true)
 		} else {
-			hkvs.Set("w.validity.valid", false)
+			hkvs.Set("validity.valid", false)
 		}
 	}()
 

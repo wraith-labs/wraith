@@ -27,11 +27,11 @@ func (m *DebugModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, dat
 
 	if ok {
 		m.w.PushTx(libwraith.TxQueueElement{
-			Addr: "w.debug://wraith",
+			Addr: "debug://wraith",
 			Data: map[string]interface{}{
 				"DEBUG_DATA": dataString,
 			},
-			Encoding: "w.debug",
+			Encoding: "debug",
 		})
 	}
 }

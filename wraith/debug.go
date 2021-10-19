@@ -16,8 +16,8 @@ import (
 
 func init() {
 	// Set up debugging modules if needed
-	w.Modules.Register("w.debug", libwraith.ModCommsChanRx, &mod_rx.DebugModule{}, true)
-	w.Modules.Register("w.debug", libwraith.ModProtoLang, &mod_lang.DebugModule{}, true)
-	w.Modules.Register("w.debug", libwraith.ModProtoPart, &mod_part.DebugModule{}, true)
-	w.Modules.Register("w.debug", libwraith.ModCommsChanTx, &mod_tx.DebugModule{}, true)
+	w.Modules.Register("debug", libwraith.ModCommsChanRx, &mod_rx.DebugModule{}, true)
+	w.Modules.Register("debug", libwraith.ModProtoLang, &mod_lang.DebugModule{}, true)
+	w.Modules.Register("debug", libwraith.ModProtoPart, &mod_part.DebugModule{}, true)
+	w.Modules.Register("debug", libwraith.ModCommsChanTx, &mod_tx.DebugModule{}, true)
 }

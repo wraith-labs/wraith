@@ -29,15 +29,15 @@ func (m *CmdModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data 
 		}
 
 		// Send off results if address and encoding is set
-		if addrIface, exists := hkvs.Get("w.return.addr"); exists {
+		if addrIface, exists := hkvs.Get("return.addr"); exists {
 			if addr, ok := addrIface.(string); ok {
-				if encodeIface, exists := hkvs.Get("w.return.encode"); exists {
+				if encodeIface, exists := hkvs.Get("return.encode"); exists {
 					if encode, ok := encodeIface.(string); ok {
 						m.w.PushTx(libwraith.TxQueueElement{
 							Addr:     addr,
 							Encoding: encode,
 							Data: map[string]interface{}{
-								"w.cmd.result": result,
+								"cmd.result": result,
 							},
 						})
 					}
