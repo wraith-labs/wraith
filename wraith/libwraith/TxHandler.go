@@ -20,7 +20,7 @@ func (h *TxHandler) Init(wraith *Wraith) {
 
 func (h *TxHandler) Handle(outbound TxQueueElement) {
 	// Check if the outbound data has hit the retransmission cap
-	if outbound.TransmissionFailCount >= h.wraith.Conf.RetransmissionCap {
+	if outbound.TransmissionFailCount >= h.wraith.Conf.RetransmissionCap-1 {
 		// Drop it if so
 		return
 	}
