@@ -19,6 +19,7 @@ type Wraith struct {
 
 	Conf    WraithConf
 	Modules ModuleTree
+	GKVS    map[string]interface{}
 }
 
 func (w *Wraith) Init() {
