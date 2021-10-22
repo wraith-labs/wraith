@@ -48,8 +48,8 @@ func (mt *ModuleTree) wrapper() func() {
 	}
 }
 
-// Register a module so that it can be used by Wraith
-func (mt *ModuleTree) Register(mname string, mtype modtype, mod GenericModule, enabled bool) {
+// Register a module so that it can be used by Wraith (can be registered under multiple names)
+func (mt *ModuleTree) Register(mtype modtype, mod GenericModule, enabled bool, mnames ...string) {
 	defer mt.wrapper()()
 
 	index := 0
@@ -60,100 +60,132 @@ func (mt *ModuleTree) Register(mname string, mtype modtype, mod GenericModule, e
 	switch mtype {
 	case ModCommsChanTx:
 		if commsChanTxMod, ok := mod.(CommsChanTxModule); ok {
-			mt.modCommsChanTx[index][mname] = commsChanTxMod
+			for _, mname := range mnames {
+				mt.modCommsChanTx[index][mname] = commsChanTxMod
+			}
 		}
 	case ModCommsChanRx:
 		if commsChanRxMod, ok := mod.(CommsChanRxModule); ok {
-			mt.modCommsChanRx[index][mname] = commsChanRxMod
+			for _, mname := range mnames {
+				mt.modCommsChanRx[index][mname] = commsChanRxMod
+			}
 		}
 	case ModProtoLang:
 		if protoLangMod, ok := mod.(ProtoLangModule); ok {
-			mt.modProtoLang[index][mname] = protoLangMod
+			for _, mname := range mnames {
+				mt.modProtoLang[index][mname] = protoLangMod
+			}
 		}
 	case ModProtoPart:
 		if protoPartMod, ok := mod.(ProtoPartModule); ok {
-			mt.modProtoPart[index][mname] = protoPartMod
+			for _, mname := range mnames {
+				mt.modProtoPart[index][mname] = protoPartMod
+			}
 		}
 	}
 }
 
-// Semi-permanently (does not survive Wraith re-starts) remove a module
+// Semi-permanently (does not survive Wraith re-starts) remove given modules
 // This can save memory if a module is guaranteed to not be needed anymore, but is
 // very risky because the module can never be re-added without re-starting Wraith
 // (if the module is built-in) or re-sending the module (if it's not)
-func (mt *ModuleTree) Deregister(mname string, mtype modtype) {
+func (mt *ModuleTree) Deregister(mtype modtype, mnames ...string) {
 	defer mt.wrapper()()
 
 	// Make sure to delete both if enabled and disabled
 	// delete() is a no-op when the key does not exist so it's safe not to check
 	switch mtype {
 	case ModCommsChanTx:
-		delete(mt.modCommsChanTx[0], mname)
-		delete(mt.modCommsChanTx[1], mname)
-	case ModCommsChanRx:
-		delete(mt.modCommsChanRx[0], mname)
-		delete(mt.modCommsChanRx[1], mname)
-	case ModProtoLang:
-		delete(mt.modProtoLang[0], mname)
-		delete(mt.modProtoLang[1], mname)
-	case ModProtoPart:
-		delete(mt.modProtoPart[0], mname)
-		delete(mt.modProtoPart[1], mname)
-	}
-}
-
-// If a module is currently registered but disabled, enable it
-func (mt *ModuleTree) Enable(mname string, mtype modtype) {
-	defer mt.wrapper()()
-
-	switch mtype {
-	case ModCommsChanTx:
-		if mod, exists := mt.modCommsChanTx[1][mname]; exists {
-			mt.modCommsChanTx[0][mname] = mod
+		for _, mname := range mnames {
+			delete(mt.modCommsChanTx[0], mname)
 			delete(mt.modCommsChanTx[1], mname)
 		}
 	case ModCommsChanRx:
-		if mod, exists := mt.modCommsChanRx[1][mname]; exists {
-			mt.modCommsChanRx[0][mname] = mod
+		for _, mname := range mnames {
+			delete(mt.modCommsChanRx[0], mname)
 			delete(mt.modCommsChanRx[1], mname)
 		}
 	case ModProtoLang:
-		if mod, exists := mt.modProtoLang[1][mname]; exists {
-			mt.modProtoLang[0][mname] = mod
+		for _, mname := range mnames {
+			delete(mt.modProtoLang[0], mname)
 			delete(mt.modProtoLang[1], mname)
 		}
 	case ModProtoPart:
-		if mod, exists := mt.modProtoPart[1][mname]; exists {
-			mt.modProtoPart[0][mname] = mod
+		for _, mname := range mnames {
+			delete(mt.modProtoPart[0], mname)
 			delete(mt.modProtoPart[1], mname)
 		}
 	}
 }
 
-// If a module is currently registered and enabled, disable it
-func (mt *ModuleTree) Disable(mname string, mtype modtype) {
+// If given modules are currently registered but disabled, enable them
+func (mt *ModuleTree) Enable(mtype modtype, mnames ...string) {
 	defer mt.wrapper()()
 
 	switch mtype {
 	case ModCommsChanTx:
-		if mod, exists := mt.modCommsChanTx[0][mname]; exists {
-			mt.modCommsChanTx[1][mname] = mod
-			delete(mt.modCommsChanTx[0], mname)
+		for _, mname := range mnames {
+			if mod, exists := mt.modCommsChanTx[1][mname]; exists {
+				mt.modCommsChanTx[0][mname] = mod
+				delete(mt.modCommsChanTx[1], mname)
+			}
 		}
 	case ModCommsChanRx:
-		if mod, exists := mt.modCommsChanRx[0][mname]; exists {
-			mt.modCommsChanRx[1][mname] = mod
-			delete(mt.modCommsChanRx[0], mname)
+		for _, mname := range mnames {
+			if mod, exists := mt.modCommsChanRx[1][mname]; exists {
+				mt.modCommsChanRx[0][mname] = mod
+				delete(mt.modCommsChanRx[1], mname)
+			}
 		}
 	case ModProtoLang:
-		if mod, exists := mt.modProtoLang[0][mname]; exists {
-			mt.modProtoLang[1][mname] = mod
-			delete(mt.modProtoLang[0], mname)
+		for _, mname := range mnames {
+			if mod, exists := mt.modProtoLang[1][mname]; exists {
+				mt.modProtoLang[0][mname] = mod
+				delete(mt.modProtoLang[1], mname)
+			}
 		}
 	case ModProtoPart:
-		if mod, exists := mt.modProtoPart[0][mname]; exists {
-			mt.modProtoPart[1][mname] = mod
-			delete(mt.modProtoPart[0], mname)
+		for _, mname := range mnames {
+			if mod, exists := mt.modProtoPart[1][mname]; exists {
+				mt.modProtoPart[0][mname] = mod
+				delete(mt.modProtoPart[1], mname)
+			}
+		}
+	}
+}
+
+// If given modules are currently registered and enabled, disable them
+func (mt *ModuleTree) Disable(mtype modtype, mnames ...string) {
+	defer mt.wrapper()()
+
+	switch mtype {
+	case ModCommsChanTx:
+		for _, mname := range mnames {
+			if mod, exists := mt.modCommsChanTx[0][mname]; exists {
+				mt.modCommsChanTx[1][mname] = mod
+				delete(mt.modCommsChanTx[0], mname)
+			}
+		}
+	case ModCommsChanRx:
+		for _, mname := range mnames {
+			if mod, exists := mt.modCommsChanRx[0][mname]; exists {
+				mt.modCommsChanRx[1][mname] = mod
+				delete(mt.modCommsChanRx[0], mname)
+			}
+		}
+	case ModProtoLang:
+		for _, mname := range mnames {
+			if mod, exists := mt.modProtoLang[0][mname]; exists {
+				mt.modProtoLang[1][mname] = mod
+				delete(mt.modProtoLang[0], mname)
+			}
+		}
+	case ModProtoPart:
+		for _, mname := range mnames {
+			if mod, exists := mt.modProtoPart[0][mname]; exists {
+				mt.modProtoPart[1][mname] = mod
+				delete(mt.modProtoPart[0], mname)
+			}
 		}
 	}
 }
