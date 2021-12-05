@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 )
@@ -48,7 +47,6 @@ func main() {
 		modules...,
 	)
 
-	// Wait 10 seconds and stop Wraith
-	<-time.After(10 * time.Second)
-	w.Kill()
+	// Wait until Wraith dies
+	<-w.IsDead
 }

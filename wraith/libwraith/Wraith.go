@@ -8,13 +8,13 @@ type Wraith struct {
 	// Internal Information
 
 	initTime time.Time
-	dead     chan struct{}
 
 	// Other
 
 	Conf         WraithConf
 	SharedMemory SharedMemory
 	Modules      map[string]WraithModule
+	IsDead       chan struct{}
 }
 
 // Initialise and start all stored modules in one go
@@ -108,10 +108,8 @@ func (w *Wraith) Spawn(conf WraithConf, modules ...WraithModule) {
 		// TODO: Note errors
 		_ = w.stopmodules()
 
-		println("Clean exit!")
-		println(time.Since(w.initTime).String())
 		// Mark Wraith as dead by closing dead channel
-		close(w.dead)
+		close(w.IsDead)
 	}()
 
 	// Init and start all provided modules
@@ -143,5 +141,5 @@ func (w *Wraith) Kill() {
 	w.SharedMemory.Set("w.exitTrigger", true)
 
 	// Await death
-	<-w.dead
+	<-w.IsDead
 }
