@@ -24,7 +24,7 @@ func setupCloseHandler(triggerChannel chan struct{}) {
 	go func() {
 		<-c
 		if RESPECT_EXIT_SIGNALS {
-			triggerChannel <- struct{}{}
+			close(triggerChannel)
 		}
 	}()
 }
@@ -47,6 +47,13 @@ func main() {
 		modules...,
 	)
 
-	// Wait until Wraith dies
-	<-w.IsDead
+	// Wait until Wraith dies or the exit trigger fires
+	for {
+		select {
+		case <-exitTrigger:
+			w.Kill()
+		case <-w.IsDead:
+			return
+		}
+	}
 }
