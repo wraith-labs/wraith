@@ -6,12 +6,12 @@ import (
 )
 
 // A struct for storing individual pieces of data within the
-// ModuleSharedMemory. Using a struct over simply values in a
+// SharedMemory. Using a struct over simply values in a
 // map allows for storing additional metadata and simpler
 // interaction with the shared memory (ie. watchers can be
 // handled by the cell and don't need to be kept track of by
 // the memory).
-type moduleSharedMemoryCell struct {
+type sharedMemoryCell struct {
 	data           interface{}
 	watchers       map[int]chan interface{}
 	watcherCounter int
@@ -22,9 +22,18 @@ type moduleSharedMemoryCell struct {
 // the mutex. This allows for a simple, one-liner to lock and unlock
 // the mutex at the top of every method of the cell like so:
 // `defer c.autolock()()`
-func (c *moduleSharedMemoryCell) autolock() func() {
+func (c *sharedMemoryCell) autolock() func() {
 	c.mutex.Lock()
 	return c.mutex.Unlock
+}
+
+// Initialise the cell so that it's useable. Calling the cell's other
+// methods before this one can lead to panics. This should be called
+// exactly once as each consecutive call effectively wipes the cell.
+func (c *sharedMemoryCell) init() {
+	c.watchers = make(map[int]chan interface{})
+	c.watcherCounter = 0
+	c.mutex = sync.Mutex{}
 }
 
 // Notify watchers of this cell about the current value of the cell.
@@ -44,11 +53,11 @@ func (c *moduleSharedMemoryCell) autolock() func() {
 // Pushes time out after one second, so if a channel is full for
 // longer than that, the watcher which owns that channel will not
 // receive that update.
-func (c *moduleSharedMemoryCell) notify() {
+func (c *sharedMemoryCell) notify() {
 	const TIMEOUT = time.Second * 1
 
 	for watcherId, watcherChannel := range c.watchers {
-		go func() {
+		go func(watcherId int, watcherChannel chan interface{}) {
 			// The channel could be closed, in which case a panic will
 			// occur. We don't want any panics so we will catch it here.
 			// However, there is no point ever trying to send to this
@@ -64,13 +73,13 @@ func (c *moduleSharedMemoryCell) notify() {
 			case watcherChannel <- c.data:
 			case <-time.After(TIMEOUT):
 			}
-		}()
+		}(watcherId, watcherChannel)
 	}
 }
 
 // Set the value of the cell to that passed as the argument. This
 // will also notify all watchers of the change.
-func (c *moduleSharedMemoryCell) Set(value interface{}) {
+func (c *sharedMemoryCell) set(value interface{}) {
 	defer c.autolock()()
 
 	c.data = value
@@ -79,7 +88,7 @@ func (c *moduleSharedMemoryCell) Set(value interface{}) {
 }
 
 // Get the current value of the cell.
-func (c *moduleSharedMemoryCell) Get() (value interface{}) {
+func (c *sharedMemoryCell) get() (value interface{}) {
 	defer c.autolock()()
 
 	return c.data
@@ -89,7 +98,7 @@ func (c *moduleSharedMemoryCell) Get() (value interface{}) {
 // that the channel will receive the value of this cell whenever it
 // changes. Returns the assigned ID of the channel which can be
 // used to unwatch the cell.
-func (c *moduleSharedMemoryCell) Watch(channel chan interface{}) int {
+func (c *sharedMemoryCell) watch(channel chan interface{}) int {
 	// Defer statements are executed in LIFO order so the counter
 	// will be incremented and then the mutex will be unlocked.
 	defer c.autolock()()
@@ -103,7 +112,7 @@ func (c *moduleSharedMemoryCell) Watch(channel chan interface{}) int {
 // Remove a channel from the list of watchers from this cell. This
 // means that the channel will no longer receive updates when the
 // value of this cell changes. Takes the ID returned by Watch().
-func (c *moduleSharedMemoryCell) Unwatch(id int) {
+func (c *sharedMemoryCell) unwatch(id int) {
 	defer c.autolock()
 
 	delete(c.watchers, id)
@@ -111,45 +120,45 @@ func (c *moduleSharedMemoryCell) Unwatch(id int) {
 
 // A struct for sharing memory between modules in a flexible way.
 // It allows modules to write to memory
-type ModuleSharedMemory struct {
-	mem map[string]moduleSharedMemoryCell
+type SharedMemory struct {
+	mem map[string]*sharedMemoryCell
 }
 
-// Create a cell with the given name and return its pointer.
-func (m *ModuleSharedMemory) createcell(name string) *moduleSharedMemoryCell {
-	cell := moduleSharedMemoryCell{}
-	m.mem[name] = cell
-	return &cell
+// Create and init a cell with the given name and return its pointer.
+func (m *SharedMemory) createcell(name string) *sharedMemoryCell {
+	m.mem[name] = &sharedMemoryCell{}
+	m.mem[name].init()
+	return m.mem[name]
 }
 
-// Initialise the MSM. This should be called only once as it
+// Initialise the SM. This should be called only once as it
 // initialises the internal data structure causing all cells
 // to be reset if they currently store data. However, it must
 // be called before any other methods are called else they will
 // panic.
-func (m *ModuleSharedMemory) Init() {
-	m.mem = make(map[string]moduleSharedMemoryCell)
+func (m *SharedMemory) Init() {
+	m.mem = make(map[string]*sharedMemoryCell)
 }
 
 // Set the value of the given cell to that passed as the argument.
 // This will also notify all watchers of the change.
-func (m *ModuleSharedMemory) Set(cellName string, value interface{}) {
+func (m *SharedMemory) Set(cellName string, value interface{}) {
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
 		// ...set its value
-		cell.Set(value)
+		cell.set(value)
 	} else {
 		// ...create the cell, then set its value
-		m.createcell(cellName).Set(value)
+		m.createcell(cellName).set(value)
 	}
 }
 
 // Get the current value of a given cell.
-func (m *ModuleSharedMemory) Get(cellName string) interface{} {
+func (m *SharedMemory) Get(cellName string) interface{} {
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
 		// ...return its value
-		return cell.Get()
+		return cell.get()
 	} else {
 		// ...return nil because the cell is nil
 		return nil
@@ -162,17 +171,17 @@ func (m *ModuleSharedMemory) Get(cellName string) interface{} {
 // allow watching for cells to be created in the future. Returns
 // the channel which will receive updates and the ID assigned to that
 // channel which can be used to unwatch the cell.
-func (m *ModuleSharedMemory) Watch(cellName string) (channel chan interface{}, watchId int) {
+func (m *SharedMemory) Watch(cellName string) (channel chan interface{}, watchId int) {
 	// Create a channel, to be used for sending updates, with no buffer
 	channel = make(chan interface{})
 
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
 		// ...add a watcher
-		watchId = cell.Watch(channel)
+		watchId = cell.watch(channel)
 	} else {
 		// ...create the cell, then add a watcher
-		watchId = m.createcell(cellName).Watch(channel)
+		watchId = m.createcell(cellName).watch(channel)
 	}
 
 	return channel, watchId
@@ -182,12 +191,12 @@ func (m *ModuleSharedMemory) Watch(cellName string) (channel chan interface{}, w
 // This means that the channel will no longer receive updates
 // when the value of this cell changes. Takes the ID returned
 // by Watch().
-func (m *ModuleSharedMemory) Unwatch(cellName string, watchId int) {
+func (m *SharedMemory) Unwatch(cellName string, watchId int) {
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
 		// ...remove the watcher (if the ID doesn't exist, this
 		// is a no-op)
-		cell.Unwatch(watchId)
+		cell.unwatch(watchId)
 	}
 	// ...otherwise, there's nothing to do
 }

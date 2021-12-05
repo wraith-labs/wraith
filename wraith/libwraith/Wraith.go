@@ -5,108 +5,143 @@ import (
 )
 
 type Wraith struct {
-	// Internal information
+	// Internal Information
 
 	initTime time.Time
+	dead     chan struct{}
 
-	// Internal communication
+	// Other
 
-	exitTrigger    chan struct{}
-	unifiedTxQueue TxQueue
-	unifiedRxQueue RxQueue
-
-	// Public objects
-
-	Conf    WraithConf
-	Modules ModuleTree
-	GKVS    map[string]interface{}
+	Conf         WraithConf
+	SharedMemory SharedMemory
+	Modules      map[string]WraithModule
 }
 
-func (w *Wraith) Init() {
+// Initialise and start all stored modules in one go
+// This is more efficient than doing both separately
+func (w *Wraith) initstartmodules() []error {
+	errs := []error{}
+	for _, module := range w.Modules {
+		module.WraithModuleInit(w)
+		err := module.Start()
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errs
+}
+
+// Init all stored modules
+/*func (w *Wraith) initmodules() {
+	for _, module := range w.Modules {
+		module.WraithModuleInit(w)
+	}
+}*/
+
+// Start all stored modules
+/*func (w *Wraith) startmodules() []error {
+	errs := []error{}
+	for _, module := range w.Modules {
+		err := module.Start()
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errs
+}*/
+
+// Stop all stored modules
+func (w *Wraith) stopmodules() []error {
+	errs := []error{}
+	for _, module := range w.Modules {
+		err := module.Stop()
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errs
+}
+
+// Restart all stored modules
+// This is more efficient than stopping and starting
+// separately
+func (w *Wraith) restartmodules() []error {
+	errs := []error{}
+	for _, module := range w.Modules {
+		err := module.Start()
+		if err != nil {
+			errs = append(errs, err)
+		}
+		err2 := module.Stop()
+		if err2 != nil {
+			errs = append(errs, err2)
+		}
+	}
+	return errs
+}
+
+// Spawn an instance of Wraith running synchronously
+func (w *Wraith) Spawn(conf WraithConf, modules ...WraithModule) {
+	// Take note of start time
 	w.initTime = time.Now()
-	w.exitTrigger = make(chan struct{})
-	w.unifiedTxQueue = make(TxQueue, 5)
-	w.unifiedRxQueue = make(RxQueue, 5)
 
-	// Init modules
-	if transmitters, ok := w.Modules.GetEnabled(ModCommsChanTx).(map[string]CommsChanTxModule); ok {
-		for _, transmitter := range transmitters {
-			transmitter.WraithModuleInit(w)
-		}
-	}
-	if receivers, ok := w.Modules.GetEnabled(ModCommsChanRx).(map[string]CommsChanRxModule); ok {
-		for _, receiver := range receivers {
-			receiver.WraithModuleInit(w)
-		}
-	}
-	if langs, ok := w.Modules.GetEnabled(ModProtoLang).(map[string]ProtoLangModule); ok {
-		for _, lang := range langs {
-			lang.WraithModuleInit(w)
-		}
-	}
-	if parts, ok := w.Modules.GetEnabled(ModProtoPart).(map[string]ProtoPartModule); ok {
-		for _, part := range parts {
-			part.WraithModuleInit(w)
-		}
-	}
-}
+	// Init dead channel to signal Wraith's status
+	w.dead = make(chan struct{})
 
-func (w *Wraith) PushTx(tx TxQueueElement) {
-	w.unifiedTxQueue <- tx
-}
+	// Init shared memory so it's useable, as it is needed
+	// throughout the following.
+	w.SharedMemory.Init()
 
-func (w *Wraith) PushRx(rx RxQueueElement) {
-	w.unifiedRxQueue <- rx
-}
+	// Watch various special cells in shared memory
+	exitTrigger, _ := w.SharedMemory.Watch("w.exitTrigger")
+	reloadTrigger, _ := w.SharedMemory.Watch("w.reloadTrigger")
 
-func (w *Wraith) Run() {
-	// Always stop transmitters and receivers before exiting
+	// Save a copy of the passed modules in the `modules` field, using the
+	// module name as the key
+	for _, module := range modules {
+		w.Modules[module.Name()] = module
+	}
+
+	// Prepare on-exit cleanup
 	defer func() {
-		if transmitters, ok := w.Modules.GetEnabled(ModCommsChanTx).(map[string]CommsChanTxModule); ok {
-			for _, transmitter := range transmitters {
-				transmitter.StopTx()
-			}
-		}
-		if receivers, ok := w.Modules.GetEnabled(ModCommsChanRx).(map[string]CommsChanRxModule); ok {
-			for _, receiver := range receivers {
-				receiver.StopRx()
-			}
-		}
+		// Always stop all modules before exiting
+		// TODO: Note errors
+		_ = w.stopmodules()
+
+		println("Clean exit!")
+		println(time.Since(w.initTime).String())
+		// Mark Wraith as dead by closing dead channel
+		close(w.dead)
 	}()
 
-	// Start transmitters and receivers
-	if transmitters, ok := w.Modules.GetEnabled(ModCommsChanTx).(map[string]CommsChanTxModule); ok {
-		for _, transmitter := range transmitters {
-			transmitter.StartTx()
-		}
-	}
-	if receivers, ok := w.Modules.GetEnabled(ModCommsChanRx).(map[string]CommsChanRxModule); ok {
-		for _, receiver := range receivers {
-			receiver.StartRx()
-		}
-	}
+	// Init and start all provided modules
+	// TODO: Note errors
+	_ = w.initstartmodules()
 
-	// Spawn and init Tx and Rx handlers
-	txh := TxHandler{}
-	txh.Init(w)
-
-	rxh := RxHandler{}
-	rxh.Init(w)
-
-	// Mainloop: transmit, receive and process stuff
+	// Run mainloop
+	// This is the place where any functions which need to be
+	// carried out by Wraith itself are handled, based on an event
+	// loop. Most functions are carried out by modules, so there
+	// shouldn't be too much here.
 	for {
 		select {
-		case <-w.exitTrigger:
+		case <-exitTrigger:
+			// On exit trigger, return from the method. All exit cleanup
+			// is deferred so it is guaranteed to run.
 			return
-		case outbound := <-w.unifiedTxQueue:
-			go txh.Handle(outbound)
-		case inbound := <-w.unifiedRxQueue:
-			go rxh.Handle(inbound)
+		case <-reloadTrigger:
+			// On reload trigger, restart all modules.
+			w.restartmodules()
 		}
 	}
 }
 
-func (w *Wraith) Shutdown() {
+// Stop the Wraith instance including all modules. This will
+// block until Wraith exits.
+func (w *Wraith) Kill() {
 	// Trigger exit of mainloop
-	close(w.exitTrigger)
+	w.SharedMemory.Set("w.exitTrigger", true)
+
+	// Await death
+	<-w.dead
 }
