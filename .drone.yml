@@ -2,14 +2,6 @@ kind: pipeline
 type: docker
 name: test and build
 steps:
-  - name: test
-    image: docker.io/golang:1.17-alpine
-    depends_on: [ clone ]
-    commands:
-      - apk add --no-cache build-base
-      - cd wraith
-      - go test ./...
-      - go version
   - name: build
     image: docker.io/golang:1.17-alpine
     depends_on: [ clone ]
