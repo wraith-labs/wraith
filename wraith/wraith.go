@@ -34,9 +34,6 @@ func init() {
 	setupCloseHandler(exitTrigger)
 }
 
-// Init module list as global variable so it can be accessed by debug.go
-var modules = []libwraith.WraithModule{}
-
 func main() {
 	// Create Wraith
 	w := libwraith.Wraith{}
@@ -44,7 +41,7 @@ func main() {
 	// Start Wraith in goroutine
 	go w.Spawn(
 		libwraith.WraithConf{},
-		modules...,
+		[]libwraith.WraithModule{}...,
 	)
 
 	// Wait until Wraith dies or the exit trigger fires
