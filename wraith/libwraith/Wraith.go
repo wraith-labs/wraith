@@ -86,7 +86,7 @@ func (w *Wraith) Spawn(conf WraithConf, modules ...WraithModule) {
 	w.initTime = time.Now()
 
 	// Init dead channel to signal Wraith's status
-	w.dead = make(chan struct{})
+	w.IsDead = make(chan struct{})
 
 	// Init shared memory so it's useable, as it is needed
 	// throughout the following.
