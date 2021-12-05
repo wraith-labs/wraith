@@ -1,3 +1,4 @@
+//go:build go1.16
 // +build go1.16
 
 // Package stdlib provides wrappers of standard library packages to be imported natively in Yaegi.
@@ -31,7 +32,7 @@ func init() {
 //go:generate ../internal/cmd/extract/extract encoding/base64 encoding/binary encoding/csv encoding/gob
 //go:generate ../internal/cmd/extract/extract encoding/hex encoding/json encoding/pem encoding/xml
 //go:generate ../internal/cmd/extract/extract errors expvar flag fmt
-//go:generate ../internal/cmd/extract/extract go/ast go/build go/constant go/doc go/format go/importer
+//go:generate ../internal/cmd/extract/extract go/ast go/build go/build/constraint go/constant go/doc go/format go/importer
 //go:generate ../internal/cmd/extract/extract go/parser go/printer go/scanner go/token go/types
 //go:generate ../internal/cmd/extract/extract hash hash/adler32 hash/crc32 hash/crc64 hash/fnv hash/maphash
 //go:generate ../internal/cmd/extract/extract html html/template
@@ -45,7 +46,7 @@ func init() {
 //go:generate ../internal/cmd/extract/extract net/mail net/rpc net/rpc/jsonrpc net/smtp net/textproto net/url
 //go:generate ../internal/cmd/extract/extract os os/signal os/user
 //go:generate ../internal/cmd/extract/extract path path/filepath reflect regexp regexp/syntax
-//go:generate ../internal/cmd/extract/extract runtime runtime/debug runtime/pprof runtime/trace
+//go:generate ../internal/cmd/extract/extract runtime runtime/debug runtime/metrics runtime/pprof runtime/trace
 //go:generate ../internal/cmd/extract/extract sort strconv strings sync sync/atomic
 //go:generate ../internal/cmd/extract/extract testing testing/fstest testing/iotest testing/quick
 //go:generate ../internal/cmd/extract/extract text/scanner text/tabwriter text/template text/template/parse

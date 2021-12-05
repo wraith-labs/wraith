@@ -53,6 +53,7 @@ type node struct {
 	val    interface{}    // static generic value (CFG execution)
 	rval   reflect.Value  // reflection value to let runtime access interpreter (CFG)
 	ident  string         // set if node is a var or func
+	meta   interface{}    // meta stores meta information between gta runs, like errors
 }
 
 func (n *node) shouldBreak() bool {
@@ -168,19 +169,22 @@ type imports map[string]map[string]*symbol
 
 // opt stores interpreter options.
 type opt struct {
-	astDot bool // display AST graph (debug)
-	cfgDot bool // display CFG graph (debug)
 	// dotCmd is the command to process the dot graph produced when astDot and/or
 	// cfgDot is enabled. It defaults to 'dot -Tdot -o <filename>.dot'.
 	dotCmd       string
-	noRun        bool          // compile, but do not run
-	fastChan     bool          // disable cancellable chan operations
-	context      build.Context // build context: GOPATH, build constraints
-	specialStdio bool          // Allows os.Stdin, os.Stdout, os.Stderr to not be file descriptors
-	stdin        io.Reader     // standard input
-	stdout       io.Writer     // standard output
-	stderr       io.Writer     // standard error
-	filesystem   fs.FS
+	context      build.Context     // build context: GOPATH, build constraints
+	stdin        io.Reader         // standard input
+	stdout       io.Writer         // standard output
+	stderr       io.Writer         // standard error
+	args         []string          // cmdline args
+	env          map[string]string // environment of interpreter, entries in form of "key=value"
+	filesystem   fs.FS             // filesystem containing sources
+	astDot       bool              // display AST graph (debug)
+	cfgDot       bool              // display CFG graph (debug)
+	noRun        bool              // compile, but do not run
+	fastChan     bool              // disable cancellable chan operations
+	specialStdio bool              // allows os.Stdin, os.Stdout, os.Stderr to not be file descriptors
+	unrestricted bool              // allow use of non sandboxed symbols
 }
 
 // Interpreter contains global resources and state.
@@ -302,17 +306,26 @@ type Options struct {
 	Stdin          io.Reader
 	Stdout, Stderr io.Writer
 
+	// Cmdline args, defaults to os.Args.
+	Args []string
+
+	// Environment of interpreter. Entries are in the form "key=values".
+	Env []string
+
 	// SourcecodeFilesystem is where the _sourcecode_ is loaded from and does
 	// NOT affect the filesystem of scripts when they run.
 	// It can be any fs.FS compliant filesystem (e.g. embed.FS, or fstest.MapFS for testing)
 	// See example/fs/fs_test.go for an example.
 	SourcecodeFilesystem fs.FS
+
+	// Unrestricted allows to run non sandboxed stdlib symbols such as os/exec and environment
+	Unrestricted bool
 }
 
 // New returns a new interpreter.
 func New(options Options) *Interpreter {
 	i := Interpreter{
-		opt:      opt{context: build.Default, filesystem: &realFS{}},
+		opt:      opt{context: build.Default, filesystem: &realFS{}, env: map[string]string{}},
 		frame:    newFrame(nil, 0, 0),
 		fset:     token.NewFileSet(),
 		universe: initUniverse(),
@@ -334,6 +347,24 @@ func New(options Options) *Interpreter {
 
 	if i.opt.stderr = options.Stderr; i.opt.stderr == nil {
 		i.opt.stderr = os.Stderr
+	}
+
+	if i.opt.args = options.Args; i.opt.args == nil {
+		i.opt.args = os.Args
+	}
+
+	// unrestricted allows to use non sandboxed stdlib symbols and env.
+	if options.Unrestricted {
+		i.opt.unrestricted = true
+	} else {
+		for _, e := range options.Env {
+			a := strings.SplitN(e, "=", 2)
+			if len(a) == 2 {
+				i.opt.env[a[0]] = a[1]
+			} else {
+				i.opt.env[a[0]] = ""
+			}
+		}
 	}
 
 	if options.SourcecodeFilesystem != nil {
@@ -572,7 +603,7 @@ func isFile(filesystem fs.FS, path string) bool {
 }
 
 func (interp *Interpreter) eval(src, name string, inc bool) (res reflect.Value, err error) {
-	prog, err := interp.compile(src, name, inc)
+	prog, err := interp.compileSrc(src, name, inc)
 	if err != nil {
 		return res, err
 	}
@@ -715,6 +746,7 @@ func fixStdlib(interp *Interpreter) {
 	}
 
 	if p = interp.binPkg["os"]; p != nil {
+		p["Args"] = reflect.ValueOf(&interp.args).Elem()
 		if interp.specialStdio {
 			// Inherit streams from interpreter even if they do not have a file descriptor.
 			p["Stdin"] = reflect.ValueOf(&stdin).Elem()
@@ -731,6 +763,22 @@ func fixStdlib(interp *Interpreter) {
 			if s, ok := stderr.(*os.File); ok {
 				p["Stderr"] = reflect.ValueOf(&s).Elem()
 			}
+		}
+		if !interp.unrestricted {
+			// In restricted mode, scripts can only access to a passed virtualized env, and can not write the real one.
+			getenv := func(key string) string { return interp.env[key] }
+			p["Clearenv"] = reflect.ValueOf(func() { interp.env = map[string]string{} })
+			p["ExpandEnv"] = reflect.ValueOf(func(s string) string { return os.Expand(s, getenv) })
+			p["Getenv"] = reflect.ValueOf(getenv)
+			p["LookupEnv"] = reflect.ValueOf(func(key string) (s string, ok bool) { s, ok = interp.env[key]; return })
+			p["Setenv"] = reflect.ValueOf(func(key, value string) error { interp.env[key] = value; return nil })
+			p["Unsetenv"] = reflect.ValueOf(func(key string) error { delete(interp.env, key); return nil })
+			p["Environ"] = reflect.ValueOf(func() (a []string) {
+				for k, v := range interp.env {
+					a = append(a, k+"="+v)
+				}
+				return
+			})
 		}
 	}
 

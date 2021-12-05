@@ -2,7 +2,8 @@ package interp
 
 import (
 	"context"
-	"io/ioutil"
+	"go/ast"
+	"os"
 	"reflect"
 	"runtime"
 	"runtime/debug"
@@ -17,7 +18,7 @@ type Program struct {
 
 // Compile parses and compiles a Go code represented as a string.
 func (interp *Interpreter) Compile(src string) (*Program, error) {
-	return interp.compile(src, "", true)
+	return interp.compileSrc(src, "", true)
 }
 
 // CompilePath parses and compiles a Go code located at the given path.
@@ -27,14 +28,14 @@ func (interp *Interpreter) CompilePath(path string) (*Program, error) {
 		return nil, err
 	}
 
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	return interp.compile(string(b), path, false)
+	return interp.compileSrc(string(b), path, false)
 }
 
-func (interp *Interpreter) compile(src, name string, inc bool) (*Program, error) {
+func (interp *Interpreter) compileSrc(src, name string, inc bool) (*Program, error) {
 	if name != "" {
 		interp.name = name
 	}
@@ -43,7 +44,20 @@ func (interp *Interpreter) compile(src, name string, inc bool) (*Program, error)
 	}
 
 	// Parse source to AST.
-	pkgName, root, err := interp.ast(src, interp.name, inc)
+	n, err := interp.parse(src, interp.name, inc)
+	if err != nil {
+		return nil, err
+	}
+
+	return interp.CompileAST(n)
+}
+
+// CompileAST builds a Program for the given Go code AST. Files and block
+// statements can be compiled, as can most expressions. Var declaration nodes
+// cannot be compiled.
+func (interp *Interpreter) CompileAST(n ast.Node) (*Program, error) {
+	// Convert AST.
+	pkgName, root, err := interp.ast(n)
 	if err != nil || root == nil {
 		return nil, err
 	}
@@ -65,7 +79,7 @@ func (interp *Interpreter) compile(src, name string, inc bool) (*Program, error)
 	}
 
 	// Annotate AST with CFG informations.
-	initNodes, err := interp.cfg(root, pkgName, pkgName)
+	initNodes, err := interp.cfg(root, nil, pkgName, pkgName)
 	if err != nil {
 		if interp.cfgDot {
 			dotCmd := interp.dotCmd

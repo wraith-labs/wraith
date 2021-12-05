@@ -49,8 +49,10 @@ const nilIdent = "nil"
 // and pre-compute frame sizes and indexes for all un-named (temporary) and named
 // variables. A list of nodes of init functions is returned.
 // Following this pass, the CFG is ready to run.
-func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node, error) {
-	sc := interp.initScopePkg(importPath, pkgName)
+func (interp *Interpreter) cfg(root *node, sc *scope, importPath, pkgName string) ([]*node, error) {
+	if sc == nil {
+		sc = interp.initScopePkg(importPath, pkgName)
+	}
 	check := typecheck{scope: sc}
 	var initNodes []*node
 	var err error
@@ -61,6 +63,9 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 		// Pre-order processing
 		if err != nil {
 			return false
+		}
+		if n.scope == nil {
+			n.scope = sc
 		}
 		switch n.kind {
 		case binaryExpr, unaryExpr, parenExpr:
@@ -284,11 +289,11 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 
 		case compositeLitExpr:
 			if len(n.child) > 0 && n.child[0].isType(sc) {
-				// Get type from 1st child
+				// Get type from 1st child.
 				if n.typ, err = nodeType(interp, sc, n.child[0]); err != nil {
 					return false
 				}
-				// Indicate that the first child is the type
+				// Indicate that the first child is the type.
 				n.nleft = 1
 			} else {
 				// Get type from ancestor (implicit type)
@@ -410,11 +415,11 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 			sc.loop = n
 
 		case importSpec:
-			// already all done in gta
+			// Already all done in GTA.
 			return false
 
 		case typeSpec:
-			// processing already done in GTA pass for global types, only parses inlined types
+			// Processing already done in GTA pass for global types, only parses inlined types.
 			if sc.def == nil {
 				return false
 			}
@@ -424,8 +429,11 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 				return false
 			}
 			if typ.incomplete {
-				err = n.cfgErrorf("invalid type declaration")
-				return false
+				// Type may still be incomplete in case of a local recursive struct declaration.
+				if typ, err = typ.finalize(); err != nil {
+					err = n.cfgErrorf("invalid type declaration")
+					return false
+				}
 			}
 
 			switch n.child[1].kind {
@@ -443,7 +451,7 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 			// values which may be used in further declarations.
 			if !sc.global {
 				for _, c := range n.child {
-					if _, err = interp.cfg(c, importPath, pkgName); err != nil {
+					if _, err = interp.cfg(c, sc, importPath, pkgName); err != nil {
 						// No error processing here, to allow recovery in subtree nodes.
 						err = nil
 					}
@@ -594,8 +602,8 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 						// Skip optimisation for assigned interface.
 						break
 					}
-					if dest.action == aGetIndex {
-						// Skip optimization, as it does not work when assigning to a struct field.
+					if dest.action == aGetIndex || dest.action == aStar {
+						// Skip optimization, as it does not work when assigning to a struct field or a dereferenced pointer.
 						break
 					}
 					n.gen = nop
@@ -657,7 +665,12 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 				if r := lc.child[0].typ.numOut(); r != l {
 					err = n.cfgErrorf("assignment mismatch: %d variables but %s returns %d values", l, lc.child[0].name(), r)
 				}
-				n.gen = nop
+				if isBinCall(lc, sc) {
+					n.gen = nop
+				} else {
+					// TODO (marc): skip if no conversion or wrapping is needed.
+					n.gen = assignFromCall
+				}
 			case indexExpr:
 				lc.gen = getIndexMap2
 				n.gen = nop
@@ -858,7 +871,9 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 
 		case labeledStmt:
 			wireChild(n)
-			n.start = n.child[1].start
+			if len(n.child) > 1 {
+				n.start = n.child[1].start
+			}
 			gotoLabel(n.sym)
 
 		case callExpr:
@@ -885,7 +900,11 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 					// Store result directly to frame output location, to avoid a frame copy.
 					n.findex = 0
 				case bname == "cap" && isInConstOrTypeDecl(n):
-					switch n.child[1].typ.TypeOf().Kind() {
+					t := n.child[1].typ.TypeOf()
+					for t.Kind() == reflect.Ptr {
+						t = t.Elem()
+					}
+					switch t.Kind() {
 					case reflect.Array, reflect.Chan:
 						capConst(n)
 					default:
@@ -894,7 +913,11 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 					n.findex = notInFrame
 					n.gen = nop
 				case bname == "len" && isInConstOrTypeDecl(n):
-					switch n.child[1].typ.TypeOf().Kind() {
+					t := n.child[1].typ.TypeOf()
+					for t.Kind() == reflect.Ptr {
+						t = t.Elem()
+					}
+					switch t.Kind() {
 					case reflect.Array, reflect.Chan, reflect.String:
 						lenConst(n)
 					default:
@@ -955,7 +978,7 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 					n.typ = c0.typ
 					n.findex = sc.add(n.typ)
 				}
-			case isBinCall(n):
+			case isBinCall(n, sc):
 				err = check.arguments(n, n.child[1:], n.child[0], n.action == aCallSlice)
 				if err != nil {
 					break
@@ -1255,7 +1278,7 @@ func (interp *Interpreter) cfg(root *node, importPath, pkgName string) ([]*node,
 				// retry with the filename, in case ident is a package name.
 				sym, level, found = sc.lookup(filepath.Join(n.ident, baseName))
 				if !found {
-					err = n.cfgErrorf("undefined: %s", n.ident)
+					err = n.cfgErrorf("undefined: %s %d", n.ident, n.index)
 					break
 				}
 			}
@@ -1998,13 +2021,18 @@ func compDefineX(sc *scope, n *node) error {
 		} else {
 			types = funtype.ret
 		}
-		if n.child[l-1].isType(sc) {
+		if n.anc.kind == varDecl && n.child[l-1].isType(sc) {
 			l--
 		}
 		if len(types) != l {
 			return n.cfgErrorf("assignment mismatch: %d variables but %s returns %d values", l, src.child[0].name(), len(types))
 		}
-		n.gen = nop
+		if isBinCall(src, sc) {
+			n.gen = nop
+		} else {
+			// TODO (marc): skip if no conversion or wrapping is needed.
+			n.gen = assignFromCall
+		}
 
 	case indexExpr:
 		types = append(types, src.typ, sc.getType("bool"))
@@ -2407,7 +2435,7 @@ func isInConstOrTypeDecl(n *node) bool {
 	anc := n.anc
 	for anc != nil {
 		switch anc.kind {
-		case constDecl, typeDecl:
+		case constDecl, typeDecl, arrayType, chanType:
 			return true
 		case varDecl, funcDecl:
 			return false
@@ -2453,8 +2481,19 @@ func isCall(n *node) bool {
 	return n.action == aCall || n.action == aCallSlice
 }
 
-func isBinCall(n *node) bool {
-	return isCall(n) && n.child[0].typ.cat == valueT && n.child[0].typ.rtype.Kind() == reflect.Func
+func isBinCall(n *node, sc *scope) bool {
+	if !isCall(n) || len(n.child) == 0 {
+		return false
+	}
+	c0 := n.child[0]
+	if c0.typ == nil {
+		// If called early in parsing, child type may not be known yet.
+		c0.typ, _ = nodeType(n.interp, sc, c0)
+		if c0.typ == nil {
+			return false
+		}
+	}
+	return c0.typ.cat == valueT && c0.typ.rtype.Kind() == reflect.Func
 }
 
 func isOffsetof(n *node) bool {
@@ -2560,7 +2599,7 @@ func gotoLabel(s *symbol) {
 func compositeGenerator(n *node, typ *itype, rtyp reflect.Type) (gen bltnGenerator) {
 	switch typ.cat {
 	case aliasT, ptrT:
-		gen = compositeGenerator(n, n.typ.val, rtyp)
+		gen = compositeGenerator(n, typ.val, rtyp)
 	case arrayT, sliceT:
 		gen = arrayLit
 	case mapT:
@@ -2614,23 +2653,54 @@ func compositeGenerator(n *node, typ *itype, rtyp reflect.Type) (gen bltnGenerat
 // arrayTypeLen returns the node's array length. If the expression is an
 // array variable it is determined from the value's type, otherwise it is
 // computed from the source definition.
-func arrayTypeLen(n *node) int {
+func arrayTypeLen(n *node, sc *scope) (int, error) {
 	if n.typ != nil && n.typ.cat == arrayT {
-		return n.typ.length
+		return n.typ.length, nil
 	}
 	max := -1
-	for i, c := range n.child[1:] {
-		r := i
-		if c.kind == keyValueExpr {
-			if v := c.child[0].rval; v.IsValid() {
-				r = int(c.child[0].rval.Int())
+	for _, c := range n.child[1:] {
+		var r int
+
+		if c.kind != keyValueExpr {
+			r = max + 1
+			max = r
+			continue
+		}
+
+		c0 := c.child[0]
+		v := c0.rval
+		if v.IsValid() {
+			r = int(v.Int())
+		} else {
+			// Resolve array key value as a constant.
+			if c0.kind == identExpr {
+				// Key is defined by a symbol which must be a constant integer.
+				sym, _, ok := sc.lookup(c0.ident)
+				if !ok {
+					return 0, c0.cfgErrorf("undefined: %s", c0.ident)
+				}
+				if sym.kind != constSym {
+					return 0, c0.cfgErrorf("non-constant array bound %q", c0.ident)
+				}
+				r = int(vInt(sym.rval))
+			} else {
+				// Key is defined by a numeric constant expression.
+				if _, err := c0.interp.cfg(c0, sc, sc.pkgID, sc.pkgName); err != nil {
+					return 0, err
+				}
+				cv, ok := c0.rval.Interface().(constant.Value)
+				if !ok {
+					return 0, c0.cfgErrorf("non-constant expression")
+				}
+				r = constToInt(cv)
 			}
 		}
+
 		if r > max {
 			max = r
 		}
 	}
-	return max + 1
+	return max + 1, nil
 }
 
 // isValueUntyped returns true if value is untyped.

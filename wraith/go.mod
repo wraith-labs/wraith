@@ -4,5 +4,5 @@ go 1.17
 
 require (
 	github.com/pascaldekloe/jwt v1.10.0
-	github.com/traefik/yaegi v0.10.0
+	github.com/traefik/yaegi v0.11.1
 )

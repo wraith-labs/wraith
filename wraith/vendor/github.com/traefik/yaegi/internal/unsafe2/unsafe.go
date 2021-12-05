@@ -10,8 +10,17 @@ type dummy struct{}
 // DummyType represents a stand-in for a recursive type.
 var DummyType = reflect.TypeOf(dummy{})
 
+// the following type sizes must match their original definition in Go src/reflect/type.go.
+
 type rtype struct {
-	_ [48]byte
+	_ uintptr
+	_ uintptr
+	_ uint32
+	_ uint32
+	_ uintptr
+	_ uintptr
+	_ uint32
+	_ uint32
 }
 
 type emptyInterface struct {
@@ -20,21 +29,21 @@ type emptyInterface struct {
 }
 
 type structField struct {
-	_   int64
+	_   uintptr
 	typ *rtype
 	_   uintptr
 }
 
 type structType struct {
 	rtype
-	_      int64
+	_      uintptr
 	fields []structField
 }
 
-// SwapFieldType swaps the type of the struct field with the given type.
+// SetFieldType sets the type of the struct field at the given index, to the given type.
 //
 // The struct type must have been created at runtime. This is very unsafe.
-func SwapFieldType(s reflect.Type, idx int, t reflect.Type) {
+func SetFieldType(s reflect.Type, idx int, t reflect.Type) {
 	if s.Kind() != reflect.Struct || idx >= s.NumField() {
 		return
 	}

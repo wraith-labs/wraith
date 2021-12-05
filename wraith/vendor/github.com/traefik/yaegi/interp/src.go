@@ -73,8 +73,16 @@ func (interp *Interpreter) importSrc(rPath, importPath string, skipTest bool) (s
 			return "", err
 		}
 
+		n, err := interp.parse(string(buf), name, false)
+		if err != nil {
+			return "", err
+		}
+		if n == nil {
+			continue
+		}
+
 		var pname string
-		if pname, root, err = interp.ast(string(buf), name, false); err != nil {
+		if pname, root, err = interp.ast(n); err != nil {
 			return "", err
 		}
 		if root == nil {
@@ -114,7 +122,7 @@ func (interp *Interpreter) importSrc(rPath, importPath string, skipTest bool) (s
 	// Generate control flow graphs.
 	for _, root := range rootNodes {
 		var nodes []*node
-		if nodes, err = interp.cfg(root, importPath, pkgName); err != nil {
+		if nodes, err = interp.cfg(root, nil, importPath, pkgName); err != nil {
 			return "", err
 		}
 		initNodes = append(initNodes, nodes...)
