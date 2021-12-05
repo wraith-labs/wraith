@@ -80,7 +80,18 @@ func (w *Wraith) restartmodules() []error {
 	return errs
 }
 
-// Spawn an instance of Wraith running synchronously
+// Spawn an instance of Wraith running synchronously. If you would
+// like Wraith to run asynchronously, start this function in a
+// goroutine.
+//
+// The first argument is an instance of WraithConf containing the
+// configuration for this instance of Wraith. It should be fully
+// initialised and filled out. An uninitialised config can lead to
+// undefined behaviour.
+//
+// The following arguments are modules which should be available to
+// Wraith. In case of a name conflict, the last module in the
+// list with the name will be chosen, the others will be discarded.
 func (w *Wraith) Spawn(conf WraithConf, modules ...WraithModule) {
 	// Take note of start time
 	w.initTime = time.Now()
@@ -93,8 +104,8 @@ func (w *Wraith) Spawn(conf WraithConf, modules ...WraithModule) {
 	w.SharedMemory.Init()
 
 	// Watch various special cells in shared memory
-	exitTrigger, _ := w.SharedMemory.Watch("w.exitTrigger")
-	reloadTrigger, _ := w.SharedMemory.Watch("w.reloadTrigger")
+	exitTrigger, _ := w.SharedMemory.Watch(SHM_EXIT_TRIGGER)
+	reloadTrigger, _ := w.SharedMemory.Watch(SHM_RELOAD_TRIGGER)
 
 	// Save a copy of the passed modules in the `modules` field, using the
 	// module name as the key
@@ -138,7 +149,7 @@ func (w *Wraith) Spawn(conf WraithConf, modules ...WraithModule) {
 // block until Wraith exits.
 func (w *Wraith) Kill() {
 	// Trigger exit of mainloop
-	w.SharedMemory.Set("w.exitTrigger", true)
+	w.SharedMemory.Set(SHM_EXIT_TRIGGER, true)
 
 	// Await death
 	<-w.IsDead
