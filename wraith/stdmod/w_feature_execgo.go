@@ -1,4 +1,4 @@
-package mod_part
+package stdmod
 
 import (
 	"fmt"
