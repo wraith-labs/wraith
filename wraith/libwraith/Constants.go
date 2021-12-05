@@ -29,5 +29,16 @@ const (
 	// This module is responsible for managing the SHM_TX_QUEUE and
 	// SHM_RX_QUEUE memory cells and distributing the data within them
 	// to individual modules responsible for its handling.
+	//
+	// Managing of this data includes:
+	// - Verifying the integrity of the data
+	// - Verifying the format of the data
+	// - Verifying the signature of the data (if any)
+	// - Encrypting/decrypting the data
+	//
+	// Those functions can be delegated to other modules, but this
+	// must be done transparrently i.e., the manager must estabilish
+	// its own way of speaking to those modules and all data must still
+	// go through it.
 	MOD_COMMS_MANAGER = "commsManager"
 )
