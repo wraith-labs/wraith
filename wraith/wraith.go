@@ -42,7 +42,7 @@ func main() {
 	// Start Wraith in goroutine
 	go w.Spawn(
 		libwraith.WraithConf{},
-		&stdmod.CryptoJWTCommsManager{},
+		&stdmod.DefaultJWTCommsManager{},
 	)
 
 	// Wait until Wraith dies or the exit trigger fires

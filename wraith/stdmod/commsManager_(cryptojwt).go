@@ -4,24 +4,24 @@ import (
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 )
 
-type CryptoJWTCommsManager struct {
+type DefaultJWTCommsManager struct {
 	wraith *libwraith.Wraith
 }
 
-func (m *CryptoJWTCommsManager) WraithModuleInit(w *libwraith.Wraith) {
+func (m *DefaultJWTCommsManager) WraithModuleInit(w *libwraith.Wraith) {
 	// Save pointer to Wraith for future reference
 	m.wraith = w
 }
 
-func (m *CryptoJWTCommsManager) Start() error {
+func (m *DefaultJWTCommsManager) Start() error {
 	return nil
 }
 
-func (m *CryptoJWTCommsManager) Stop() error {
+func (m *DefaultJWTCommsManager) Stop() error {
 	return nil
 }
 
-func (m *CryptoJWTCommsManager) Name() string {
+func (m *DefaultJWTCommsManager) Name() string {
 	return libwraith.MOD_COMMS_MANAGER
 }
 
