@@ -6,6 +6,7 @@ import (
 	"syscall"
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod"
 )
 
 const RESPECT_EXIT_SIGNALS = true
@@ -41,7 +42,7 @@ func main() {
 	// Start Wraith in goroutine
 	go w.Spawn(
 		libwraith.WraithConf{},
-		[]libwraith.WraithModule{}...,
+		&stdmod.CryptoJWTCommsManager{},
 	)
 
 	// Wait until Wraith dies or the exit trigger fires

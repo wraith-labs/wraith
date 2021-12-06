@@ -1,22 +1,31 @@
 package stdmod
 
 import (
-	"fmt"
-	"os"
-	"os/user"
-	"regexp"
-	"runtime"
-	"time"
-
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
-	"github.com/pascaldekloe/jwt"
 )
 
-type JWTModule struct {
-	EncodeKey []byte
-	DecodeKey []byte
+type CryptoJWTCommsManager struct {
+	wraith *libwraith.Wraith
 }
 
+func (m *CryptoJWTCommsManager) WraithModuleInit(w *libwraith.Wraith) {
+	// Save pointer to Wraith for future reference
+	m.wraith = w
+}
+
+func (m *CryptoJWTCommsManager) Start() error {
+	return nil
+}
+
+func (m *CryptoJWTCommsManager) Stop() error {
+	return nil
+}
+
+func (m *CryptoJWTCommsManager) Name() string {
+	return libwraith.MOD_COMMS_MANAGER
+}
+
+/*
 func (m *JWTModule) WraithModuleInit(wraith *libwraith.Wraith) {}
 func (m *JWTModule) ProtoLangModule()                          {}
 
@@ -173,3 +182,4 @@ func (m *ValidityModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, 
 		return
 	}
 }
+*/
