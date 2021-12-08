@@ -50,11 +50,11 @@ func (c *sharedMemoryCell) init() {
 // of this, though this should be fine because goroutines have
 // minimal overhead.
 //
-// Pushes time out after one second, so if a channel is full for
+// Pushes time out after 5 seconds, so if a channel is full for
 // longer than that, the watcher which owns that channel will not
 // receive that update.
 func (c *sharedMemoryCell) notify() {
-	const TIMEOUT = time.Second * 1
+	const TIMEOUT = time.Second * 5
 
 	for watcherId, watcherChannel := range c.watchers {
 		go func(watcherId int, watcherChannel chan interface{}) {
@@ -99,8 +99,8 @@ func (c *sharedMemoryCell) get() (value interface{}) {
 // changes. Returns the assigned ID of the channel which can be
 // used to unwatch the cell.
 func (c *sharedMemoryCell) watch(channel chan interface{}) int {
-	// Defer statements are executed in LIFO order so the counter
-	// will be incremented and then the mutex will be unlocked.
+	// Defer statements are executed LIFO so the counter will be
+	// incremented and then the mutex will be unlocked.
 	defer c.autolock()()
 	defer func() { c.watcherCounter++ }()
 

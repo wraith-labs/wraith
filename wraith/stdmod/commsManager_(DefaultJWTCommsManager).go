@@ -1,26 +1,122 @@
 package stdmod
 
 import (
+	"fmt"
+	"sync"
+	"time"
+
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 )
 
+// A struct to store various configuration properties of the DefaultJWTCommsManager.
+// Not all CommsManagers have this, but it helps for more general-purpose managers
+// like this one, to tweak behaviour.
+type DefaultJWTCommsManagerConfig struct {
+}
+
+// A CommsManager module implementation which utilises (optionally) encrypted JWT
+// as a base for its transfer protocol. This allows messages to be signed and
+// verified both by the C2 and by Wraith. Otherwise, this CommsManager lacks any
+// particularly advanced features and is meant as a simple default which does a
+// good job in most usecases.
 type DefaultJWTCommsManager struct {
-	wraith *libwraith.Wraith
+	wraith       *libwraith.Wraith
+	exitTrigger  chan struct{}
+	running      bool
+	runningMutex sync.Mutex
+
+	// A property used to configure various behaviours of this CommsManager.
+	Conf DefaultJWTCommsManagerConfig
+}
+
+// Spawn a channel which is triggered when the m.running condition is false
+func (m *DefaultJWTCommsManager) exitChannel() chan struct{} {
+	exitChannel := make(chan struct{})
+	go func() {
+		// Regularly check m.running
+		for m.running {
+			// Stop the loop from spinning and using 100% CPU
+			<-time.After(200 * time.Millisecond)
+		}
+	}()
+	return exitChannel
 }
 
 func (m *DefaultJWTCommsManager) WraithModuleInit(w *libwraith.Wraith) {
-	// Save pointer to Wraith for future reference
+	// Save pointer to Wraith for future (de)reference
 	m.wraith = w
+
+	// Init properties
+	m.exitTrigger = make(chan struct{})
+	m.running = false // no need to lock - this is guaranteed to run before any attempts to start the module
 }
 
 func (m *DefaultJWTCommsManager) Start() error {
+	// Ensure this instance is only started once and mark as running if so
+	m.runningMutex.Lock()
+	if m.running {
+		m.runningMutex.Unlock()
+		return fmt.Errorf("already running")
+	}
+	m.running = true
+	m.runningMutex.Unlock()
+
+	// Start the main body of the module in a goroutine
+	go func() {
+		// Watch shm cells required by this module
+		txQueue, txQueueWatchId := m.wraith.SharedMemory.Watch(libwraith.SHM_TX_QUEUE)
+		rxQueue, rxQueueWatchId := m.wraith.SharedMemory.Watch(libwraith.SHM_RX_QUEUE)
+
+		// Always cleanup and clear running status when exiting goroutine
+		defer func() {
+			// Mark comms as not ready in shm
+			m.wraith.SharedMemory.Set(libwraith.SHM_COMMS_READY, false)
+
+			// Unwatch cells
+			m.wraith.SharedMemory.Unwatch(libwraith.SHM_TX_QUEUE, txQueueWatchId)
+			m.wraith.SharedMemory.Unwatch(libwraith.SHM_RX_QUEUE, rxQueueWatchId)
+
+			// Mark as not running internally
+			m.runningMutex.Lock()
+			m.running = false
+			m.runningMutex.Unlock()
+		}()
+
+		// Mark comms as ready in shm
+		m.wraith.SharedMemory.Set(libwraith.SHM_COMMS_READY, true)
+
+		// Mainloop
+		for {
+			select {
+			// Trigger exit when requested
+			case <-m.exitTrigger:
+				return
+			// Manage transfer queue
+			case <-txQueue: // TODO
+			// Manage receive queue
+			case <-rxQueue: // TODO
+			}
+		}
+	}()
+
+	// Return control to Wraith
 	return nil
 }
 
 func (m *DefaultJWTCommsManager) Stop() error {
-	return nil
+	// Request exit of mainloop
+	m.exitTrigger <- struct{}{}
+
+	// Wait for mainloop to exit, with timeout
+	select {
+	case <-m.exitChannel():
+		return nil
+	case <-time.After(10 * time.Second):
+		return fmt.Errorf("timeout while waiting for mainloop to exit")
+	}
 }
 
+// Return the name of this module as libwraith.MOD_COMMS_MANAGER
 func (m *DefaultJWTCommsManager) Name() string {
 	return libwraith.MOD_COMMS_MANAGER
 }
