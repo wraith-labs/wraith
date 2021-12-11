@@ -15,16 +15,6 @@ type sharedMemoryCell struct {
 	data           interface{}
 	watchers       map[int]chan interface{}
 	watcherCounter int
-	mutex          sync.Mutex
-}
-
-// Lock the mutex for the cell and return the function to unlock
-// the mutex. This allows for a simple, one-liner to lock and unlock
-// the mutex at the top of every method of the cell like so:
-// `defer c.autolock()()`
-func (c *sharedMemoryCell) autolock() func() {
-	c.mutex.Lock()
-	return c.mutex.Unlock
 }
 
 // Initialise the cell so that it's useable. Calling the cell's other
@@ -33,15 +23,11 @@ func (c *sharedMemoryCell) autolock() func() {
 func (c *sharedMemoryCell) init() {
 	c.watchers = make(map[int]chan interface{})
 	c.watcherCounter = 0
-	c.mutex = sync.Mutex{}
 }
 
 // Notify watchers of this cell about the current value of the cell.
 // This is a helper which should be called whenever the value is
-// changed by one of the other methods. It doesn't lock the cell
-// because it assumes the caller already did this. If it did not
-// and the value changes while looping, different watchers could
-// get different values, which could be bad.
+// changed by one of the other methods.
 //
 // All pushes to channels are done asynchronously as to return as
 // quickly as possible and therefore reduce the time taken to set
@@ -80,7 +66,7 @@ func (c *sharedMemoryCell) notify() {
 	}
 
 	// Wait for all goroutines to finish, otherwise this function would
-	// return, the caller might release the lock, another call might be
+	// return, the SharedMemory might release the lock, another call might be
 	// made to change the value and different watchers would get different
 	// updates. As the goroutines have timeouts, this shouldn't take very
 	// long.
@@ -90,8 +76,6 @@ func (c *sharedMemoryCell) notify() {
 // Set the value of the cell to that passed as the argument. This
 // will also notify all watchers of the change.
 func (c *sharedMemoryCell) set(value interface{}) {
-	defer c.autolock()()
-
 	c.data = value
 
 	c.notify()
@@ -99,8 +83,6 @@ func (c *sharedMemoryCell) set(value interface{}) {
 
 // Get the current value of the cell.
 func (c *sharedMemoryCell) get() (value interface{}) {
-	defer c.autolock()()
-
 	return c.data
 }
 
@@ -109,9 +91,6 @@ func (c *sharedMemoryCell) get() (value interface{}) {
 // changes. Returns the assigned ID of the channel which can be
 // used to unwatch the cell.
 func (c *sharedMemoryCell) watch(channel chan interface{}) int {
-	// Defer statements are executed LIFO so the counter will be
-	// incremented and then the mutex will be unlocked.
-	defer c.autolock()()
 	defer func() { c.watcherCounter++ }()
 
 	c.watchers[c.watcherCounter] = channel
@@ -123,15 +102,33 @@ func (c *sharedMemoryCell) watch(channel chan interface{}) int {
 // means that the channel will no longer receive updates when the
 // value of this cell changes. Takes the ID returned by Watch().
 func (c *sharedMemoryCell) unwatch(id int) {
-	defer c.autolock()
-
 	delete(c.watchers, id)
 }
 
-// A struct for sharing memory between modules in a flexible way.
-// It allows modules to write to memory
+// A struct for sharing memory between modules and Wraith in a
+// thread-safe way while providing facilities to watch individual
+// memory cells for updates.
 type SharedMemory struct {
-	mem map[string]*sharedMemoryCell
+	isPostInit bool
+	mutex      sync.Mutex
+	mem        map[string]*sharedMemoryCell
+}
+
+// Initialise the SM if it's not already initialised. This requires
+// a lock, but assumes that this is handled by the caller.
+func (m *SharedMemory) initIfNot() {
+	if !m.isPostInit {
+		m.mem = make(map[string]*sharedMemoryCell)
+		m.isPostInit = true
+	}
+}
+
+// Lock the mutex and return the function to unlock it. This
+// allows for a simple, one-liner to lock and unlock the mutex
+// at the top of every method like so: `defer m.autolock()()`.
+func (m *SharedMemory) autolock() func() {
+	m.mutex.Lock()
+	return m.mutex.Unlock
 }
 
 // Create and init a cell with the given name and return its pointer.
@@ -141,18 +138,12 @@ func (m *SharedMemory) createcell(name string) *sharedMemoryCell {
 	return m.mem[name]
 }
 
-// Initialise the SM. This should be called only once as it
-// initialises the internal data structure causing all cells
-// to be reset if they currently store data. However, it must
-// be called before any other methods are called else they will
-// panic.
-func (m *SharedMemory) Init() {
-	m.mem = make(map[string]*sharedMemoryCell)
-}
-
 // Set the value of the given cell to that passed as the argument.
 // This will also notify all watchers of the change.
 func (m *SharedMemory) Set(cellName string, value interface{}) {
+	defer m.autolock()()
+	m.initIfNot()
+
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
 		// ...set its value
@@ -165,6 +156,9 @@ func (m *SharedMemory) Set(cellName string, value interface{}) {
 
 // Get the current value of a given cell.
 func (m *SharedMemory) Get(cellName string) interface{} {
+	defer m.autolock()()
+	m.initIfNot()
+
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
 		// ...return its value
@@ -182,6 +176,9 @@ func (m *SharedMemory) Get(cellName string) interface{} {
 // the channel which will receive updates and the ID assigned to that
 // channel which can be used to unwatch the cell.
 func (m *SharedMemory) Watch(cellName string) (channel chan interface{}, watchId int) {
+	defer m.autolock()()
+	m.initIfNot()
+
 	// Create a channel, to be used for sending updates, with no buffer
 	channel = make(chan interface{}, SHMCONF_WATCHER_CHAN_SIZE)
 
@@ -202,6 +199,9 @@ func (m *SharedMemory) Watch(cellName string) (channel chan interface{}, watchId
 // when the value of this cell changes. Takes the ID returned
 // by Watch().
 func (m *SharedMemory) Unwatch(cellName string, watchId int) {
+	defer m.autolock()()
+	m.initIfNot()
+
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
 		// ...remove the watcher (if the ID doesn't exist, this
