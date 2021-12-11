@@ -50,11 +50,11 @@ func (c *sharedMemoryCell) init() {
 // of this, though this should be fine because goroutines have
 // minimal overhead.
 //
-// Pushes time out after 5 seconds, so if a channel is full for
+// Pushes time out after 15 seconds, so if a channel is full for
 // longer than that, the watcher which owns that channel will not
 // receive that update.
 func (c *sharedMemoryCell) notify() {
-	const TIMEOUT = time.Second * 5
+	const TIMEOUT = time.Second * 15
 
 	for watcherId, watcherChannel := range c.watchers {
 		go func(watcherId int, watcherChannel chan interface{}) {
