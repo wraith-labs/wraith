@@ -48,16 +48,19 @@ func (c *sharedMemoryCell) init() {
 // cells. This also means that watchers get updates as quickly as
 // possible. However, a goroutine is spawned for each watcher because
 // of this, though this should be fine because goroutines have
-// minimal overhead.
+// minimal overhead. The call will block until all goroutines return.
 //
-// Pushes time out after 15 seconds, so if a channel is full for
-// longer than that, the watcher which owns that channel will not
-// receive that update.
+// Pushes time out after SHARED_MEMORY_WATCHER_NOTIF_TIMEOUT seconds,
+// so if a channel is full for longer than that, the watcher which
+// owns that channel will not receive that update.
 func (c *sharedMemoryCell) notify() {
-	const TIMEOUT = time.Second * 15
+	wg := sync.WaitGroup{}
+	wg.Add(len(c.watchers))
 
 	for watcherId, watcherChannel := range c.watchers {
 		go func(watcherId int, watcherChannel chan interface{}) {
+			// At the very end, mark this goroutine as done
+			defer wg.Done()
 			// The channel could be closed, in which case a panic will
 			// occur. We don't want any panics so we will catch it here.
 			// However, there is no point ever trying to send to this
@@ -71,10 +74,17 @@ func (c *sharedMemoryCell) notify() {
 			// Send to channel with timeout
 			select {
 			case watcherChannel <- c.data:
-			case <-time.After(TIMEOUT):
+			case <-time.After(SHMCONF_WATCHER_NOTIF_TIMEOUT * time.Second):
 			}
 		}(watcherId, watcherChannel)
 	}
+
+	// Wait for all goroutines to finish, otherwise this function would
+	// return, the caller might release the lock, another call might be
+	// made to change the value and different watchers would get different
+	// updates. As the goroutines have timeouts, this shouldn't take very
+	// long.
+	wg.Wait()
 }
 
 // Set the value of the cell to that passed as the argument. This
@@ -173,7 +183,7 @@ func (m *SharedMemory) Get(cellName string) interface{} {
 // channel which can be used to unwatch the cell.
 func (m *SharedMemory) Watch(cellName string) (channel chan interface{}, watchId int) {
 	// Create a channel, to be used for sending updates, with no buffer
-	channel = make(chan interface{})
+	channel = make(chan interface{}, SHMCONF_WATCHER_CHAN_SIZE)
 
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
