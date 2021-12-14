@@ -3,7 +3,8 @@ package libwraith
 import "time"
 
 type WraithConf struct {
-	Fingerprint           string
+	FamilyId              string
+	FingerprintGenerator  func() string
 	DefaultReturnAddr     string
 	DefaultReturnEncoding string
 	RetransmissionDelay   time.Duration

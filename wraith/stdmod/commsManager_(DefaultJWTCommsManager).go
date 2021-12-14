@@ -64,17 +64,18 @@ func (m *DefaultJWTCommsManager) Start() error {
 	// Start the main body of the module in a goroutine
 	go func() {
 		// Watch shm cells required by this module
-		txQueue, txQueueWatchId := m.wraith.SharedMemory.Watch(libwraith.SHM_TX_QUEUE)
-		rxQueue, rxQueueWatchId := m.wraith.SharedMemory.Watch(libwraith.SHM_RX_QUEUE)
+		txQueue, txQueueWatchId := m.wraith.SHMWatch(libwraith.SHM_TX_QUEUE)
+		rxQueue, rxQueueWatchId := m.wraith.SHMWatch(libwraith.SHM_RX_QUEUE)
 
 		// Always cleanup and clear running status when exiting goroutine
 		defer func() {
 			// Mark comms as not ready in shm
-			m.wraith.SharedMemory.Set(libwraith.SHM_COMMS_READY, false)
+			// Ignore err return because we know this isn't a protected cell
+			_ = m.wraith.SHMSet(libwraith.SHM_COMMS_READY, false)
 
 			// Unwatch cells
-			m.wraith.SharedMemory.Unwatch(libwraith.SHM_TX_QUEUE, txQueueWatchId)
-			m.wraith.SharedMemory.Unwatch(libwraith.SHM_RX_QUEUE, rxQueueWatchId)
+			m.wraith.SHMUnwatch(libwraith.SHM_TX_QUEUE, txQueueWatchId)
+			m.wraith.SHMUnwatch(libwraith.SHM_RX_QUEUE, rxQueueWatchId)
 
 			// Mark as not running internally
 			m.runningMutex.Lock()
@@ -83,7 +84,7 @@ func (m *DefaultJWTCommsManager) Start() error {
 		}()
 
 		// Mark comms as ready in shm
-		m.wraith.SharedMemory.Set(libwraith.SHM_COMMS_READY, true)
+		m.wraith.SHMSet(libwraith.SHM_COMMS_READY, true)
 
 		// Mainloop
 		for {

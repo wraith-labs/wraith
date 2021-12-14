@@ -51,6 +51,7 @@ func (c *sharedMemoryCell) notify() {
 			// occur. We don't want any panics so we will catch it here.
 			// However, there is no point ever trying to send to this
 			// channel again, so it should be removed.
+			// TODO: Not relying on panics would be nice
 			defer func() {
 				if r := recover(); r != nil {
 					delete(c.watchers, watcherId)

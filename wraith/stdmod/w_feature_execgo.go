@@ -1,6 +1,6 @@
 package stdmod
 
-import (
+/*import (
 	"fmt"
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
@@ -67,3 +67,4 @@ func (m *CmdModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data 
 	}
 	result = fn()
 }
+*/

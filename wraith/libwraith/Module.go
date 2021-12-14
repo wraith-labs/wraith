@@ -1,5 +1,6 @@
 package libwraith
 
+// An interface describing the structure of a Wraith Module
 type WraithModule interface {
 	// Initialise the module. This is called as soon as Wraith is made aware
 	// of a module and will only ever be called once on any instance of
@@ -7,7 +8,8 @@ type WraithModule interface {
 	//
 	// The argument is a pointer to the Wraith struct which owns the module.
 	// This is used for communication purposes and to allow the module to
-	// control Wraith, so it should be saved for the lifetime of the module.
+	// control Wraith, so it should be saved for the lifetime of the module
+	// if needed.
 	//
 	// This method is called synchronously and will block further execution,
 	// so long-running tasks should be started as goroutines.
@@ -19,7 +21,7 @@ type WraithModule interface {
 	// handling, it likely shouldn't be in this method, but in the `Start()`
 	// method instead. This method's primary purpose is to initialise
 	// properties and save the Wraith pointer, which shouldn't cause errors.
-	WraithModuleInit(w *Wraith)
+	WraithModuleInit(*Wraith)
 
 	// Start the module's mainloop. This is called when Wraith decides the
 	// module should be running and can be called multiple times. Usually,
