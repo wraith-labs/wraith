@@ -1,7 +1,7 @@
 package libwraith
 
 // An interface describing the structure of a Wraith Module
-type WraithModule interface {
+type Module interface {
 	// Initialise the module. This is called as soon as Wraith is made aware
 	// of a module and will only ever be called once on any instance of
 	// the module.

@@ -46,7 +46,7 @@ func main() {
 
 	// Start Wraith in goroutine
 	go w.Spawn(
-		libwraith.WraithConf{
+		libwraith.Config{
 			FingerprintGenerator: func() string { return "" },
 		},
 		&stdmod.DefaultJWTCommsManager{},

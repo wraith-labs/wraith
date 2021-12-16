@@ -27,10 +27,10 @@ type Wraith struct {
 
 	// An instance of WraithConf storing all configuration necessary
 	// for Wraith to work correctly.
-	conf WraithConf
+	conf Config
 
 	// A list of modules available to Wraith
-	modules map[string]WraithModule
+	modules map[string]Module
 }
 
 // Spawn an instance of Wraith running synchronously. If you would
@@ -50,7 +50,7 @@ type Wraith struct {
 // It is highly recommended to pass the comms manager module first
 // (possibly preceded by modules it depends on) to make sure module
 // communications are not lost.
-func (w *Wraith) Spawn(conf WraithConf, modules ...WraithModule) {
+func (w *Wraith) Spawn(conf Config, modules ...Module) {
 	// Make sure only one instance runs
 	// If another instance is in any state but inactive, exit immediately
 	w.statusMutex.Lock()
@@ -72,7 +72,7 @@ func (w *Wraith) Spawn(conf WraithConf, modules ...WraithModule) {
 	reloadTrigger, _ := w.sharedMemory.Watch(SHM_RELOAD_TRIGGER)
 
 	// Init map of modules
-	w.modules = make(map[string]WraithModule)
+	w.modules = make(map[string]Module)
 
 	// Prepare on-exit cleanup
 	defer func() {
