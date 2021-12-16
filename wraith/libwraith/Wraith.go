@@ -31,6 +31,18 @@ type Wraith struct {
 
 	// A list of modules available to Wraith
 	modules map[string]Module
+
+	// A mutex to protect the list of modules when modified by Wraith.Mod*
+	// methods
+	modulesMutex sync.Mutex
+}
+
+// Helper method to be deferred at the start of all Wraith methods
+// to ensure none of them panic and cause the entire program to crash.
+// Wraith is meant to be silent when embedded in other software, and
+// reliable.
+func (w *Wraith) catch() {
+	recover()
 }
 
 // Spawn an instance of Wraith running synchronously. If you would
@@ -51,6 +63,8 @@ type Wraith struct {
 // (possibly preceded by modules it depends on) to make sure module
 // communications are not lost.
 func (w *Wraith) Spawn(conf Config, modules ...Module) {
+	defer w.catch()
+
 	// Make sure only one instance runs
 	// If another instance is in any state but inactive, exit immediately
 	w.statusMutex.Lock()
@@ -130,6 +144,8 @@ func (w *Wraith) Spawn(conf Config, modules ...Module) {
 // If the timeout is reached, the method will return false to
 // show that it was unable to confirm Wraith's exit.
 func (w *Wraith) Kill(timeout time.Duration) bool {
+	defer w.catch()
+
 	w.statusMutex.Lock()
 
 	// Trigger exit of mainloop if it's running, otherwise there's nothing to do
@@ -181,6 +197,8 @@ func (w *Wraith) Kill(timeout time.Duration) bool {
 // This will be the time.Time zero value if Wraith has not yet
 // started initialisation.
 func (w *Wraith) GetInitTime() time.Time {
+	defer w.catch()
+
 	return w.initTime
 }
 
@@ -191,6 +209,8 @@ func (w *Wraith) GetInitTime() time.Time {
 // cached and returns the cached value if so. Otherwise, it
 // will run the generator function.
 func (w *Wraith) GetFingerprint() string {
+	defer w.catch()
+
 	if w.fingerprint == "" {
 		w.fingerprint = w.conf.FingerprintGenerator()
 	}
@@ -201,6 +221,8 @@ func (w *Wraith) GetFingerprint() string {
 
 // Proxy to SharedMemory.Get()
 func (w *Wraith) SHMGet(cellname string) interface{} {
+	defer w.catch()
+
 	return w.sharedMemory.Get(cellname)
 }
 
@@ -208,6 +230,8 @@ func (w *Wraith) SHMGet(cellname string) interface{} {
 // Disallows writing to protected cells and returns an error
 // if a write to such is attempted.
 func (w *Wraith) SHMSet(cellname string, value interface{}) error {
+	defer w.catch()
+
 	for _, protectedCell := range []string{
 		SHM_WRAITH_STATUS,
 	} {
@@ -222,10 +246,102 @@ func (w *Wraith) SHMSet(cellname string, value interface{}) error {
 
 // Proxy to SharedMemory.Watch()
 func (w *Wraith) SHMWatch(cellname string) (chan interface{}, int) {
+	defer w.catch()
+
 	return w.sharedMemory.Watch(cellname)
 }
 
 // Proxy to SharedMemory.Unwatch()
 func (w *Wraith) SHMUnwatch(cellname string, watchId int) {
+	defer w.catch()
+
 	w.sharedMemory.Unwatch(cellname, watchId)
+}
+
+// Modules
+
+// Get a list of available modules
+func (w *Wraith) ModGet() []string {
+	defer w.catch()
+
+	w.modulesMutex.Lock()
+	defer w.modulesMutex.Unlock()
+
+	mods := make([]string, len(w.modules))
+	index := 0
+	for modname := range w.modules {
+		mods[index] = modname
+		index++
+	}
+	return mods
+}
+
+// Add a module to the list of available modules
+// Note that unlike the modules passed to Wraith.Spawn(),
+// this module will not be started automatically.
+func (w *Wraith) ModAdd(mod Module) error {
+	defer w.catch()
+
+	w.modulesMutex.Lock()
+	defer w.modulesMutex.Unlock()
+
+	modname := mod.Name()
+	if _, exists := w.modules[modname]; exists {
+		return fmt.Errorf("module %s already exists", modname)
+	}
+	w.modules[modname] = mod
+	return nil
+}
+
+// Remove a module from the list of available modules
+// Note that the module will not be automatically stopped and
+// this should first be done by calling Wraith.ModStop().
+// This is dangerous because removing some modules may cause
+// Wraith to stop working - use with caution.
+func (w *Wraith) ModRemove(modname string) error {
+	defer w.catch()
+
+	w.modulesMutex.Lock()
+	defer w.modulesMutex.Unlock()
+
+	if _, exists := w.modules[modname]; exists {
+		delete(w.modules, modname)
+		return nil
+	} else {
+		return fmt.Errorf("no such module %s", modname)
+	}
+}
+
+// Activate a module
+// This does not check whether the module is already
+// running. It is up to modules to ensure only one
+// instance runs at a time.
+func (w *Wraith) ModStart(modname string) error {
+	defer w.catch()
+
+	w.modulesMutex.Lock()
+	defer w.modulesMutex.Unlock()
+
+	if module, exists := w.modules[modname]; exists {
+		return module.Start()
+	} else {
+		return fmt.Errorf("no such module %s", modname)
+	}
+}
+
+// Deactivate a module
+// This does not check whether the module is already
+// inactive. It is up to modules to ensure deactivating
+// an inactive module does not cause issues.
+func (w *Wraith) ModStop(modname string) error {
+	defer w.catch()
+
+	w.modulesMutex.Lock()
+	defer w.modulesMutex.Unlock()
+
+	if module, exists := w.modules[modname]; exists {
+		return module.Stop()
+	} else {
+		return fmt.Errorf("no such module %s", modname)
+	}
 }
