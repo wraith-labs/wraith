@@ -1,4 +1,4 @@
-package libwraith
+package stdmod
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 // fingerprints changing when Wraith is restarted, but would still like some
 // indication of which Wraith runs on which host. If multiple Wraiths run on
 // one host, this also allows for differentiation between them.
-func FingerprintGenerator_HostAndProcess() string {
+func FprintGen_HostAndProcess() string {
 	// Gather fingerprint data
 	hostname, hostnameErr := os.Hostname()
 	if hostnameErr != nil {
@@ -44,7 +44,7 @@ func FingerprintGenerator_HostAndProcess() string {
 // function is useful if you don't want Wraith fingerprint to change at all on
 // restart. If multiple Wraiths run on one host, they will both have the same
 // fingerprint.
-func FingerprintGenerator_HostOnly() string {
+func FprintGen_HostOnly() string {
 	// Gather fingerprint data
 	hostname, hostnameErr := os.Hostname()
 	if hostnameErr != nil {
@@ -66,7 +66,7 @@ func FingerprintGenerator_HostOnly() string {
 // and not based on any information whatsoever. Useful if you don't really
 // care about the fingerprints and just need them to uniquely identify a
 // Wraith, but they can change on restart.
-func FingerprintGenerator_Random() string {
+func FprintGen_Random() string {
 	// Apparently this is hyper-optimised
 	// Might as well ¯\_(ツ)_/¯
 	// Stolen from: https://stackoverflow.com/a/31832326/8623347
