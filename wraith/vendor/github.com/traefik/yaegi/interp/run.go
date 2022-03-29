@@ -1086,7 +1086,7 @@ func genInterfaceWrapper(n *node, typ reflect.Type) func(*frame) reflect.Value {
 		for i, m := range methods {
 			if m == nil {
 				// First direct method lookup on field.
-				if r := methodByName(v, names[i]); r.IsValid() {
+				if r := methodByName(v, names[i], indexes[i]); r.IsValid() {
 					w.Field(i + 1).Set(r)
 					continue
 				}
@@ -1111,15 +1111,50 @@ func genInterfaceWrapper(n *node, typ reflect.Type) func(*frame) reflect.Value {
 	}
 }
 
-// methodByName return the method corresponding to name on value, or nil if not found.
+// methodByName returns the method corresponding to name on value, or nil if not found.
 // The search is extended on valueInterface wrapper if present.
-func methodByName(value reflect.Value, name string) reflect.Value {
+// If valid, the returned value is a method function with the receiver already set
+// (no need to pass it at call).
+func methodByName(value reflect.Value, name string, index []int) (v reflect.Value) {
 	if vi, ok := value.Interface().(valueInterface); ok {
-		if v := getConcreteValue(vi.value).MethodByName(name); v.IsValid() {
-			return v
+		if v = getConcreteValue(vi.value).MethodByName(name); v.IsValid() {
+			return
 		}
 	}
-	return value.MethodByName(name)
+	if v = value.MethodByName(name); v.IsValid() {
+		return
+	}
+	for value.Kind() == reflect.Ptr {
+		value = value.Elem()
+		if checkFieldIndex(value.Type(), index) {
+			value = value.FieldByIndex(index)
+		}
+		if v = value.MethodByName(name); v.IsValid() {
+			return
+		}
+	}
+	return
+}
+
+func checkFieldIndex(typ reflect.Type, index []int) bool {
+	if len(index) == 0 {
+		return false
+	}
+	t := typ
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if t.Kind() != reflect.Struct {
+		return false
+	}
+	i := index[0]
+	if i >= t.NumField() {
+		return false
+	}
+	if len(index) > 1 {
+		return checkFieldIndex(t.Field(i).Type, index[1:])
+	}
+	return true
 }
 
 func call(n *node) {
@@ -1151,6 +1186,7 @@ func call(n *node) {
 	child := n.child[1:]
 	tnext := getExec(n.tnext)
 	fnext := getExec(n.fnext)
+	hasVariadicArgs := n.action == aCallSlice // callSlice implies variadic call with ellipsis.
 
 	// Compute input argument value functions.
 	for i, c := range child {
@@ -1166,7 +1202,7 @@ func call(n *node) {
 			numOut := c.child[0].typ.rtype.NumOut()
 			for j := 0; j < numOut; j++ {
 				ind := c.findex + j
-				if !isInterfaceSrc(arg) || isEmptyInterface(arg) {
+				if hasVariadicArgs || !isInterfaceSrc(arg) || isEmptyInterface(arg) {
 					values = append(values, func(f *frame) reflect.Value { return f.data[ind] })
 					continue
 				}
@@ -1179,7 +1215,7 @@ func call(n *node) {
 			cc0 := c.child[0]
 			for j := range cc0.typ.ret {
 				ind := c.findex + j
-				if !isInterfaceSrc(arg) || isEmptyInterface(arg) {
+				if hasVariadicArgs || !isInterfaceSrc(arg) || isEmptyInterface(arg) {
 					values = append(values, func(f *frame) reflect.Value { return f.data[ind] })
 					continue
 				}
@@ -1195,8 +1231,7 @@ func call(n *node) {
 			switch {
 			case isEmptyInterface(arg):
 				values = append(values, genValue(c))
-			case isInterfaceSrc(arg) && n.action != aCallSlice:
-				// callSlice implies variadic call with ellipsis, do not wrap in valueInterface.
+			case isInterfaceSrc(arg) && !hasVariadicArgs:
 				values = append(values, genValueInterface(c))
 			case isInterfaceBin(arg):
 				values = append(values, genInterfaceWrapper(c, arg.rtype))
@@ -1610,11 +1645,16 @@ func callBin(n *node) {
 				}
 				out := callFn(value(f), in)
 				for i := 0; i < len(out); i++ {
-					if out[i].Kind() == reflect.Func {
-						getFrame(f, n.level).data[n.findex+i] = out[i]
-					} else {
-						getFrame(f, n.level).data[n.findex+i].Set(out[i])
+					r := out[i]
+					if r.Kind() == reflect.Func {
+						getFrame(f, n.level).data[n.findex+i] = r
+						continue
 					}
+					dest := getFrame(f, n.level).data[n.findex+i]
+					if _, ok := dest.Interface().(valueInterface); ok {
+						r = reflect.ValueOf(valueInterface{value: r})
+					}
+					dest.Set(r)
 				}
 				return tnext
 			}
@@ -1926,7 +1966,7 @@ func getMethodByName(n *node) {
 			}
 			return next
 		}
-		m, li := val.node.typ.lookupMethod(name)
+		m, li := typ.lookupMethod(name)
 		if m == nil {
 			panic(n.cfgErrorf("method not found: %s", name))
 		}
@@ -2335,9 +2375,13 @@ func _return(n *node) {
 			}
 			values[i] = genValueInterface(c)
 		case valueT:
-			if t.rtype.Kind() == reflect.Interface {
+			switch t.rtype.Kind() {
+			case reflect.Interface:
 				values[i] = genInterfaceWrapper(c, t.rtype)
-				break
+				continue
+			case reflect.Func:
+				values[i] = genFunctionWrapper(c)
+				continue
 			}
 			fallthrough
 		default:

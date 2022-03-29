@@ -8,6 +8,12 @@ import (
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod"
+
+	// This is here temporarily while I work on the modules which use these
+	// TODO
+	_ "github.com/pascaldekloe/jwt"
+	_ "github.com/traefik/yaegi/interp"
+	_ "github.com/traefik/yaegi/stdlib"
 )
 
 const RESPECT_EXIT_SIGNALS = true
