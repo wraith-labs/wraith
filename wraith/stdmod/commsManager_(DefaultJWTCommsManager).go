@@ -1,9 +1,9 @@
 package stdmod
 
 import (
+	"context"
 	"fmt"
 	"sync"
-	"time"
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
 )
@@ -14,8 +14,6 @@ import (
 // particularly advanced features and is meant as a simple default which does a
 // good job in most usecases.
 type DefaultJWTCommsManager struct {
-	wraith       *libwraith.Wraith
-	exitTrigger  chan struct{}
 	running      bool
 	runningMutex sync.Mutex
 
@@ -23,29 +21,7 @@ type DefaultJWTCommsManager struct {
 	// TODO
 }
 
-// Spawn a channel which is triggered when the m.running condition is false
-func (m *DefaultJWTCommsManager) exitChannel() chan struct{} {
-	exitChannel := make(chan struct{})
-	go func() {
-		// Regularly check m.running
-		for m.running {
-			// Stop the loop from spinning and using 100% CPU
-			<-time.After(200 * time.Millisecond)
-		}
-	}()
-	return exitChannel
-}
-
-func (m *DefaultJWTCommsManager) WraithModuleInit(w *libwraith.Wraith) {
-	// Save pointer to Wraith for future (de)reference
-	m.wraith = w
-
-	// Init properties
-	m.exitTrigger = make(chan struct{})
-	m.running = false // no need to lock - this is guaranteed to run before any attempts to start the module
-}
-
-func (m *DefaultJWTCommsManager) Start() error {
+func (m *DefaultJWTCommsManager) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
 	// Ensure this instance is only started once and mark as running if so
 	m.runningMutex.Lock()
 	if m.running {
@@ -55,64 +31,48 @@ func (m *DefaultJWTCommsManager) Start() error {
 	m.running = true
 	m.runningMutex.Unlock()
 
-	// Start the main body of the module in a goroutine
-	go func() {
-		// Watch shm cells required by this module
-		txQueue, txQueueWatchId := m.wraith.SHMWatch(libwraith.SHM_TX_QUEUE)
-		rxQueue, rxQueueWatchId := m.wraith.SHMWatch(libwraith.SHM_RX_QUEUE)
-
-		// Always cleanup and clear running status when exiting goroutine
-		defer func() {
-			// Mark comms as not ready in shm
-			// Ignore err return because we know this isn't a protected cell
-			_ = m.wraith.SHMSet(libwraith.SHM_COMMS_READY, false)
-
-			// Unwatch cells
-			m.wraith.SHMUnwatch(libwraith.SHM_TX_QUEUE, txQueueWatchId)
-			m.wraith.SHMUnwatch(libwraith.SHM_RX_QUEUE, rxQueueWatchId)
-
-			// Mark as not running internally
-			m.runningMutex.Lock()
-			m.running = false
-			m.runningMutex.Unlock()
-		}()
-
-		// Mark comms as ready in shm
-		m.wraith.SHMSet(libwraith.SHM_COMMS_READY, true)
-
-		// Mainloop
-		for {
-			select {
-			// Trigger exit when requested
-			case <-m.exitTrigger:
-				return
-			// Manage transfer queue
-			case <-txQueue: // TODO
-			// Manage receive queue
-			case <-rxQueue: // TODO
-			}
-		}
+	// Always clear running status when exiting
+	defer func() {
+		// Mark as not running internally
+		m.runningMutex.Lock()
+		m.running = false
+		m.runningMutex.Unlock()
 	}()
 
-	// Return control to Wraith
-	return nil
-}
+	// Watch shm cells required by this module
+	txQueue, txQueueWatchId := w.SHMWatch(libwraith.SHM_TX_QUEUE)
+	rxQueue, rxQueueWatchId := w.SHMWatch(libwraith.SHM_RX_QUEUE)
 
-func (m *DefaultJWTCommsManager) Stop() error {
-	// Request exit of mainloop
-	m.exitTrigger <- struct{}{}
+	// Always cleanup SHM when exiting
+	defer func() {
+		// Mark comms as not ready in shm
+		// Ignore err return because we know this isn't a protected cell
+		w.SHMSet(libwraith.SHM_COMMS_READY, false)
 
-	// Wait for mainloop to exit, with timeout
-	select {
-	case <-m.exitChannel():
-		return nil
-	case <-time.After(10 * time.Second):
-		return fmt.Errorf("timeout while waiting for mainloop to exit")
+		// Unwatch cells
+		w.SHMUnwatch(libwraith.SHM_TX_QUEUE, txQueueWatchId)
+		w.SHMUnwatch(libwraith.SHM_RX_QUEUE, rxQueueWatchId)
+	}()
+
+	// Mark comms as ready in shm
+	w.SHMSet(libwraith.SHM_COMMS_READY, true)
+
+	// Mainloop
+	for {
+		select {
+		// Trigger exit when requested
+		case <-ctx.Done():
+			return nil
+		// Manage transfer queue
+		case <-txQueue: // TODO
+		// Manage receive queue
+		case <-rxQueue: // TODO
+		}
 	}
 }
 
 // Return the name of this module as libwraith.MOD_COMMS_MANAGER
-func (m *DefaultJWTCommsManager) Name() string {
+func (m *DefaultJWTCommsManager) WraithModuleName() string {
 	return libwraith.MOD_COMMS_MANAGER
 }
 

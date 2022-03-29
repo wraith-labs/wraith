@@ -11,7 +11,7 @@ import (
 // interaction with the shared memory (ie. watchers can be
 // handled by the cell and don't need to be kept track of by
 // the memory).
-type sharedMemoryCell struct {
+type shmCell struct {
 	data           interface{}
 	watchers       map[int]chan interface{}
 	watcherCounter int
@@ -20,7 +20,7 @@ type sharedMemoryCell struct {
 // Initialise the cell so that it's useable. Calling the cell's other
 // methods before this one can lead to panics. This should be called
 // exactly once as each consecutive call effectively wipes the cell.
-func (c *sharedMemoryCell) init() {
+func (c *shmCell) init() {
 	c.watchers = make(map[int]chan interface{})
 	c.watcherCounter = 0
 }
@@ -39,7 +39,7 @@ func (c *sharedMemoryCell) init() {
 // Pushes time out after SHARED_MEMORY_WATCHER_NOTIF_TIMEOUT seconds,
 // so if a channel is full for longer than that, the watcher which
 // owns that channel will not receive that update.
-func (c *sharedMemoryCell) notify() {
+func (c *shmCell) notify() {
 	wg := sync.WaitGroup{}
 	wg.Add(len(c.watchers))
 
@@ -76,14 +76,14 @@ func (c *sharedMemoryCell) notify() {
 
 // Set the value of the cell to that passed as the argument. This
 // will also notify all watchers of the change.
-func (c *sharedMemoryCell) set(value interface{}) {
+func (c *shmCell) set(value interface{}) {
 	c.data = value
 
 	c.notify()
 }
 
 // Get the current value of the cell.
-func (c *sharedMemoryCell) get() (value interface{}) {
+func (c *shmCell) get() (value interface{}) {
 	return c.data
 }
 
@@ -91,7 +91,7 @@ func (c *sharedMemoryCell) get() (value interface{}) {
 // that the channel will receive the value of this cell whenever it
 // changes. Returns the assigned ID of the channel which can be
 // used to unwatch the cell.
-func (c *sharedMemoryCell) watch(channel chan interface{}) int {
+func (c *shmCell) watch(channel chan interface{}) int {
 	defer func() { c.watcherCounter++ }()
 
 	c.watchers[c.watcherCounter] = channel
@@ -102,24 +102,24 @@ func (c *sharedMemoryCell) watch(channel chan interface{}) int {
 // Remove a channel from the list of watchers from this cell. This
 // means that the channel will no longer receive updates when the
 // value of this cell changes. Takes the ID returned by Watch().
-func (c *sharedMemoryCell) unwatch(id int) {
+func (c *shmCell) unwatch(id int) {
 	delete(c.watchers, id)
 }
 
 // A struct for sharing memory between modules and Wraith in a
 // thread-safe way while providing facilities to watch individual
 // memory cells for updates.
-type SharedMemory struct {
+type shm struct {
 	isPostInit bool
 	mutex      sync.Mutex
-	mem        map[string]*sharedMemoryCell
+	mem        map[string]*shmCell
 }
 
 // Initialise the SM if it's not already initialised. This requires
 // a lock, but assumes that this is handled by the caller.
-func (m *SharedMemory) initIfNot() {
+func (m *shm) initIfNot() {
 	if !m.isPostInit {
-		m.mem = make(map[string]*sharedMemoryCell)
+		m.mem = make(map[string]*shmCell)
 		m.isPostInit = true
 	}
 }
@@ -127,21 +127,21 @@ func (m *SharedMemory) initIfNot() {
 // Lock the mutex and return the function to unlock it. This
 // allows for a simple, one-liner to lock and unlock the mutex
 // at the top of every method like so: `defer m.autolock()()`.
-func (m *SharedMemory) autolock() func() {
+func (m *shm) autolock() func() {
 	m.mutex.Lock()
 	return m.mutex.Unlock
 }
 
 // Create and init a cell with the given name and return its pointer.
-func (m *SharedMemory) createcell(name string) *sharedMemoryCell {
-	m.mem[name] = &sharedMemoryCell{}
+func (m *shm) createcell(name string) *shmCell {
+	m.mem[name] = &shmCell{}
 	m.mem[name].init()
 	return m.mem[name]
 }
 
 // Set the value of the given cell to that passed as the argument.
 // This will also notify all watchers of the change.
-func (m *SharedMemory) Set(cellName string, value interface{}) {
+func (m *shm) Set(cellName string, value interface{}) {
 	defer m.autolock()()
 	m.initIfNot()
 
@@ -156,7 +156,7 @@ func (m *SharedMemory) Set(cellName string, value interface{}) {
 }
 
 // Get the current value of a given cell.
-func (m *SharedMemory) Get(cellName string) interface{} {
+func (m *shm) Get(cellName string) interface{} {
 	defer m.autolock()()
 	m.initIfNot()
 
@@ -176,7 +176,7 @@ func (m *SharedMemory) Get(cellName string) interface{} {
 // allow watching for cells to be created in the future. Returns
 // the channel which will receive updates and the ID assigned to that
 // channel which can be used to unwatch the cell.
-func (m *SharedMemory) Watch(cellName string) (channel chan interface{}, watchId int) {
+func (m *shm) Watch(cellName string) (channel chan interface{}, watchId int) {
 	defer m.autolock()()
 	m.initIfNot()
 
@@ -199,7 +199,7 @@ func (m *SharedMemory) Watch(cellName string) (channel chan interface{}, watchId
 // This means that the channel will no longer receive updates
 // when the value of this cell changes. Takes the ID returned
 // by Watch().
-func (m *SharedMemory) Unwatch(cellName string, watchId int) {
+func (m *shm) Unwatch(cellName string, watchId int) {
 	defer m.autolock()()
 	m.initIfNot()
 

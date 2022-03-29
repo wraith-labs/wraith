@@ -1,5 +1,7 @@
 package libwraith
 
+import "time"
+
 // A struct providing configuration options for Wraith to allow
 // for altering behaviour without altering the code.
 type Config struct {
@@ -17,4 +19,12 @@ type Config struct {
 	// and changes on every Wraith restart, or a string based on some
 	// information such as MAC Address+Wraith PID.
 	FingerprintGenerator func() string
+
+	ModuleCrashloopDetectCount int
+
+	ModuleCrashloopDetectTime time.Duration
 }
+
+func (c *Config) Set() {}
+
+func (c *Config) Get() {}

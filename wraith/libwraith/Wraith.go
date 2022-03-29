@@ -1,7 +1,8 @@
 package libwraith
 
 import (
-	"fmt"
+	"context"
+	"errors"
 	"sync"
 	"time"
 )
@@ -14,27 +15,35 @@ type Wraith struct {
 	// A fingerprint to uniquely identify this Wraith. It is
 	// generated on init. This helps to target individual Wraiths
 	// with commands, for instance.
-	fingerprint string
+	fprint string
+
+	// A bool keeping track of whether this instance of Wraith is
+	// running. This prevents multiple instances from being started
+	// and simoultaneously attempting to edit things.
+	running bool
+
+	runningMutex sync.Mutex
 
 	// An instance of the SharedMemory object used to facilitate
 	// communication between modules and Wraith.
-	sharedMemory SharedMemory
+	shm shm
 
-	// A mutex to protect access to SHM_WRAITH_STATUS. While
-	// SharedMemory is threadsafe for individual calls, checking
-	// and changing SHM_WRAITH_STATUS requires two separate calls.
-	statusMutex sync.Mutex
+	// A map keeping track of which modules are registered to
+	// prevent modules from being registered twice.
+	mods map[string]struct{}
+
+	// A mutex to protect access to Wraith.mods
+	modsMutex sync.RWMutex
 
 	// An instance of WraithConf storing all configuration necessary
 	// for Wraith to work correctly.
 	conf Config
 
-	// A list of modules available to Wraith
-	modules map[string]Module
+	// A copy of the context which controls Wraith's aliveness
+	ctx context.Context
 
-	// A mutex to protect the list of modules when modified by Wraith.Mod*
-	// methods
-	modulesMutex sync.Mutex
+	// A copy of the function which kills Wraith's context
+	ctxCancel context.CancelFunc
 }
 
 // Helper method to be deferred at the start of all Wraith methods
@@ -62,18 +71,26 @@ func (w *Wraith) catch() {
 // It is highly recommended to pass the comms manager module first
 // (possibly preceded by modules it depends on) to make sure module
 // communications are not lost.
-func (w *Wraith) Spawn(conf Config, modules ...Module) {
+func (w *Wraith) Spawn(conf Config, mods ...mod) {
 	defer w.catch()
 
 	// Make sure only one instance runs
 	// If another instance is in any state but inactive, exit immediately
-	w.statusMutex.Lock()
-	if status := w.sharedMemory.Get(SHM_WRAITH_STATUS); status != WSTATUS_INACTIVE && status != nil {
-		w.statusMutex.Unlock()
+	w.runningMutex.Lock()
+	if w.running {
+		w.runningMutex.Unlock()
 		return
 	}
-	w.sharedMemory.Set(SHM_WRAITH_STATUS, WSTATUS_ACTIVE)
-	w.statusMutex.Unlock()
+	w.running = true
+	w.runningMutex.Unlock()
+
+	// Prepare on-exit cleanup
+	defer func() {
+		// Mark Wraith as dead
+		w.runningMutex.Lock()
+		w.running = false
+		w.runningMutex.Unlock()
+	}()
 
 	// Take note of start time
 	w.initTime = time.Now()
@@ -81,39 +98,15 @@ func (w *Wraith) Spawn(conf Config, modules ...Module) {
 	// Save a copy of the config
 	w.conf = conf
 
-	// Watch various special cells in shared memory
-	statusWatcher, _ := w.sharedMemory.Watch(SHM_WRAITH_STATUS)
-	reloadTrigger, _ := w.sharedMemory.Watch(SHM_RELOAD_TRIGGER)
+	// Create a context to control the Wraith's lifetime
+	w.ctx, w.ctxCancel = context.WithCancel(context.Background())
 
 	// Init map of modules
-	w.modules = make(map[string]Module)
-
-	// Prepare on-exit cleanup
-	defer func() {
-		// Always stop all modules before exiting
-		// TODO: Note errors
-		for _, module := range w.modules {
-			module.Stop()
-		}
-
-		// Mark Wraith as dead
-		w.statusMutex.Lock()
-		w.sharedMemory.Set(SHM_WRAITH_STATUS, WSTATUS_INACTIVE)
-		w.statusMutex.Unlock()
-	}()
+	w.mods = make(map[string]struct{})
 
 	// Save a copy of the passed modules in the `modules` field, using the
-	// module name as the key. Also init and start the modules while we're
-	// at it.
-	// TODO: Note errors
-	for _, module := range modules {
-		// Ignore duplicates
-		if _, exists := w.modules[module.Name()]; !exists {
-			w.modules[module.Name()] = module
-			module.WraithModuleInit(w)
-			module.Start()
-		}
-	}
+	// module name as the key. Also start the modules while we're at it.
+	w.ModsReg(mods...)
 
 	// Run mainloop
 	// This is the place where any functions which need to be
@@ -122,64 +115,21 @@ func (w *Wraith) Spawn(conf Config, modules ...Module) {
 	// shouldn't be too much here.
 	for {
 		select {
-		case newStatus := <-statusWatcher:
-			if newStatus == WSTATUS_DEACTIVATING {
-				// On exit trigger (deactivating status), return from the
-				// method. All exit cleanup is deferred so it is guaranteed to run.
-				return
-			}
-		case <-reloadTrigger:
-			// On reload trigger, restart all modules.
-			// TODO: Note errors
-			for _, module := range w.modules {
-				module.Stop()
-				module.Start()
-			}
+		case <-w.ctx.Done():
+			return
 		}
 	}
 }
 
-// Stop the Wraith instance including all modules. This will
-// block until Wraith exits or the provided timeout is reached.
-// If the timeout is reached, the method will return false to
-// show that it was unable to confirm Wraith's exit.
-func (w *Wraith) Kill(timeout time.Duration) bool {
-	defer w.catch()
-
-	w.statusMutex.Lock()
-
-	// Trigger exit of mainloop if it's running, otherwise there's nothing to do
-	if status := w.sharedMemory.Get(SHM_WRAITH_STATUS); status == WSTATUS_ACTIVE {
-		// Watch the SHM_WRAITH_STATUS cell to catch when Wraith exits, and
-		// unwatch it straight after we return
-		statusWatch, statusWatchId := w.sharedMemory.Watch(SHM_WRAITH_STATUS)
-		defer w.sharedMemory.Unwatch(SHM_WRAITH_STATUS, statusWatchId)
-
-		// Trigger exit
-		w.sharedMemory.Set(SHM_WRAITH_STATUS, WSTATUS_DEACTIVATING)
-
-		// Unlock mutex so Wraith can transition into inactive state
-		// avoiding deadlock
-		w.statusMutex.Unlock()
-
-		// Wait for exit or timeout
-		timeoutTimer := time.After(timeout)
-		for {
-			select {
-			case status := <-statusWatch:
-				if status == WSTATUS_INACTIVE {
-					return true
-				}
-			case <-timeoutTimer:
-				return false
-			}
-		}
+// If the Wraith is running, this method will kill it and its modules by
+// cancelling the Wraith's context. Otherwise it's a no-op.
+func (w *Wraith) Kill() {
+	// If Wraith is not active, do nothing
+	if w.ctx == nil || w.ctx.Err() != nil || w.ctxCancel == nil {
+		return
 	}
 
-	w.statusMutex.Unlock()
-
-	// Wraith is not running anyway so return true
-	return true
+	w.ctxCancel()
 }
 
 //
@@ -211,137 +161,138 @@ func (w *Wraith) GetInitTime() time.Time {
 func (w *Wraith) GetFingerprint() string {
 	defer w.catch()
 
-	if w.fingerprint == "" {
-		w.fingerprint = w.conf.FingerprintGenerator()
+	if w.fprint == "" {
+		w.fprint = w.conf.FingerprintGenerator()
 	}
-	return w.fingerprint
+	return w.fprint
 }
 
 // SharedMemory
 
 // Proxy to SharedMemory.Get()
+// Disallows reading from protected cells.
 func (w *Wraith) SHMGet(cellname string) interface{} {
 	defer w.catch()
 
-	return w.sharedMemory.Get(cellname)
+	return w.shm.Get(cellname)
 }
 
 // Proxy to SharedMemory.Set()
-// Disallows writing to protected cells and returns an error
-// if a write to such is attempted.
-func (w *Wraith) SHMSet(cellname string, value interface{}) error {
+// Disallows writing to protected cells.
+func (w *Wraith) SHMSet(cellname string, value interface{}) {
 	defer w.catch()
 
-	for _, protectedCell := range []string{
-		SHM_WRAITH_STATUS,
-	} {
-		if cellname == protectedCell {
-			return fmt.Errorf("%s is a protected cell", cellname)
-		}
-	}
-
-	w.sharedMemory.Set(cellname, value)
-	return nil
+	w.shm.Set(cellname, value)
 }
 
 // Proxy to SharedMemory.Watch()
 func (w *Wraith) SHMWatch(cellname string) (chan interface{}, int) {
 	defer w.catch()
 
-	return w.sharedMemory.Watch(cellname)
+	return w.shm.Watch(cellname)
 }
 
 // Proxy to SharedMemory.Unwatch()
 func (w *Wraith) SHMUnwatch(cellname string, watchId int) {
 	defer w.catch()
 
-	w.sharedMemory.Unwatch(cellname, watchId)
+	w.shm.Unwatch(cellname, watchId)
 }
 
 // Modules
 
-// Get a list of available modules
-func (w *Wraith) ModGet() []string {
+// Add a module to the list of available modules
+// The modules are started automatically
+// Panics if Wraith is not running by the time this method is called
+func (w *Wraith) ModsReg(mods ...mod) {
+	if !w.running || w.ctx == nil || w.ctx.Err() != nil {
+		panic("not running")
+	}
+
 	defer w.catch()
 
-	w.modulesMutex.Lock()
-	defer w.modulesMutex.Unlock()
+	w.modsMutex.Lock()
+	defer w.modsMutex.Unlock()
 
-	mods := make([]string, len(w.modules))
+	for _, mod := range mods {
+		modname := mod.WraithModuleName()
+
+		// Ignore module if already exists
+		if _, exists := w.mods[modname]; !exists {
+			w.mods[modname] = struct{}{}
+
+			// Run the module in a goroutine
+			go func() {
+				// Keep track of when and how many times the module has crashed
+				// as not to re-start crashlooped modules.
+				var moduleCrashCount int
+				var lastModuleCrashTime time.Time
+
+				for {
+					// Create a context derived from Wraith's context to control the
+					// module's lifetime
+					moduleCtx, moduleCtxCancel := context.WithCancel(w.ctx)
+					defer moduleCtxCancel()
+
+					// Run the module and catch any panics or errors
+					err := func() (err error) {
+						defer func() {
+							if r := recover(); r != nil {
+								rstr, ok := r.(string)
+								if ok {
+									err = errors.New(rstr)
+								} else {
+									err = errors.New("panic")
+								}
+							}
+						}()
+						return mod.Mainloop(moduleCtx, w)
+					}()
+
+					// If there were some errors, report them
+					if err != nil {
+						w.SHMSet(SHM_ERRS, err)
+					}
+
+					// If Wraith has exited, do not restart the module
+					if !w.running || w.ctx == nil || w.ctx.Err() != nil {
+						return
+					}
+
+					// Clear crash count if the last crash was a long time ago
+					if time.Since(lastModuleCrashTime) > w.conf.ModuleCrashloopDetectTime {
+						moduleCrashCount = 0
+					}
+
+					// We have gotten here so the module has crashed and it wasn't
+					// supposed to. Note that down.
+					moduleCrashCount += 1
+					lastModuleCrashTime = time.Now()
+
+					// If the crash count has exceeded the max, do not restart
+					if moduleCrashCount > w.conf.ModuleCrashloopDetectCount {
+						return
+					}
+
+					moduleCtxCancel()
+				}
+			}()
+		}
+	}
+}
+
+// Get a list of available modules
+func (w *Wraith) ModsGet() []string {
+	defer w.catch()
+
+	w.modsMutex.Lock()
+	defer w.modsMutex.Unlock()
+
+	mods := make([]string, len(w.mods))
 	index := 0
-	for modname := range w.modules {
+	for modname := range w.mods {
 		mods[index] = modname
 		index++
 	}
 	return mods
-}
-
-// Add a module to the list of available modules
-// Note that unlike the modules passed to Wraith.Spawn(),
-// this module will not be started automatically.
-func (w *Wraith) ModAdd(mod Module) error {
-	defer w.catch()
-
-	w.modulesMutex.Lock()
-	defer w.modulesMutex.Unlock()
-
-	modname := mod.Name()
-	if _, exists := w.modules[modname]; exists {
-		return fmt.Errorf("module %s already exists", modname)
-	}
-	w.modules[modname] = mod
-	return nil
-}
-
-// Remove a module from the list of available modules
-// Note that the module will not be automatically stopped and
-// this should first be done by calling Wraith.ModStop().
-// This is dangerous because removing some modules may cause
-// Wraith to stop working - use with caution.
-func (w *Wraith) ModRemove(modname string) error {
-	defer w.catch()
-
-	w.modulesMutex.Lock()
-	defer w.modulesMutex.Unlock()
-
-	if _, exists := w.modules[modname]; exists {
-		delete(w.modules, modname)
-		return nil
-	} else {
-		return fmt.Errorf("no such module %s", modname)
-	}
-}
-
-// Activate a module
-// This does not check whether the module is already
-// running. It is up to modules to ensure only one
-// instance runs at a time.
-func (w *Wraith) ModStart(modname string) error {
-	defer w.catch()
-
-	w.modulesMutex.Lock()
-	defer w.modulesMutex.Unlock()
-
-	if module, exists := w.modules[modname]; exists {
-		return module.Start()
-	} else {
-		return fmt.Errorf("no such module %s", modname)
-	}
-}
-
-// Deactivate a module
-// This does not check whether the module is already
-// inactive. It is up to modules to ensure deactivating
-// an inactive module does not cause issues.
-func (w *Wraith) ModStop(modname string) error {
-	defer w.catch()
-
-	w.modulesMutex.Lock()
-	defer w.modulesMutex.Unlock()
-
-	if module, exists := w.modules[modname]; exists {
-		return module.Stop()
-	} else {
-		return fmt.Errorf("no such module %s", modname)
-	}
 }
