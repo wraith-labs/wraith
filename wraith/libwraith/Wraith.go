@@ -171,7 +171,7 @@ func (w *Wraith) GetFingerprint() string {
 
 // Proxy to SharedMemory.Get()
 // Disallows reading from protected cells.
-func (w *Wraith) SHMGet(cellname string) interface{} {
+func (w *Wraith) SHMGet(cellname string) any {
 	defer w.catch()
 
 	return w.shm.Get(cellname)
@@ -179,14 +179,14 @@ func (w *Wraith) SHMGet(cellname string) interface{} {
 
 // Proxy to SharedMemory.Set()
 // Disallows writing to protected cells.
-func (w *Wraith) SHMSet(cellname string, value interface{}) {
+func (w *Wraith) SHMSet(cellname string, value any) {
 	defer w.catch()
 
 	w.shm.Set(cellname, value)
 }
 
 // Proxy to SharedMemory.Watch()
-func (w *Wraith) SHMWatch(cellname string) (chan interface{}, int) {
+func (w *Wraith) SHMWatch(cellname string) (chan any, int) {
 	defer w.catch()
 
 	return w.shm.Watch(cellname)

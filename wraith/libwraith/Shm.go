@@ -12,8 +12,8 @@ import (
 // handled by the cell and don't need to be kept track of by
 // the memory).
 type shmCell struct {
-	data           interface{}
-	watchers       map[int]chan interface{}
+	data           any
+	watchers       map[int]chan any
 	watcherCounter int
 }
 
@@ -21,7 +21,7 @@ type shmCell struct {
 // methods before this one can lead to panics. This should be called
 // exactly once as each consecutive call effectively wipes the cell.
 func (c *shmCell) init() {
-	c.watchers = make(map[int]chan interface{})
+	c.watchers = make(map[int]chan any)
 	c.watcherCounter = 0
 }
 
@@ -44,7 +44,7 @@ func (c *shmCell) notify() {
 	wg.Add(len(c.watchers))
 
 	for watcherId, watcherChannel := range c.watchers {
-		go func(watcherId int, watcherChannel chan interface{}) {
+		go func(watcherId int, watcherChannel chan any) {
 			// At the very end, mark this goroutine as done
 			defer wg.Done()
 			// The channel could be closed, in which case a panic will
@@ -76,14 +76,14 @@ func (c *shmCell) notify() {
 
 // Set the value of the cell to that passed as the argument. This
 // will also notify all watchers of the change.
-func (c *shmCell) set(value interface{}) {
+func (c *shmCell) set(value any) {
 	c.data = value
 
 	c.notify()
 }
 
 // Get the current value of the cell.
-func (c *shmCell) get() (value interface{}) {
+func (c *shmCell) get() (value any) {
 	return c.data
 }
 
@@ -91,7 +91,7 @@ func (c *shmCell) get() (value interface{}) {
 // that the channel will receive the value of this cell whenever it
 // changes. Returns the assigned ID of the channel which can be
 // used to unwatch the cell.
-func (c *shmCell) watch(channel chan interface{}) int {
+func (c *shmCell) watch(channel chan any) int {
 	defer func() { c.watcherCounter++ }()
 
 	c.watchers[c.watcherCounter] = channel
@@ -141,7 +141,7 @@ func (m *shm) createcell(name string) *shmCell {
 
 // Set the value of the given cell to that passed as the argument.
 // This will also notify all watchers of the change.
-func (m *shm) Set(cellName string, value interface{}) {
+func (m *shm) Set(cellName string, value any) {
 	defer m.autolock()()
 	m.initIfNot()
 
@@ -156,7 +156,7 @@ func (m *shm) Set(cellName string, value interface{}) {
 }
 
 // Get the current value of a given cell.
-func (m *shm) Get(cellName string) interface{} {
+func (m *shm) Get(cellName string) any {
 	defer m.autolock()()
 	m.initIfNot()
 
@@ -176,12 +176,12 @@ func (m *shm) Get(cellName string) interface{} {
 // allow watching for cells to be created in the future. Returns
 // the channel which will receive updates and the ID assigned to that
 // channel which can be used to unwatch the cell.
-func (m *shm) Watch(cellName string) (channel chan interface{}, watchId int) {
+func (m *shm) Watch(cellName string) (channel chan any, watchId int) {
 	defer m.autolock()()
 	m.initIfNot()
 
 	// Create a channel, to be used for sending updates, with no buffer
-	channel = make(chan interface{}, SHMCONF_WATCHER_CHAN_SIZE)
+	channel = make(chan any, SHMCONF_WATCHER_CHAN_SIZE)
 
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
