@@ -206,7 +206,7 @@ func (w *Wraith) SHMUnwatch(cellname string, watchId int) {
 // Panics if Wraith is not running by the time this method is called
 func (w *Wraith) ModsReg(mods ...mod) {
 	if !w.running || w.ctx == nil || w.ctx.Err() != nil {
-		panic("not running")
+		panic("wraith not running")
 	}
 
 	defer w.catch()
@@ -214,15 +214,15 @@ func (w *Wraith) ModsReg(mods ...mod) {
 	w.modsMutex.Lock()
 	defer w.modsMutex.Unlock()
 
-	for _, mod := range mods {
-		modname := mod.WraithModuleName()
+	for _, module := range mods {
+		modname := module.WraithModuleName()
 
 		// Ignore module if already exists
 		if _, exists := w.mods[modname]; !exists {
 			w.mods[modname] = struct{}{}
 
 			// Run the module in a goroutine
-			go func() {
+			go func(module mod) {
 				// Keep track of when and how many times the module has crashed
 				// as not to re-start crashlooped modules.
 				var moduleCrashCount int
@@ -246,7 +246,7 @@ func (w *Wraith) ModsReg(mods ...mod) {
 								}
 							}
 						}()
-						return mod.Mainloop(moduleCtx, w)
+						return module.Mainloop(moduleCtx, w)
 					}()
 
 					// If there were some errors, report them
@@ -276,7 +276,7 @@ func (w *Wraith) ModsReg(mods ...mod) {
 
 					moduleCtxCancel()
 				}
-			}()
+			}(module)
 		}
 	}
 }

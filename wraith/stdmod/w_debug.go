@@ -22,7 +22,7 @@ func (m *DefaultDebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) 
 	m.runningMutex.Lock()
 	if m.running {
 		m.runningMutex.Unlock()
-		fmt.Printf("It seemd this debug module is already running! Exiting...\n")
+		fmt.Printf("It seems this debug module is already running! Exiting...\n")
 		return fmt.Errorf("already running")
 	}
 	m.running = true
@@ -64,7 +64,7 @@ func (m *DefaultDebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) 
 			return nil
 		// Manage w.debug watch
 		case value := <-debugCellWatch:
-			fmt.Printf("Received value in the `w.debug` memory cell: %v\n", value)
+			fmt.Printf("Received value in the `w.debug` memory cell: `%v`\n", value)
 		case <-time.After(5 * time.Second):
 			fmt.Printf("Sending `hello debug!` into the `w.debug` memory cell!\n")
 			w.SHMSet("w.debug", "hello debug!")
