@@ -111,8 +111,14 @@ func (c *shmCell) unwatch(id int) {
 // memory cells for updates.
 type shm struct {
 	isPostInit bool
-	mutex      sync.Mutex
-	mem        map[string]*shmCell
+
+	// This is an RWMutex because eventually it could be used to
+	// improve performance. Currently even reading requires a write
+	// lock as the shm is autoinitialised which is a write operation.
+	// TODO
+	mutex sync.RWMutex
+
+	mem map[string]*shmCell
 }
 
 // Initialise the SM if it's not already initialised. This requires
@@ -130,6 +136,12 @@ func (m *shm) initIfNot() {
 func (m *shm) autolock() func() {
 	m.mutex.Lock()
 	return m.mutex.Unlock
+}
+
+// Same as autolock but locks for reading only
+func (m *shm) rautolock() func() {
+	m.mutex.RLock()
+	return m.mutex.RUnlock
 }
 
 // Create and init a cell with the given name and return its pointer.
