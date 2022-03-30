@@ -8,11 +8,11 @@ type mod interface {
 	// module should be running and is guaranteed to be called once for the lifetime
 	// of the wraith.
 	//
-	// The method runs asynchronously and should block indefinitely (never return)
+	// The method is called asynchronously and should block indefinitely (never return)
 	// unless its context is cancelled. If this method returns or panics and the context
-	// is not cancelled, it will be assumed to have crashed and will  be restarted
-	// immediately unless 3 crashes occur in 1 minute at which point it will no longer
-	// be restarted until Wraith is.
+	// is not cancelled, it will be assumed to have crashed and will be restarted
+	// immediately unless the max configured crashes occur within a configured time
+	// at which point it will no longer be restarted until Wraith is.
 	//
 	// The method receives 2 arguments: a context which, when cancelled, should
 	// cause the mainloop to exit (return); and a pointer to the module's parent
