@@ -22,7 +22,7 @@ type Wraith struct {
 	// and simoultaneously attempting to edit things.
 	running bool
 
-	runningMutex sync.Mutex
+	runningMutex sync.RWMutex
 
 	// An instance of the SharedMemory object used to facilitate
 	// communication between modules and Wraith.
@@ -44,6 +44,9 @@ type Wraith struct {
 
 	// A copy of the function which kills Wraith's context
 	ctxCancel context.CancelFunc
+
+	// A mutex protecting access to Wraith.ctx and Wraith.ctxCancel
+	ctxLock sync.RWMutex
 }
 
 // Helper method to be deferred at the start of all Wraith methods
@@ -99,7 +102,9 @@ func (w *Wraith) Spawn(conf Config, mods ...mod) {
 	w.conf = conf
 
 	// Create a context to control the Wraith's lifetime
+	w.ctxLock.Lock()
 	w.ctx, w.ctxCancel = context.WithCancel(context.Background())
+	w.ctxLock.Unlock()
 
 	// Init map of modules
 	w.mods = make(map[string]struct{})
@@ -124,6 +129,9 @@ func (w *Wraith) Spawn(conf Config, mods ...mod) {
 // If the Wraith is running, this method will kill it and its modules by
 // cancelling the Wraith's context. Otherwise it's a no-op.
 func (w *Wraith) Kill() {
+	w.ctxLock.Lock()
+	defer w.ctxLock.Unlock()
+
 	// If Wraith is not active, do nothing
 	if w.ctx == nil || w.ctx.Err() != nil || w.ctxCancel == nil {
 		return
@@ -205,6 +213,9 @@ func (w *Wraith) SHMUnwatch(cellname string, watchId int) {
 // The modules are started automatically
 // Panics if Wraith is not running by the time this method is called
 func (w *Wraith) ModsReg(mods ...mod) {
+	w.ctxLock.RLock()
+	defer w.ctxLock.RUnlock()
+
 	if !w.running || w.ctx == nil || w.ctx.Err() != nil {
 		panic("wraith not running")
 	}
@@ -222,6 +233,7 @@ func (w *Wraith) ModsReg(mods ...mod) {
 			w.mods[modname] = struct{}{}
 
 			// Run the module in a goroutine
+			// TODO: If the module crashloops, remove it fully from Wraith
 			go func(module mod) {
 				// Keep track of when and how many times the module has crashed
 				// as not to re-start crashlooped modules.
@@ -231,7 +243,9 @@ func (w *Wraith) ModsReg(mods ...mod) {
 				for {
 					// Create a context derived from Wraith's context to control the
 					// module's lifetime
+					w.ctxLock.RLock()
 					moduleCtx, moduleCtxCancel := context.WithCancel(w.ctx)
+					w.ctxLock.RUnlock()
 					defer moduleCtxCancel()
 
 					// Run the module and catch any panics or errors
@@ -255,9 +269,13 @@ func (w *Wraith) ModsReg(mods ...mod) {
 					}
 
 					// If Wraith has exited, do not restart the module
+					w.ctxLock.RLock()
+					w.runningMutex.RLock()
 					if !w.running || w.ctx == nil || w.ctx.Err() != nil {
 						return
 					}
+					w.ctxLock.RUnlock()
+					w.runningMutex.RUnlock()
 
 					// Clear crash count if the last crash was a long time ago
 					if time.Since(lastModuleCrashTime) > w.conf.ModuleCrashloopDetectTime {
@@ -273,8 +291,6 @@ func (w *Wraith) ModsReg(mods ...mod) {
 					if moduleCrashCount > w.conf.ModuleCrashloopDetectCount {
 						return
 					}
-
-					moduleCtxCancel()
 				}
 			}(module)
 		}
@@ -285,8 +301,8 @@ func (w *Wraith) ModsReg(mods ...mod) {
 func (w *Wraith) ModsGet() []string {
 	defer w.catch()
 
-	w.modsMutex.Lock()
-	defer w.modsMutex.Unlock()
+	w.modsMutex.RLock()
+	defer w.modsMutex.RUnlock()
 
 	mods := make([]string, len(w.mods))
 	index := 0
