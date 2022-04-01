@@ -6,7 +6,7 @@ steps:
     image: docker.io/golang:1.18-alpine
     depends_on: [ clone ]
     commands:
-      - apk add --no-cache build-base
+      - apk add --no-cache build-base git
       - cd wraith
       - go build -v -trimpath .
       - go version
