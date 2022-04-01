@@ -12,32 +12,24 @@ import (
 // A basic debug module which logs some events and attempts to use some
 // features of Wraith to make sure they work.
 type DebugModule struct {
-	running      bool
-	runningMutex sync.Mutex
+	mutex sync.Mutex
 }
 
 func (m *DebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
-	// Ensure this instance is only started once and mark as running if so
 	fmt.Printf("Starting the debug module!\n")
-	m.runningMutex.Lock()
-	if m.running {
-		m.runningMutex.Unlock()
+
+	// Ensure this instance is only started once and mark as running if so
+	single := m.mutex.TryLock()
+	if !single {
 		fmt.Printf("It seems this debug module is already running! Exiting...\n")
 		return fmt.Errorf("already running")
 	}
-	m.running = true
-	m.runningMutex.Unlock()
-
-	fmt.Printf("No other debug module instances are running. Good to start!\n")
-
-	// Always clear running status when exiting
 	defer func() {
 		fmt.Printf("Marking debug module as not running!\n")
-		// Mark as not running internally
-		m.runningMutex.Lock()
-		m.running = false
-		m.runningMutex.Unlock()
+		m.mutex.Unlock()
 	}()
+
+	fmt.Printf("No other debug module instances are running. Good to start!\n")
 
 	// Watch some debug cells
 	fmt.Printf("Setting up watch for `w.debug` memory cell!\n")
