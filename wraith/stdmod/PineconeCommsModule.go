@@ -3,10 +3,10 @@ package stdmod
 import (
 	"crypto/ed25519"
 
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
 )
 
-type WCommsPinecone struct {
+type PineconeCommsModule struct {
 	wraith *libwraith.Wraith
 	pubkey ed25519.PublicKey
 
@@ -14,11 +14,11 @@ type WCommsPinecone struct {
 	Privkey ed25519.PrivateKey
 }
 
-func (wcp *WCommsPinecone) WraithModuleInit(w *libwraith.Wraith) {
+func (wcp *PineconeCommsModule) WraithModuleInit(w *libwraith.Wraith) {
 	wcp.wraith = w
 }
 
-func (wcp *WCommsPinecone) Start() error {
+func (wcp *PineconeCommsModule) Start() error {
 	// Generate the public key from the given private key
 	// We could just accept both, but we don't want to risk them not matching
 	/*pubkey, ok = wcp.Privkey.Public().(ed25519.PublicKey)
@@ -28,6 +28,6 @@ func (wcp *WCommsPinecone) Start() error {
 	return nil
 }
 
-func (wcp *WCommsPinecone) Stop() error { return nil }
+func (wcp *PineconeCommsModule) Stop() error { return nil }
 
-func (wcp *WCommsPinecone) Name() string { return "w.comms.pinecone" }
+func (wcp *PineconeCommsModule) Name() string { return "w.comms.pinecone" }

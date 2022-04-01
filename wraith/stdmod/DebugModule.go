@@ -6,17 +6,17 @@ import (
 	"sync"
 	"time"
 
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
 )
 
 // A basic debug module which logs some events and attempts to use some
 // features of Wraith to make sure they work.
-type DefaultDebugModule struct {
+type DebugModule struct {
 	running      bool
 	runningMutex sync.Mutex
 }
 
-func (m *DefaultDebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
+func (m *DebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
 	// Ensure this instance is only started once and mark as running if so
 	fmt.Printf("Starting the debug module!\n")
 	m.runningMutex.Lock()
@@ -73,7 +73,7 @@ func (m *DefaultDebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) 
 }
 
 // Return the name of this module
-func (m *DefaultDebugModule) WraithModuleName() string {
+func (m *DebugModule) WraithModuleName() string {
 	fmt.Printf("Debug module `WraithModuleName()` called!\n")
 	return "w.debug"
 }

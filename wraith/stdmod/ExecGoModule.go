@@ -1,24 +1,19 @@
 package stdmod
 
-/*import (
+/*
+import (
+	"context"
 	"fmt"
 
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
 
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
 )
 
-type CmdModule struct {
-	w *libwraith.Wraith
-}
+type ExecGoModule struct{}
 
-func (m *CmdModule) WraithModuleInit(wraith *libwraith.Wraith) {
-	m.w = wraith
-}
-func (m *CmdModule) ProtoPartModule() {}
-
-func (m *CmdModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data interface{}) {
+func (m *ExecGoModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
 	// Store results of command
 	var result string
 
@@ -66,5 +61,9 @@ func (m *CmdModule) ProcessProtoPart(hkvs *libwraith.HandlerKeyValueStore, data 
 		panic("f is not a `func() string`")
 	}
 	result = fn()
+}
+
+func (m *ExecGoModule) WraithModuleName() string {
+	return "w.execgo"
 }
 */

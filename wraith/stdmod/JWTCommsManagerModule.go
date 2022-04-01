@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
 )
 
 // A CommsManager module implementation which utilises (optionally) encrypted JWT
@@ -13,7 +13,7 @@ import (
 // verified both by the C2 and by Wraith. Otherwise, this CommsManager lacks any
 // particularly advanced features and is meant as a simple default which does a
 // good job in most usecases.
-type DefaultJWTCommsManager struct {
+type JWTCommsManagerModule struct {
 	running      bool
 	runningMutex sync.Mutex
 
@@ -21,7 +21,7 @@ type DefaultJWTCommsManager struct {
 	// TODO
 }
 
-func (m *DefaultJWTCommsManager) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
+func (m *JWTCommsManagerModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
 	// Ensure this instance is only started once and mark as running if so
 	m.runningMutex.Lock()
 	if m.running {
@@ -72,7 +72,7 @@ func (m *DefaultJWTCommsManager) Mainloop(ctx context.Context, w *libwraith.Wrai
 }
 
 // Return the name of this module as libwraith.MOD_COMMS_MANAGER
-func (m *DefaultJWTCommsManager) WraithModuleName() string {
+func (m *JWTCommsManagerModule) WraithModuleName() string {
 	return libwraith.MOD_COMMS_MANAGER
 }
 

@@ -6,8 +6,8 @@ import (
 	"syscall"
 	"time"
 
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/libwraith"
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/stdmod"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/stdmod"
 
 	// This is here temporarily while I work on the modules which use these
 	// TODO
@@ -55,8 +55,8 @@ func main() {
 			ModuleCrashloopDetectCount: 3,
 			ModuleCrashloopDetectTime:  30 * time.Second,
 		},
-		&stdmod.DefaultJWTCommsManager{},
-		&stdmod.DefaultDebugModule{},
+		&stdmod.JWTCommsManagerModule{},
+	//	&stdmod.ExecGoModule{},
 	//	&stdmod.WCommsPinecone{},
 	)
 

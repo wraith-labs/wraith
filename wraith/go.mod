@@ -1,4 +1,4 @@
-module git.0x1a8510f2.space/0x1a8510f2/wraith
+module git.0x1a8510f2.space/0x1a8510f2/wraith/wraith
 
 go 1.18
 
