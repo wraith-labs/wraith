@@ -36,7 +36,7 @@ func (c *shmCell) init() {
 // of this, though this should be fine because goroutines have
 // minimal overhead. The call will block until all goroutines return.
 //
-// Pushes time out after SHARED_MEMORY_WATCHER_NOTIF_TIMEOUT seconds,
+// Pushes time out after SHMCONF_WATCHER_NOTIF_TIMEOUT seconds,
 // so if a channel is full for longer than that, the watcher which
 // owns that channel will not receive that update.
 func (c *shmCell) notify() {
@@ -101,7 +101,7 @@ func (c *shmCell) watch(channel chan any) int {
 
 // Remove a channel from the list of watchers from this cell. This
 // means that the channel will no longer receive updates when the
-// value of this cell changes. Takes the ID returned by Watch().
+// value of this cell changes. Takes the ID returned by watch().
 func (c *shmCell) unwatch(id int) {
 	delete(c.watchers, id)
 }

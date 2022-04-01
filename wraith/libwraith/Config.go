@@ -13,18 +13,23 @@ type Config struct {
 	FamilyId string
 
 	// A function used to generate the fingerprint for this instance
-	// of Wraith. That is, a unique string matching specifically this
+	// of Wraith. That is, a unique string identifying specifically this
 	// binary, on this host, in this process. It can be a UUID, for
 	// instance, meaning that it serves only the purpose of identifiaction
 	// and changes on every Wraith restart, or a string based on some
 	// information such as MAC Address+Wraith PID.
 	FingerprintGenerator func() string
 
+	// How many times modules should be allowed to crash within a time
+	// specified in ModuleCrashLoopDetectTime before they are no longer
+	// restarted. It is recommended to keep this relatively low to prevent
+	// buggy modules from using up resources. The lower the value the more
+	// strict the crashloop detection.
 	ModuleCrashloopDetectCount int
 
+	// After this time, module crashes are forgotten when evaluating whether
+	// a module is crashlooping. It is recommended to keep this value relatively
+	// high to ensure that crashlooped or buggy modules are always caught. The
+	// higher the value the more strict the crashloop detection.
 	ModuleCrashloopDetectTime time.Duration
 }
-
-func (c *Config) Set() {}
-
-func (c *Config) Get() {}

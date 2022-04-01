@@ -22,6 +22,7 @@ type Wraith struct {
 	// and simoultaneously attempting to edit things.
 	running bool
 
+	// A mutex protecting access to Wraith.running
 	runningMutex sync.RWMutex
 
 	// An instance of the SharedMemory object used to facilitate
