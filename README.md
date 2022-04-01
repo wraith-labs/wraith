@@ -4,6 +4,7 @@ This project is currently heavily in development and hence is pretty unusable. C
 
 # wraith
 [![Build Status](https://ci.0x1a8510f2.space/api/badges/0x1a8510f2/wraith/status.svg?ref=refs/heads/indev)](https://ci.0x1a8510f2.space/0x1a8510f2/wraith)
+[![Go Reference](https://pkg.go.dev/badge/git.0x1a8510f2.space/0x1a8510f2/wraith/wraith.svg)](https://pkg.go.dev/git.0x1a8510f2.space/0x1a8510f2/wraith/wraith)
 
 A free and open-source, modular Remote Administration Tool (RAT) / Payload Dropper written in Go(lang) with a flexible command and control (C2) system*.
 
