@@ -63,7 +63,7 @@ func main() {
 		},
 		&stdmod.JWTCommsManagerModule{},
 		&stdmod.DebugModule{},
-	//	&stdmod.ExecGoModule{},
+		&stdmod.ExecGoModule{},
 	//	&stdmod.WCommsPinecone{},
 	)
 

