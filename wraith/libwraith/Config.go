@@ -20,6 +20,12 @@ type Config struct {
 	// information such as MAC Address+Wraith PID.
 	FingerprintGenerator func() string
 
+	// The max time to wait for a heartbeat from Wraith's mainloop before
+	// assuming that this instance is dead. Around 1 second is recommended.
+	// Note that setting this too high can cause significant slowdowns when
+	// Wraith does die.
+	HeartbeatTimeout time.Duration
+
 	// How many times modules should be allowed to crash within a time
 	// specified in ModuleCrashLoopDetectTime before they are no longer
 	// restarted. It is recommended to keep this relatively low to prevent

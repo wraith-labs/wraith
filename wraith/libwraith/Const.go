@@ -46,7 +46,7 @@ const (
 	MOD_COMMS_MANAGER = "commsManager"
 )
 
-// Configuration for SharedMemory
+// Configuration for shared memory
 const (
 	// The size of watcher channels. Making this bigger makes update
 	// delivery more reliable and ordered but increases memory usage
