@@ -114,8 +114,13 @@ func (w *Wraith) Spawn(pctx context.Context, conf Config, mods ...mod) {
 	// Init heartbeat channel.
 	//
 	// It is important that this channel is unbuffered, else it will
-	// return false positives.
+	// return false positives. It must also be initialised early on
+	// or reads will block forever resulting in false negatives.
 	w.heartbeat = make(chan struct{})
+
+	// Initialise the shm. This must be done before any modules are
+	// started because modules will assume the shm is post-init.
+	w.shm.Init()
 
 	// Save a copy of the provided context to control Wraith's lifetime.
 	w.ctxLock.Lock()
@@ -126,9 +131,11 @@ func (w *Wraith) Spawn(pctx context.Context, conf Config, mods ...mod) {
 	// active.
 	w.mods = make(map[string]struct{})
 
-	// Activate any modules passed directly to this method. This is done
-	// asynchronously so the mainloop is able to start. Otherwise this
-	// method will not detect a mainloop and hence, fail.
+	// Activate any modules passed directly to this method.
+	//
+	// This is done asynchronously so the mainloop is able to
+	// start. Otherwise this method will not detect a mainloop and
+	// hence fail, carshing Wraith.
 	go w.ModsReg(mods...)
 
 	// Run mainloop.
@@ -251,6 +258,20 @@ func (w *Wraith) SHMUnwatch(cellname string, watchId int) {
 	defer w.catch()
 
 	w.shm.Unwatch(cellname, watchId)
+}
+
+// Proxy to shm.Dump()
+func (w *Wraith) SHMDump() map[string]any {
+	defer w.catch()
+
+	return w.shm.Dump()
+}
+
+// Proxy to shm.Prune()
+func (w *Wraith) SHMPrune() {
+	defer w.catch()
+
+	w.shm.Prune()
 }
 
 //

@@ -110,24 +110,8 @@ func (c *shmCell) unwatch(id int) {
 // thread-safe way while providing facilities to watch individual
 // memory cells for updates.
 type shm struct {
-	isPostInit bool
-
-	// This is an RWMutex because eventually it could be used to
-	// improve performance. Currently even reading requires a write
-	// lock as the shm is autoinitialised which is a write operation.
-	// TODO
 	mutex sync.RWMutex
-
-	mem map[string]*shmCell
-}
-
-// Initialise the SM if it's not already initialised. This requires
-// a lock, but assumes that this is handled by the caller.
-func (m *shm) initIfNot() {
-	if !m.isPostInit {
-		m.mem = make(map[string]*shmCell)
-		m.isPostInit = true
-	}
+	mem   map[string]*shmCell
 }
 
 // Lock the mutex and return the function to unlock it. This
@@ -151,11 +135,18 @@ func (m *shm) createcell(name string) *shmCell {
 	return m.mem[name]
 }
 
+// Initialise the shm. Successive calls will re-initialise the shm
+// thereby clearing the content of all cells.
+func (m *shm) Init() {
+	defer m.autolock()()
+
+	m.mem = make(map[string]*shmCell)
+}
+
 // Set the value of the given cell to that passed as the argument.
 // This will also notify all watchers of the change.
 func (m *shm) Set(cellName string, value any) {
 	defer m.autolock()()
-	m.initIfNot()
 
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
@@ -169,8 +160,7 @@ func (m *shm) Set(cellName string, value any) {
 
 // Get the current value of a given cell.
 func (m *shm) Get(cellName string) any {
-	defer m.autolock()()
-	m.initIfNot()
+	defer m.rautolock()()
 
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
@@ -190,7 +180,6 @@ func (m *shm) Get(cellName string) any {
 // channel which can be used to unwatch the cell.
 func (m *shm) Watch(cellName string) (channel chan any, watchId int) {
 	defer m.autolock()()
-	m.initIfNot()
 
 	// Create a channel, to be used for sending updates, with no buffer
 	channel = make(chan any, SHMCONF_WATCHER_CHAN_SIZE)
@@ -213,7 +202,6 @@ func (m *shm) Watch(cellName string) (channel chan any, watchId int) {
 // by Watch().
 func (m *shm) Unwatch(cellName string, watchId int) {
 	defer m.autolock()()
-	m.initIfNot()
 
 	// If the cell exists...
 	if cell, exists := m.mem[cellName]; exists {
@@ -222,4 +210,33 @@ func (m *shm) Unwatch(cellName string, watchId int) {
 		cell.unwatch(watchId)
 	}
 	// ...otherwise, there's nothing to do
+}
+
+// Dump the entire contents of the shared memory as a map. Note
+// that this does not just return a property of shm; it loops
+// over each cell and fetches its value. This means that calls
+// might be quite resource-intensive depending on the shm size.
+func (m *shm) Dump() map[string]any {
+	defer m.rautolock()()
+
+	memdump := make(map[string]any)
+
+	// Fetch data from all cells.
+	for cellname, cell := range m.mem {
+		memdump[cellname] = cell.get()
+	}
+
+	return memdump
+}
+
+// Delete all cells which hold a nil value and have no watchers.
+func (m *shm) Prune() {
+	defer m.autolock()()
+
+	// Loop over all cells and find which are unused.
+	for cellname, cell := range m.mem {
+		if cell.get() == nil && len(cell.watchers) == 0 {
+			delete(m.mem, cellname)
+		}
+	}
 }
