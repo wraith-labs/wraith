@@ -12,7 +12,7 @@ type mod interface {
 	// unless its context is cancelled. If this method returns or panics and the context
 	// is not cancelled, it will be assumed to have crashed and will be restarted
 	// immediately unless the max configured crashes occur within a configured time
-	// at which point it will no longer be restarted for the entire time Wraith is running.
+	// at which point it will no longer be restarted.
 	//
 	// The method receives 2 arguments: a context which, when cancelled, should
 	// cause the mainloop to exit (return); and a pointer to the module's parent

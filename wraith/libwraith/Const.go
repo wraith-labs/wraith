@@ -1,7 +1,7 @@
 package libwraith
 
-// Reserved locations in the shared memory with special purposes
-// All other locations should be namespaced
+// Reserved locations in the shared memory with special purposes.
+// All other locations should be namespaced.
 const (
 	// This cell stores data which is to be transmitted to C2. This data
 	// should be managed and directed to individual comms modules by the
@@ -26,8 +26,8 @@ const (
 	SHM_ERRS = "err"
 )
 
-// Reserved module names for modules with special purposes
-// All other modules should be namespaced
+// Reserved module names for modules with special purposes.
+// All other modules should be namespaced.
 const (
 	// This module is responsible for managing the SHM_TX_QUEUE and
 	// SHM_RX_QUEUE memory cells and distributing the data within them
@@ -46,7 +46,7 @@ const (
 	MOD_COMMS_MANAGER = "commsManager"
 )
 
-// Configuration for shared memory
+// Configuration options for shared memory.
 const (
 	// The size of watcher channels. Making this bigger makes update
 	// delivery more reliable and ordered but increases memory usage
