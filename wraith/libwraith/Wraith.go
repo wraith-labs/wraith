@@ -126,8 +126,10 @@ func (w *Wraith) Spawn(pctx context.Context, conf Config, mods ...mod) {
 	// active.
 	w.mods = make(map[string]struct{})
 
-	// Activate any modules passed directly to this method.
-	w.ModsReg(mods...)
+	// Activate any modules passed directly to this method. This is done
+	// asynchronously so the mainloop is able to start. Otherwise this
+	// method will not detect a mainloop and hence, fail.
+	go w.ModsReg(mods...)
 
 	// Run mainloop.
 	//
