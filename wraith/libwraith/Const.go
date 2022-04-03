@@ -7,19 +7,19 @@ const (
 	// should be managed and directed to individual comms modules by the
 	// MOD_COMMS_MANAGER module, hence only that module should really read
 	// from this cell, but any module can write to it.
-	SHM_TX_QUEUE = "txQueue"
+	SHM_TX_QUEUE = "txq"
 
 	// This cell stores all data which has been received from C2 and is
 	// awaiting processing. This data should be managed and directed to
 	// individual modules by the MOD_COMMS_MANAGER module. Hence, only
 	// that module should really read from this cell, and only modules
 	// responsible for receiving of data should write to it.
-	SHM_RX_QUEUE = "rxQueue"
+	SHM_RX_QUEUE = "rxq"
 
 	// This cell holds the status of the CommsManager. Modules should not
 	// write to the TX/RX queue cells if this value is falsey or nil as
 	// their messages can get lost.
-	SHM_COMMS_READY = "commsReady"
+	SHM_COMMS_READY = "comms"
 
 	// This cell holds the latest error which occurred, be it in a module
 	// or Wraith itself. Can be used to send error logs to C2.
@@ -43,7 +43,7 @@ const (
 	// must be done transparrently i.e., the manager must estabilish
 	// its own way of speaking to those modules and all data must still
 	// go through it.
-	MOD_COMMS_MANAGER = "commsManager"
+	MOD_COMMS_MANAGER = "cmgr"
 )
 
 // Configuration options for shared memory.
