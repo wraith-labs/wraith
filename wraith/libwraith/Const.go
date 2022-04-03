@@ -3,24 +3,6 @@ package libwraith
 // Reserved locations in the shared memory with special purposes.
 // All other locations should be namespaced.
 const (
-	// This cell stores data which is to be transmitted to C2. This data
-	// should be managed and directed to individual comms modules by the
-	// MOD_COMMS_MANAGER module, hence only that module should really read
-	// from this cell, but any module can write to it.
-	SHM_TX_QUEUE = "txq"
-
-	// This cell stores all data which has been received from C2 and is
-	// awaiting processing. This data should be managed and directed to
-	// individual modules by the MOD_COMMS_MANAGER module. Hence, only
-	// that module should really read from this cell, and only modules
-	// responsible for receiving of data should write to it.
-	SHM_RX_QUEUE = "rxq"
-
-	// This cell holds the status of the CommsManager. Modules should not
-	// write to the TX/RX queue cells if this value is falsey or nil as
-	// their messages can get lost.
-	SHM_COMMS_READY = "comms"
-
 	// This cell holds the latest error which occurred, be it in a module
 	// or Wraith itself. Can be used to send error logs to C2.
 	SHM_ERRS = "err"

@@ -19,11 +19,12 @@ type mod interface {
 	// Wraith instance for communication purposes.
 	//
 	// Any errors should ideally be handled within the method and not propagate
-	// up the stack; however, if an error cannot be handled, it should be returned.
-	// It may be worth noting though that, as modules can be very diverse, Wraith
+	// up the stack; however, if an error cannot be handled, the mainloop should panic.
+	// Wraith will catch the panic but, as modules can be very diverse, Wraith
 	// is unable to correctly handle module errors and will resort to taking note
-	// of them (for possible sending to C2 later) and moving on.
-	Mainloop(context.Context, *Wraith) error
+	// of them (for possible sending to C2 later) and moving on. Panicking modules will
+	// be restarted provided they are not crashlooping.
+	Mainloop(context.Context, *Wraith)
 
 	// Return a string representing the name of the module. This is used to
 	// generate a map of module names to allow for easy listing, and management

@@ -15,7 +15,7 @@ type DebugModule struct {
 	mutex sync.Mutex
 }
 
-func (m *DebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
+func (m *DebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) {
 	fmt.Printf("Starting the debug module!\n")
 
 	fmt.Printf("Wraith strain ID: %s\nWraith fingerprint: %s\n", w.GetStrainId(), w.GetFingerprint())
@@ -24,7 +24,7 @@ func (m *DebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
 	single := m.mutex.TryLock()
 	if !single {
 		fmt.Printf("It seems this debug module is already running! Exiting...\n")
-		return fmt.Errorf("already running")
+		panic(fmt.Errorf("already running"))
 	}
 	defer func() {
 		fmt.Printf("Marking debug module as not running!\n")
@@ -57,7 +57,7 @@ func (m *DebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
 		// Trigger exit when requested
 		case <-ctx.Done():
 			fmt.Printf("Debug module exit requested via context close!\n")
-			return nil
+			return
 		// Manage w.debug watch
 		case value := <-debugCellWatch:
 			fmt.Printf("Received value in the `w.debug` memory cell: `%v`\n", value)

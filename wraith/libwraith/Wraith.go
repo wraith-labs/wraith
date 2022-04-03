@@ -327,14 +327,15 @@ func (w *Wraith) ModsReg(mods ...mod) {
 					w.ctxLock.RUnlock()
 					defer moduleCtxCancel()
 
-					// Run the module and catch any panics or errors.
+					// Run the module and catch any panics.
 					err := func() (err error) {
 						defer func() {
 							if r := recover(); r != nil {
 								err = fmt.Errorf("panic in module %s: %v", name, r)
 							}
 						}()
-						return module.Mainloop(moduleCtx, w)
+						module.Mainloop(moduleCtx, w)
+						return nil
 					}()
 
 					// If there were any errors, report them.
