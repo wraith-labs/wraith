@@ -61,10 +61,9 @@ func main() {
 			ModuleCrashloopDetectCount: 3,
 			ModuleCrashloopDetectTime:  30 * time.Second,
 		},
-		//&stdmod.JWTCommsManagerModule{},
+		&stdmod.PineconeJWTCommsManagerModule{},
 		&stdmod.DebugModule{},
 		&stdmod.ExecGoModule{},
-	//	&stdmod.WCommsPinecone{},
 	)
 
 	// Wait until the exit trigger fires
