@@ -55,13 +55,13 @@ func main() {
 	go w.Spawn(
 		ctx,
 		libwraith.Config{
-			FamilyId:                   "none",
+			StrainId:                   "none",
 			FingerprintGenerator:       func() string { return "none" },
 			HeartbeatTimeout:           1 * time.Second,
 			ModuleCrashloopDetectCount: 3,
 			ModuleCrashloopDetectTime:  30 * time.Second,
 		},
-		&stdmod.JWTCommsManagerModule{},
+		//&stdmod.JWTCommsManagerModule{},
 		&stdmod.DebugModule{},
 		&stdmod.ExecGoModule{},
 	//	&stdmod.WCommsPinecone{},

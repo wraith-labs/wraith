@@ -8,9 +8,9 @@ type Config struct {
 	// A string representing the family ID or strain ID of Wraith.
 	// This can be useful to check what different versions of
 	// Wraith are out there, or to target only one specific
-	// family with commands/payloads. This should be changed
+	// strain with commands/payloads. This should be changed
 	// whenever a significant change is made to Wraith before building.
-	FamilyId string
+	StrainId string
 
 	// A function used to generate the fingerprint for this instance
 	// of Wraith. That is, a unique string identifying specifically this

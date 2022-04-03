@@ -2,7 +2,7 @@ package libwraith
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -221,6 +221,17 @@ func (w *Wraith) GetFingerprint() string {
 }
 
 //
+// Strain ID
+//
+
+// Get the strain ID of this Wraith.
+func (w *Wraith) GetStrainId() string {
+	defer w.catch()
+
+	return w.conf.StrainId
+}
+
+//
 // Shared Memory
 //
 
@@ -320,12 +331,7 @@ func (w *Wraith) ModsReg(mods ...mod) {
 					err := func() (err error) {
 						defer func() {
 							if r := recover(); r != nil {
-								rstr, ok := r.(string)
-								if ok {
-									err = errors.New(rstr)
-								} else {
-									err = errors.New("panic")
-								}
+								err = fmt.Errorf("panic in module %s: %v", name, r)
 							}
 						}()
 						return module.Mainloop(moduleCtx, w)
