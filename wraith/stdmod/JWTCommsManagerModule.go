@@ -6,12 +6,10 @@ import (
 	"fmt"
 	"net"
 	"sync"
-	"time"
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
 	pineconeM "github.com/matrix-org/pinecone/multicast"
 	pineconeR "github.com/matrix-org/pinecone/router"
-	"github.com/pascaldekloe/jwt"
 )
 
 // A CommsManager module implementation which utilises (optionally) encrypted JWT
@@ -68,7 +66,7 @@ func (m *PineconeJWTCommsManagerModule) Mainloop(ctx context.Context, w *libwrai
 					continue
 				}
 
-				port, _ := router.Connect(
+				_, _ = router.Connect(
 					conn,
 					pineconeR.ConnectionPeerType(pineconeR.PeerTypeRemote),
 				)
@@ -115,58 +113,58 @@ func (m *PineconeJWTCommsManagerModule) Mainloop(ctx context.Context, w *libwrai
 		case <-ctx.Done():
 			return
 
-		// Manage transmit queue
-		case data := <-txQueue:
-			// Make sure the data is of the correct type/format, else ignore
-			txdata, ok := data.(map[string]any)
-			if !ok {
-				continue
-			}
-
-			var claims jwt.Claims
-
-			// Put all data under "w" key
-			claims.Set = map[string]interface{}{"w": txdata}
-
-			claims.EdDSASign(m.TxKey)
-
-		// Manage receive queue
-		case data := <-rxQueue:
-			// If the data is not a bytearray, it's not a JWT token so should be ignored.
-			databytes, ok := data.([]byte)
-			if !ok {
-				continue
-			}
-
-			// Attempt to parse given data as a JWT.
-			claims, err := jwt.EdDSACheck(databytes, m.RxKey)
-
-			// If we couldn't parse the data, do not attempt further parsing. No error
-			// needs to be reported because this just means we received invalid data.
-			if err != nil {
-				continue
-			}
-
-			// Make sure the token is valid, don't consider expired tokens.
-			if !claims.Valid(time.Now()) {
-				continue
-			}
-
-			if wKey, ok := claims.Set["w"]; !ok {
-				// Make sure that the token has a "w" key which holds all Wraith data.
-
-				continue
-			} else if wKeyMap, ok := wKey.(map[string]interface{}); !ok {
-				// Make sure the "w" key is map[string]interface{} as expected.
-
-				continue
-			} else {
-				// If all is well, send the subkeys of the "w" key to the appropriate shm cells
-
-				for cell, value := range wKeyMap {
-					w.SHMSet(cell, value)
+			// Manage transmit queue
+			/*case data := <-txQueue:
+				// Make sure the data is of the correct type/format, else ignore
+				txdata, ok := data.(map[string]any)
+				if !ok {
+					continue
 				}
-			}
+
+				var claims jwt.Claims
+
+				// Put all data under "w" key
+				claims.Set = map[string]interface{}{"w": txdata}
+
+				claims.EdDSASign(m.TxKey)
+
+			// Manage receive queue
+			case data := <-rxQueue:
+				// If the data is not a bytearray, it's not a JWT token so should be ignored.
+				databytes, ok := data.([]byte)
+				if !ok {
+					continue
+				}
+
+				// Attempt to parse given data as a JWT.
+				claims, err := jwt.EdDSACheck(databytes, m.RxKey)
+
+				// If we couldn't parse the data, do not attempt further parsing. No error
+				// needs to be reported because this just means we received invalid data.
+				if err != nil {
+					continue
+				}
+
+				// Make sure the token is valid, don't consider expired tokens.
+				if !claims.Valid(time.Now()) {
+					continue
+				}
+
+				if wKey, ok := claims.Set["w"]; !ok {
+					// Make sure that the token has a "w" key which holds all Wraith data.
+
+					continue
+				} else if wKeyMap, ok := wKey.(map[string]interface{}); !ok {
+					// Make sure the "w" key is map[string]interface{} as expected.
+
+					continue
+				} else {
+					// If all is well, send the subkeys of the "w" key to the appropriate shm cells
+
+					for cell, value := range wKeyMap {
+						w.SHMSet(cell, value)
+					}
+				}*/
 		}
 	}
 }
