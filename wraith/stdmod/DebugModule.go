@@ -32,14 +32,16 @@ func (m *DebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
 	fmt.Printf("No other debug module instances are running. Good to start!\n")
 
 	// Watch some debug cells
-	fmt.Printf("Setting up watch for `w.debug` memory cell!\n")
+	fmt.Printf("Setting up watch for memory cells!\n")
 	debugCellWatch, debugCellWatchId := w.SHMWatch("w.debug")
+	errorCellWatch, errorCellWatchId := w.SHMWatch(libwraith.SHM_ERRS)
 
 	// Always cleanup SHM when exiting
 	defer func() {
 		// Unwatch cells
-		fmt.Printf("Cancelling watch for `w.debug` memory cell!\n")
+		fmt.Printf("Cancelling watch for memory cells!\n")
 		w.SHMUnwatch("w.debug", debugCellWatchId)
+		w.SHMUnwatch(libwraith.SHM_ERRS, errorCellWatchId)
 	}()
 
 	// Send something to the debug memory cell
@@ -57,9 +59,15 @@ func (m *DebugModule) Mainloop(ctx context.Context, w *libwraith.Wraith) error {
 		// Manage w.debug watch
 		case value := <-debugCellWatch:
 			fmt.Printf("Received value in the `w.debug` memory cell: `%v`\n", value)
+		case err := <-errorCellWatch:
+			fmt.Printf("Received value in the `%s` memory cell: `%v`\n", libwraith.SHM_ERRS, err)
 		case <-time.After(5 * time.Second):
 			fmt.Printf("Sending `hello debug!` into the `w.debug` memory cell!\n")
 			w.SHMSet("w.debug", "hello debug!")
+
+			fmt.Printf("Checking Wraith alive status!\n")
+			alive := w.IsAlive()
+			fmt.Printf("Wraith reports as alive: %v\n", alive)
 		}
 	}
 }
