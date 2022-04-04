@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/ed25519"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net"
 	"sync"
 
@@ -45,8 +47,11 @@ func (m *PineconeJWTCommsManagerModule) Mainloop(ctx context.Context, w *libwrai
 		panic(fmt.Errorf("[%s] incorrect public key size (is %d, should be %d)", libwraith.MOD_COMMS_MANAGER, keylen, ed25519.PublicKeySize))
 	}
 
+	// Init a dummy logger for pinecone stuff
+	dummyLogger := log.New(ioutil.Discard, "", 0)
+
 	// Init pinecone router
-	router := pineconeR.NewRouter(nil, m.OwnPrivKey, false)
+	router := pineconeR.NewRouter(dummyLogger, m.OwnPrivKey, false)
 
 	//pQUIC := pineconeS.NewSessions(nil, router)
 
@@ -78,7 +83,7 @@ func (m *PineconeJWTCommsManagerModule) Mainloop(ctx context.Context, w *libwrai
 
 	// If enabled, start multicast
 	if m.UseMulticast {
-		pMulticast := pineconeM.NewMulticast(nil, router)
+		pMulticast := pineconeM.NewMulticast(dummyLogger, router)
 		pMulticast.Start()
 	}
 
