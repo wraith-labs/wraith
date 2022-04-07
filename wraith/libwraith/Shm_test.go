@@ -7,16 +7,12 @@ import (
 )
 
 func TestShmInit(t *testing.T) {
-	t.Log("testing shm init")
-
 	testshm := shm{}
 
 	testshm.Init()
 }
 
 func TestShmWriteReadReinit(t *testing.T) {
-	t.Log("testing shm reinit clear")
-
 	testshm := shm{}
 
 	testshm.Init()
@@ -31,8 +27,6 @@ func TestShmWriteReadReinit(t *testing.T) {
 }
 
 func TestShmWriteRead(t *testing.T) {
-	t.Log("testing shm R/W functionality")
-
 	testshm := shm{}
 
 	testshm.Init()
@@ -57,8 +51,6 @@ func TestShmWriteRead(t *testing.T) {
 }
 
 func TestShmWriteReadWatchUnwatchAsync(t *testing.T) {
-	t.Log("testing shm R/W & Watch/Unwatch functionality asynchronously")
-
 	testshm := shm{}
 
 	testshm.Init()
@@ -101,8 +93,6 @@ func TestShmWriteReadWatchUnwatchAsync(t *testing.T) {
 }
 
 func TestShmDump(t *testing.T) {
-	t.Log("testing shm dump functionality")
-
 	testshm := shm{}
 
 	testshm.Init()
@@ -129,8 +119,6 @@ func TestShmDump(t *testing.T) {
 }
 
 func TestShmPrune(t *testing.T) {
-	t.Log("testing shm dump functionality")
-
 	testshm := shm{}
 
 	testshm.Init()
