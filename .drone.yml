@@ -17,6 +17,6 @@ steps:
       - apk add --no-cache build-base git
       - go install mvdan.cc/garble@c8e0abf9c9bd9bcf99c8c6ee116d7da30afa58e7
       - cd wraith
-      - garble build -v -trimpath -literals -tiny -seed=random .
+      - garble -literals -tiny -seed=random build -v -trimpath .
       - go version
       - garble version
