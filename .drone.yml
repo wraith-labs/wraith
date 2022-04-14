@@ -7,9 +7,11 @@ steps:
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base git
+      - go install mvdan.cc/garble@c8e0abf9c9bd9bcf99c8c6ee116d7da30afa58e7
       - cd wraith
-      - go test -v ./...
+      - garble -literals -tiny -seed=random test -v ./...
       - go version
+      - garble version
   - name: build
     image: docker.io/golang:1.18-alpine
     depends_on: [ clone ]
