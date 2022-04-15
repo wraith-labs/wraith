@@ -1,1 +1,1 @@
-package libwraith
+package libwraith_test

@@ -1,19 +1,21 @@
-package libwraith
+package libwraith_test
 
 import (
 	"sync"
 	"testing"
 	"time"
+
+	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
 )
 
 func TestShmInit(t *testing.T) {
-	testshm := shm{}
+	testshm := libwraith.Shm{}
 
 	testshm.Init()
 }
 
 func TestShmWriteReadReinit(t *testing.T) {
-	testshm := shm{}
+	testshm := libwraith.Shm{}
 
 	testshm.Init()
 
@@ -27,7 +29,7 @@ func TestShmWriteReadReinit(t *testing.T) {
 }
 
 func TestShmWriteRead(t *testing.T) {
-	testshm := shm{}
+	testshm := libwraith.Shm{}
 
 	testshm.Init()
 
@@ -51,7 +53,7 @@ func TestShmWriteRead(t *testing.T) {
 }
 
 func TestShmWriteReadWatchUnwatchAsync(t *testing.T) {
-	testshm := shm{}
+	testshm := libwraith.Shm{}
 
 	testshm.Init()
 
@@ -93,7 +95,7 @@ func TestShmWriteReadWatchUnwatchAsync(t *testing.T) {
 }
 
 func TestShmDump(t *testing.T) {
-	testshm := shm{}
+	testshm := libwraith.Shm{}
 
 	testshm.Init()
 
@@ -119,7 +121,7 @@ func TestShmDump(t *testing.T) {
 }
 
 func TestShmPrune(t *testing.T) {
-	testshm := shm{}
+	testshm := libwraith.Shm{}
 
 	testshm.Init()
 
