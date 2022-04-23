@@ -7,19 +7,20 @@ steps:
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base git
-      #- go install mvdan.cc/garble@c8e0abf9c9bd9bcf99c8c6ee116d7da30afa58e7
+      - go install mvdan.cc/garble@79b6e4db3dae31b9f37eeef0f150111a9f262126
       - cd wraith
-      #- garble -literals -tiny -seed=random test -v ./...
-      - go test -v ./...
       - go version
-      #- garble version
+      #- go test -v ./...
+      - garble version
+      - garble -literals -tiny -seed=random test -v ./...
   - name: build
     image: docker.io/golang:1.18-alpine
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base git
-      - go install mvdan.cc/garble@c8e0abf9c9bd9bcf99c8c6ee116d7da30afa58e7
+      - go install mvdan.cc/garble@79b6e4db3dae31b9f37eeef0f150111a9f262126
       - cd wraith
-      - garble -literals -tiny -seed=random build -v -trimpath .
       - go version
+      #- go build -v -trimpath .
       - garble version
+      - garble -literals -tiny -seed=random build -v -trimpath .
