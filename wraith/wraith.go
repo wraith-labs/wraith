@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/ed25519"
 	"os"
 	"os/signal"
 	"syscall"
@@ -51,6 +52,10 @@ func main() {
 	// Create context for Wraith
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
+	// Prepare some config values
+	_, ownPrivKey, _ := ed25519.GenerateKey(nil)
+	adminPubKey, _, _ := ed25519.GenerateKey(nil)
+
 	// Start Wraith in goroutine
 	go w.Spawn(
 		ctx,
@@ -61,7 +66,16 @@ func main() {
 			ModuleCrashloopDetectCount: 3,
 			ModuleCrashloopDetectTime:  30 * time.Second,
 		},
-		&stdmod.PineconeJWTCommsManagerModule{},
+		&stdmod.PineconeJWTCommsManagerModule{
+			OwnPrivKey:   ownPrivKey,
+			AdminPubKey:  adminPubKey,
+			ListenTcp:    true,
+			ListenWs:     true,
+			UseMulticast: true,
+			StaticPeers: []string{
+				"ws://pinecone.neilalexander.dev",
+			},
+		},
 		&stdmod.DebugModule{},
 		&stdmod.ExecGoModule{},
 	)

