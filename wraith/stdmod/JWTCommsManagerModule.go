@@ -9,8 +9,9 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
-	"git.0x1a8510f2.space/0x1a8510f2/wraith/wraith/libwraith"
+	"git.0x1a8510f2.space/wraith-labs/wraith/wraith/libwraith"
 	"github.com/gorilla/websocket"
 	pineconeC "github.com/matrix-org/pinecone/connections"
 	pineconeM "github.com/matrix-org/pinecone/multicast"
@@ -165,6 +166,8 @@ func (m *PineconeJWTCommsManagerModule) Mainloop(ctx context.Context, w *libwrai
 	// Mainloop
 	for {
 		select {
+		case <-time.After(1 * time.Second):
+			fmt.Printf("%v\n", pineconeRouter.Peers())
 		// Trigger exit when requested
 		case <-ctx.Done():
 			return
