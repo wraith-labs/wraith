@@ -7,7 +7,7 @@ steps:
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base git
-      - go install mvdan.cc/garble@c9337022a0ee9d5e2135a49a49d9ddc593618bb9
+      - go install mvdan.cc/garble@d18dd73556df0816ae550280555708bed2be8f30
       - cd wraith
       - go version
       #- go test -v ./...
@@ -18,7 +18,7 @@ steps:
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base git
-      - go install mvdan.cc/garble@c9337022a0ee9d5e2135a49a49d9ddc593618bb9
+      - go install mvdan.cc/garble@d18dd73556df0816ae550280555708bed2be8f30
       - cd wraith
       - go version
       #- go build -v -trimpath .
