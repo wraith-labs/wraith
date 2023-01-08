@@ -3,22 +3,22 @@ type: docker
 name: test and build
 steps:
   - name: test
-    image: docker.io/golang:1.18-alpine
+    image: docker.io/golang:1.19-alpine
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base git
-      - go install mvdan.cc/garble@d18dd73556df0816ae550280555708bed2be8f30
+      - go install mvdan.cc/garble@41df1f8725f87f3ed8f83bf19d7408e83f787cf2
       - cd wraith
       - go version
       #- go test -v ./...
       - garble version
       - garble -literals -tiny -seed=random test -v ./...
   - name: build
-    image: docker.io/golang:1.18-alpine
+    image: docker.io/golang:1.19-alpine
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base git
-      - go install mvdan.cc/garble@d18dd73556df0816ae550280555708bed2be8f30
+      - go install mvdan.cc/garble@41df1f8725f87f3ed8f83bf19d7408e83f787cf2
       - cd wraith
       - go version
       #- go build -v -trimpath .
