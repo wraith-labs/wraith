@@ -4,11 +4,11 @@ go 1.19
 
 require (
 	dev.l1qu1d.net/wraith-labs/wraith-module-execgo v0.0.0-20230108045636-1567da689fbf
-	dev.l1qu1d.net/wraith-labs/wraith-module-pinecomms v0.0.0-20230108050711-571eb7c0e41e
+	dev.l1qu1d.net/wraith-labs/wraith-module-pinecomms v0.0.0-20230108053604-322eb3ba179f
 )
 
 require (
-	github.com/Arceliar/phony v0.0.0-20220903101357-530938a4b13d // indirect
+	github.com/Arceliar/phony v0.0.0-20210209235338-dde1a8dca979 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/klauspost/compress v1.15.14 // indirect
 	github.com/matrix-org/pinecone v0.0.0-20221128101439-6e3494efdfb3 // indirect
