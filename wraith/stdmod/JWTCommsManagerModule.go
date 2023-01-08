@@ -4,14 +4,14 @@ import (
 	"context"
 	"crypto/ed25519"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
 	"sync"
 	"time"
 
-	"git.0x1a8510f2.space/wraith-labs/wraith/wraith/libwraith"
+	"dev.l1qu1d.net/wraith-labs/wraith/wraith/libwraith"
 	"github.com/gorilla/websocket"
 	pineconeC "github.com/matrix-org/pinecone/connections"
 	pineconeM "github.com/matrix-org/pinecone/multicast"
@@ -54,7 +54,7 @@ func (m *PineconeJWTCommsManagerModule) Mainloop(ctx context.Context, w *libwrai
 	}
 
 	// Init a dummy logger for pinecone stuff
-	dummyLogger := log.New(ioutil.Discard, "", 0)
+	dummyLogger := log.New(io.Discard, "", 0)
 
 	// Init pinecone stuff
 	pineconeRouter := pineconeR.NewRouter(dummyLogger, m.OwnPrivKey, false)

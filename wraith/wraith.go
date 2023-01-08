@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"git.0x1a8510f2.space/wraith-labs/wraith/wraith/libwraith"
-	"git.0x1a8510f2.space/wraith-labs/wraith/wraith/stdmod"
+	"dev.l1qu1d.net/wraith-labs/wraith/wraith/libwraith"
+	"dev.l1qu1d.net/wraith-labs/wraith/wraith/stdmod"
 
 	// This is here temporarily while I work on the modules which use these
 	// TODO
@@ -76,7 +76,6 @@ func main() {
 				"wss://pinecone.matrix.org/public",
 			},
 		},
-		&stdmod.DebugModule{},
 		&stdmod.ExecGoModule{},
 	)
 

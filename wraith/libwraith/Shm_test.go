@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"git.0x1a8510f2.space/wraith-labs/wraith/wraith/libwraith"
+	"dev.l1qu1d.net/wraith-labs/wraith/wraith/libwraith"
 )
 
 func TestShmInit(t *testing.T) {

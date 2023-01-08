@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"git.0x1a8510f2.space/wraith-labs/wraith/wraith/libwraith"
+	"dev.l1qu1d.net/wraith-labs/wraith/wraith/libwraith"
 	"github.com/traefik/yaegi/interp"
 	"github.com/traefik/yaegi/stdlib"
 )
