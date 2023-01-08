@@ -9,13 +9,9 @@ import (
 	"time"
 
 	"dev.l1qu1d.net/wraith-labs/wraith/wraith/libwraith"
-	"dev.l1qu1d.net/wraith-labs/wraith/wraith/stdmod"
 
-	// This is here temporarily while I work on the modules which use these
-	// TODO
-	_ "github.com/pascaldekloe/jwt"
-	_ "github.com/traefik/yaegi/interp"
-	_ "github.com/traefik/yaegi/stdlib"
+	moduleexecgo "dev.l1qu1d.net/wraith-labs/wraith-module-execgo"
+	modulepinecomms "dev.l1qu1d.net/wraith-labs/wraith-module-pinecomms"
 )
 
 const RESPECT_EXIT_SIGNALS = true
@@ -66,7 +62,7 @@ func main() {
 			ModuleCrashloopDetectCount: 3,
 			ModuleCrashloopDetectTime:  30 * time.Second,
 		},
-		&stdmod.PineconeJWTCommsManagerModule{
+		&modulepinecomms.ModulePinecomms{
 			OwnPrivKey:   ownPrivKey,
 			AdminPubKey:  adminPubKey,
 			ListenTcp:    true,
@@ -76,7 +72,7 @@ func main() {
 				"wss://pinecone.matrix.org/public",
 			},
 		},
-		&stdmod.ExecGoModule{},
+		&moduleexecgo.ModuleExecGo{},
 	)
 
 	// Wait until the exit trigger fires
