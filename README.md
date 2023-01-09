@@ -21,3 +21,4 @@ The master branch currently contains Wraith v3.0.0 which is permanently in BETA 
 
 ## Other notes:
 - 14/11/2021 22:10 - Celebrating 100 stars on GitHub! 🎉
+- 09/01/2023 04:30 - First contact between Wraith and C2 via pinecomms module! 🎉
