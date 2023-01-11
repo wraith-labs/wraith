@@ -1,7 +1,7 @@
 dev.l1qu1d.net/wraith-labs/wraith-module-execgo v0.0.0-20230108045636-1567da689fbf h1:XMo2m3/SktzsKSHi6xlI1V1usgZi52VMWFNWe085Ruk=
 dev.l1qu1d.net/wraith-labs/wraith-module-execgo v0.0.0-20230108045636-1567da689fbf/go.mod h1:Z/B7lks17I+gZIgrp/Sen8wwaqJ1HmlOX0jV7bHejvg=
-dev.l1qu1d.net/wraith-labs/wraith-module-pinecomms v0.0.0-20230109054220-a4d213f76453 h1:T0e6AKC1k3TKfXMjvywKWmEcEyJFfLhKAayY7zFNAqQ=
-dev.l1qu1d.net/wraith-labs/wraith-module-pinecomms v0.0.0-20230109054220-a4d213f76453/go.mod h1:AhK5ioNOx2s7IsLlaOKUKvXJmOE1iKD6b0vsfBpF6Bg=
+dev.l1qu1d.net/wraith-labs/wraith-module-pinecomms v0.0.0-20230111064744-21302d4e7877 h1:Ua10Q5YfJA98fRLs82Q08/Kd07duhtYrCmQ7d9Ia3GI=
+dev.l1qu1d.net/wraith-labs/wraith-module-pinecomms v0.0.0-20230111064744-21302d4e7877/go.mod h1:AhK5ioNOx2s7IsLlaOKUKvXJmOE1iKD6b0vsfBpF6Bg=
 github.com/Arceliar/phony v0.0.0-20210209235338-dde1a8dca979 h1:WndgpSW13S32VLQ3ugUxx2EnnWmgba1kCqPkd4Gk1yQ=
 github.com/Arceliar/phony v0.0.0-20210209235338-dde1a8dca979/go.mod h1:6Lkn+/zJilRMsKmbmG1RPoamiArC6HS73xbwRyp3UyI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	dev.l1qu1d.net/wraith-labs/wraith-module-execgo v0.0.0-20230108045636-1567da689fbf
-	dev.l1qu1d.net/wraith-labs/wraith-module-pinecomms v0.0.0-20230109054220-a4d213f76453
+	dev.l1qu1d.net/wraith-labs/wraith-module-pinecomms v0.0.0-20230111064744-21302d4e7877
 )
 
 require (
