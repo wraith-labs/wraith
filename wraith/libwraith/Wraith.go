@@ -203,6 +203,20 @@ func (w *Wraith) GetStrainId() string {
 }
 
 //
+// Modules
+//
+
+// Get a list of the names of modules installed in this
+// Wraith.
+func (w *Wraith) GetInstalledModules() []string {
+	modules := make([]string, 0, len(w.mods))
+	for k := range w.mods {
+		modules = append(modules, k)
+	}
+	return modules
+}
+
+//
 // Shared Memory
 //
 
