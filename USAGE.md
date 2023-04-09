@@ -14,7 +14,7 @@ Of course, this does require that a Go toolchain is installed to initially build
 
 Below is an example Go file which produces a working Wraith. It should give you a good starting point.
 
-The file can be built by invoking the `go build` command with the name of the file as the first and only parameter.
+The file can be built by invoking the `go build` command with the name of the file as the first and only parameter. Make sure to `go get` any dependencies first.
 
 More advanced users may wish to use a tool like [garble](https://github.com/burrowers/garble) to make their binaries harder to reverse-engineer.
 
