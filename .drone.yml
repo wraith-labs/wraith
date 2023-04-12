@@ -1,26 +1,14 @@
 kind: pipeline
 type: docker
-name: test and build
+name: test
 steps:
   - name: test
-    image: docker.io/golang:1.19-alpine
+    image: docker.io/golang:1.20-alpine
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base git
-      - go install mvdan.cc/garble@d9e74dabbb96656f2387827c490cd188f4f70393
+      - go install mvdan.cc/garble@4d7546703a0df7d2b9133b319ae62369f98458e8
       - cd wraith
       - go version
-      #- go test -v ./...
       - garble version
       - garble -literals -tiny -seed=random test -v ./...
-  - name: build
-    image: docker.io/golang:1.19-alpine
-    depends_on: [ clone ]
-    commands:
-      - apk add --no-cache build-base git
-      - go install mvdan.cc/garble@d9e74dabbb96656f2387827c490cd188f4f70393
-      - cd wraith
-      - go version
-      #- go build -v -trimpath .
-      - garble version
-      - garble -literals -tiny -seed=random build -v -trimpath .
