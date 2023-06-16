@@ -7,8 +7,8 @@ steps:
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base git
-      - go install mvdan.cc/garble@4d7546703a0df7d2b9133b319ae62369f98458e8
-      - cd wraith
+      - go install mvdan.cc/garble@d3763143bd1e371733b96a234ce6fc8655e5acb3
+      - cd libwraith
       - go version
       - garble version
       - garble -literals -tiny -seed=random test -v ./...
