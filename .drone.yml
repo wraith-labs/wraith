@@ -3,7 +3,7 @@ type: docker
 name: test
 steps:
   - name: test
-    image: docker.io/golang:1.20-alpine
+    image: docker.io/golang:1.21-alpine
     depends_on: [ clone ]
     commands:
       - apk add --no-cache build-base git
