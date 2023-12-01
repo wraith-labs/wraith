@@ -230,13 +230,18 @@ func (m *shm) Dump() map[string]any {
 }
 
 // Delete all cells which hold a nil value and have no watchers.
-func (m *shm) Prune() {
+func (m *shm) Prune() int {
 	defer m.autolock()()
+
+	pruned := 0
 
 	// Loop over all cells and find which are unused.
 	for cellname, cell := range m.mem {
 		if cell.get() == nil && len(cell.watchers) == 0 {
 			delete(m.mem, cellname)
+			pruned++
 		}
 	}
+
+	return pruned
 }
