@@ -250,10 +250,10 @@ func (w *Wraith) SHMDump() map[string]any {
 }
 
 // Proxy to shm.Prune()
-func (w *Wraith) SHMPrune() {
+func (w *Wraith) SHMPrune() int {
 	defer w.catch()
 
-	w.shm.Prune()
+	return w.shm.Prune()
 }
 
 //
